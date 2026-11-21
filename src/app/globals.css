@@ -1,0 +1,144 @@
+@import 'tailwindcss';
+
+/*
+ * Design tokens.
+ *
+ * Brand colors are CSS variables so each university's theme can be applied at runtime
+ * (see src/lib/branding/theme.ts). Neutral surface tokens are shared by all tenants.
+ * Components use semantic classes (bg-primary, text-muted-foreground, border-border…),
+ * never raw hex values.
+ */
+
+:root {
+  /* Brand (defaults; overridden per platform/tenant by buildThemeVariables) */
+  --brand-primary: #1b4f8f;
+  --brand-primary-foreground: #ffffff;
+  --brand-primary-hover: #17447b;
+  --brand-primary-subtle: #e8edf4;
+  --brand-primary-subtle-foreground: #143b6b;
+  --brand-secondary: #0f2a4a;
+  --brand-secondary-foreground: #ffffff;
+  --brand-accent: #b7862c;
+  --brand-accent-foreground: #0b1220;
+  --brand-ring: #6d90bb;
+
+  /* Neutral surfaces */
+  --surface-background: #ffffff;
+  --surface-canvas: #f6f7f9;
+  --surface-foreground: #0b1220;
+  --surface-muted: #f1f3f6;
+  --surface-muted-foreground: #556070;
+  --surface-border: #e3e6eb;
+  --surface-input: #cfd5dd;
+  --surface-card: #ffffff;
+
+  /* Status */
+  --status-success: #067647;
+  --status-success-subtle: #ecfdf3;
+  --status-warning: #a15c07;
+  --status-warning-subtle: #fffaeb;
+  --status-danger: #b42318;
+  --status-danger-subtle: #fef3f2;
+  --status-info: #175cd3;
+  --status-info-subtle: #eff8ff;
+
+  --font-stack: var(--font-plex-sans), var(--font-plex-arabic), ui-sans-serif, system-ui, sans-serif;
+}
+
+/* Arabic pages prefer the Arabic face first for consistent glyph metrics. */
+html[lang='ar'] {
+  --font-stack: var(--font-plex-arabic), var(--font-plex-sans), ui-sans-serif, system-ui, sans-serif;
+}
+
+@theme inline {
+  --font-sans: var(--font-stack);
+
+  --color-primary: var(--brand-primary);
+  --color-primary-foreground: var(--brand-primary-foreground);
+  --color-primary-hover: var(--brand-primary-hover);
+  --color-primary-subtle: var(--brand-primary-subtle);
+  --color-primary-subtle-foreground: var(--brand-primary-subtle-foreground);
+  --color-secondary: var(--brand-secondary);
+  --color-secondary-foreground: var(--brand-secondary-foreground);
+  --color-accent: var(--brand-accent);
+  --color-accent-foreground: var(--brand-accent-foreground);
+  --color-ring: var(--brand-ring);
+
+  --color-background: var(--surface-background);
+  --color-canvas: var(--surface-canvas);
+  --color-foreground: var(--surface-foreground);
+  --color-muted: var(--surface-muted);
+  --color-muted-foreground: var(--surface-muted-foreground);
+  --color-border: var(--surface-border);
+  --color-input: var(--surface-input);
+  --color-card: var(--surface-card);
+
+  --color-success: var(--status-success);
+  --color-success-subtle: var(--status-success-subtle);
+  --color-warning: var(--status-warning);
+  --color-warning-subtle: var(--status-warning-subtle);
+  --color-danger: var(--status-danger);
+  --color-danger-subtle: var(--status-danger-subtle);
+  --color-info: var(--status-info);
+  --color-info-subtle: var(--status-info-subtle);
+
+  --radius-card: 0.75rem;
+}
+
+@layer base {
+  * {
+    border-color: var(--color-border);
+  }
+
+  html {
+    -webkit-text-size-adjust: 100%;
+    text-rendering: optimizeLegibility;
+  }
+
+  body {
+    background: var(--color-background);
+    color: var(--color-foreground);
+    font-family: var(--font-sans);
+    font-feature-settings: 'kern';
+  }
+
+  html[lang='ar'] body {
+    line-height: 1.7;
+  }
+
+  ::selection {
+    background: var(--color-primary-subtle);
+    color: var(--color-primary-subtle-foreground);
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--color-ring);
+    outline-offset: 2px;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
+}
+
+@layer components {
+  /* Constrained page width used across marketing and app pages. */
+  .container-page {
+    margin-inline: auto;
+    width: 100%;
+    max-width: 76rem;
+    padding-inline: 1.25rem;
+  }
+  @media (min-width: 768px) {
+    .container-page {
+      padding-inline: 2rem;
+    }
+  }
+}

@@ -1,0 +1,129 @@
+import type { FeatureKey } from '@/lib/features/catalog'
+import type { PermissionKey } from '@/lib/permissions/catalog'
+
+/**
+ * Navigation model for the tenant workspace and the platform console.
+ *
+ * Pure data (no React), so it can be shared by server code (authorization, routing) and
+ * client code (active-link highlighting). Hiding an item here is a UX convenience only —
+ * the pages and actions behind each item enforce permissions and features server-side.
+ */
+
+export type NavStatus = 'available' | 'planned'
+
+export type NavItem = {
+  key: string
+  /** Path segment under the workspace root ('' = overview). */
+  segment: string
+  icon: NavIconName
+  status: NavStatus
+  phase: number
+  permission?: PermissionKey
+  feature?: FeatureKey
+}
+
+export type NavSection = { key: string; items: NavItem[] }
+
+export type NavIconName =
+  | 'overview'
+  | 'assistant'
+  | 'admissions'
+  | 'academic'
+  | 'staff'
+  | 'tickets'
+  | 'knowledge'
+  | 'workflows'
+  | 'campus'
+  | 'analytics'
+  | 'quality'
+  | 'members'
+  | 'departments'
+  | 'integrations'
+  | 'settings'
+  | 'audit'
+  | 'tenants'
+  | 'plans'
+  | 'usage'
+  | 'ai'
+
+export const WORKSPACE_NAV: NavSection[] = [
+  {
+    key: 'main',
+    items: [{ key: 'overview', segment: '', icon: 'overview', status: 'available', phase: 1 }],
+  },
+  {
+    key: 'assistants',
+    items: [
+      { key: 'assistant', segment: 'assistant', icon: 'assistant', status: 'planned', phase: 5, permission: 'assistant.configure', feature: 'student_assistant' },
+      { key: 'admissions', segment: 'admissions', icon: 'admissions', status: 'planned', phase: 6, permission: 'leads.read', feature: 'admissions_agent' },
+      { key: 'academic', segment: 'academic', icon: 'academic', status: 'planned', phase: 9, permission: 'academic.manage', feature: 'academic_agent' },
+      { key: 'staff-assistant', segment: 'staff-assistant', icon: 'staff', status: 'planned', phase: 10, permission: 'assistant.staff.use', feature: 'staff_assistant' },
+    ],
+  },
+  {
+    key: 'operations',
+    items: [
+      { key: 'tickets', segment: 'tickets', icon: 'tickets', status: 'planned', phase: 7, permission: 'tickets.read_department', feature: 'ticketing' },
+      { key: 'knowledge', segment: 'knowledge', icon: 'knowledge', status: 'planned', phase: 4, permission: 'knowledge.manage', feature: 'knowledge_base' },
+      { key: 'workflows', segment: 'workflows', icon: 'workflows', status: 'planned', phase: 11, permission: 'tickets.update', feature: 'workflow_agent' },
+      { key: 'campus', segment: 'campus', icon: 'campus', status: 'planned', phase: 12, permission: 'campus.manage', feature: 'campus_assistant' },
+    ],
+  },
+  {
+    key: 'insights',
+    items: [
+      { key: 'analytics', segment: 'analytics', icon: 'analytics', status: 'planned', phase: 8, permission: 'analytics.view', feature: 'analytics_basic' },
+      { key: 'quality', segment: 'quality', icon: 'quality', status: 'planned', phase: 8, permission: 'quality.review', feature: 'student_assistant' },
+    ],
+  },
+  {
+    key: 'administration',
+    items: [
+      { key: 'members', segment: 'members', icon: 'members', status: 'planned', phase: 2, permission: 'members.read' },
+      { key: 'departments', segment: 'departments', icon: 'departments', status: 'planned', phase: 2, permission: 'departments.manage' },
+      { key: 'integrations', segment: 'integrations', icon: 'integrations', status: 'planned', phase: 14, permission: 'integrations.manage', feature: 'integrations' },
+      { key: 'audit', segment: 'audit', icon: 'audit', status: 'planned', phase: 2, permission: 'audit.read' },
+      { key: 'settings', segment: 'settings', icon: 'settings', status: 'available', phase: 1, permission: 'tenant.settings.read' },
+    ],
+  },
+]
+
+export const PLATFORM_NAV: NavSection[] = [
+  {
+    key: 'main',
+    items: [
+      { key: 'overview', segment: '', icon: 'overview', status: 'available', phase: 1 },
+      { key: 'tenants', segment: 'tenants', icon: 'tenants', status: 'planned', phase: 3 },
+      { key: 'plans', segment: 'plans', icon: 'plans', status: 'planned', phase: 15 },
+      { key: 'usage', segment: 'usage', icon: 'usage', status: 'planned', phase: 15 },
+      { key: 'ai', segment: 'ai', icon: 'ai', status: 'planned', phase: 5 },
+      { key: 'audit', segment: 'audit', icon: 'audit', status: 'planned', phase: 2 },
+      { key: 'settings', segment: 'settings', icon: 'settings', status: 'planned', phase: 3 },
+    ],
+  },
+]
+
+export type AccessSnapshot =
+  | { kind: 'all' } // UI preview: show every item (no data behind it)
+  | { kind: 'scoped'; permissions: ReadonlySet<string>; features: ReadonlySet<string> }
+
+export function canSeeNavItem(item: NavItem, access: AccessSnapshot): boolean {
+  if (access.kind === 'all') return true
+  if (item.permission && !access.permissions.has(item.permission)) return false
+  if (item.feature && !access.features.has(item.feature)) return false
+  return true
+}
+
+export function filterNav(sections: NavSection[], access: AccessSnapshot): NavSection[] {
+  return sections
+    .map((section) => ({ ...section, items: section.items.filter((item) => canSeeNavItem(item, access)) }))
+    .filter((section) => section.items.length > 0)
+}
+
+export function findNavItem(sections: NavSection[], segment: string): NavItem | undefined {
+  return sections.flatMap((s) => s.items).find((item) => item.segment === segment)
+}
+
+export function plannedSegments(sections: NavSection[]): string[] {
+  return sections.flatMap((s) => s.items).filter((i) => i.status === 'planned').map((i) => i.segment)
+}
