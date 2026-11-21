@@ -1,77 +1,79 @@
 # Task Checklist
 
-Legend: `[x]` done and verified · `[~]` partial (see note) · `[ ]` not started
+Legend: `[x]` done and verified · `[~]` partial (note says what is missing) · `[!]` broken (found in audit) · `[ ]` not started
+
+Source of truth for the current state: `docs/IMPLEMENTATION_AUDIT.md` (2026-11-21).
 
 ## Phase 0: Discovery, architecture, planning ✅
 
-- [x] Repository and environment inspection (`docs/00-repository-inspection.md`)
-- [x] Architecture (`docs/architecture.md`)
-- [x] Database architecture (`docs/database-schema.md`)
-- [x] Tenant isolation design + test plan (`docs/tenant-isolation.md`)
-- [x] Authentication design (`docs/authentication.md`)
-- [x] Authorization design + permission catalog (`docs/authorization.md`)
-- [x] AI architecture (`docs/ai-architecture.md`)
-- [x] Knowledge retrieval architecture (`docs/knowledge-retrieval.md`)
-- [x] Deployment strategy (`docs/deployment.md`)
-- [x] Security plan (`docs/security.md`)
-- [x] Phase roadmap with complexity estimates (`docs/roadmap.md`)
-- [x] ARCHITECTURE_DECISIONS.md, PROJECT_STATUS.md, TASKS.md
+- [x] Repository and environment inspection
+- [x] Architecture, database, tenant-isolation, authn/authz, AI, RAG, deployment, security docs
+- [x] Roadmap, ADR-001…013, PROJECT_STATUS.md, TASKS.md
+- [x] Implementation audit (`docs/IMPLEMENTATION_AUDIT.md`)
 
-## Phase 1: Foundation & design system ✅
+## Phase 1: Foundation & design system (complete except two audit defects)
 
-- [x] Next.js 16.4 + TypeScript (strict) + Tailwind CSS v4 project
-- [x] Validated environment config (public/server split, `server-only`)
-- [x] Structured logger with redaction; AppError + safe public errors
-- [x] Security headers + CSP baseline; open-redirect guard; in-memory rate limiter
-- [x] Design tokens + UI components (Button, Input, Field, Card, Badge, Alert, Avatar, menus, sheet, skeletons, empty states)
-- [x] Theme engine (validated hex → CSS variables, WCAG contrast checks)
-- [x] Central platform branding (product name configurable; guard test)
-- [x] i18n: `/[lang]` routing (en/ar), RTL, typed dictionaries with parity test, locale negotiation + switcher
-- [x] Public website: Home, Product, Features, Solutions, Pricing, Demo, About, Contact, Privacy, Terms (en + ar)
-- [x] White-label demo (two fictional universities, live theme switch)
-- [~] Contact form: validation + consent + rate limit; **not stored yet** (honest mailto fallback) → storage in Phase 2
-- [x] Auth pages: login, register, forgot password, reset password (+ callback/confirm route handlers)
-- [~] Auth wiring to Supabase SSR written but **not exercised against a live project** → Phase 2
-- [x] Proxy: locale redirects, session refresh, coarse auth gate
-- [x] Workspace shell: sidebar, workspace switcher, user menu, mobile drawer, overview, settings (general + branding preview)
-- [x] Platform console shell with environment readiness
-- [x] Honest placeholders for all planned modules
-- [x] Error boundaries (segment, global), localized 404 + global 404, health endpoint
-- [x] Tests: 81 unit/component, 56 e2e (incl. axe), build green
+- [x] Next.js 16.4 + TypeScript strict + Tailwind v4 project, scripts, lint, tests
+- [x] Validated env config, logger with redaction, AppError, security headers, redirect guard
+- [x] Design system components and theme engine (validated hex → CSS variables, contrast checks)
+- [x] Central platform branding (env-based) with a guard test against hardcoded names
+- [x] i18n en/ar with RTL, negotiation, switcher, parity test
+- [x] Public website: 10 pages × 2 languages, white-label demo
+- [x] Locale routing + session refresh + auth gate in the proxy (307 verified live against "agent")
+- [x] Error boundaries, 404s, health endpoint
+- [~] Auth pages and actions connected to Supabase: failure paths verified live; **success paths never executed**; Auth settings not configured
+- [!] **Sign-out from the user menu does nothing** (form detached when the dropdown closes)
+- [!] **Post-login dead end** for real users (misleading message, no sign-out on `/app`)
+- [~] Workspace shell, branding editor, platform console: UI only on preview fixtures; nothing persists
+- [~] Contact form: validates, but nothing stored or sent
+- [~] Rate limiting: in-memory per instance, spoofable IP source
 
-## Phase 2: Auth, tenants & security foundation (NEXT — critical gate)
+## P0: Fix before any new feature
 
-Blocked on: a dedicated Supabase project for UniAgent (see PROJECT_STATUS "Decisions needed").
+- [ ] Fix sign-out (submit outside the dropdown or via `onSelect`) + e2e test
+- [ ] "No university access yet" page with sign-out for signed-in users without memberships
+- [ ] Label roadmap features as "Coming soon" on the website (en + ar) and adjust present-tense claims
+- [ ] Remove hardcoded tenant timezone and locale assumptions (move to the tenant record in Phase 2) and the platform "back" link to the demo slug
+- [ ] Configure Supabase Auth for "agent": Site URL, redirect URLs (`/auth/callback`, `/auth/confirm`), custom SMTP (provider decision needed), bilingual email templates using `token_hash`, sign-up policy
+- [ ] Live auth e2e with a dedicated test account (sign up → confirm → sign in → sign out → reset)
 
-- [ ] Create Supabase projects (dev now; staging/prod later); configure Auth URLs + email templates
-- [ ] Migrations: tenants, tenant_settings, tenant_branding, tenant_domains, profiles, platform_admins,
-      tenant_memberships, permissions, roles, role_permissions, membership_roles, departments,
-      membership_departments, invitations, support_access_grants, audit_logs, platform_inquiries
-- [ ] `app.*` security helper functions (not exposed via Data API)
-- [ ] RLS policies on every table + composite same-tenant FKs
-- [ ] Seed: permission catalog, system role templates, demo tenant "Northbridge University"
-- [ ] RLS test harness on local PostgreSQL 16 with Supabase auth shim (+ CI against Supabase)
-- [ ] Isolation tests T1–T15 (SQL) and T18 (HTTP/Server Actions)
-- [ ] Replace `src/lib/tenancy/context.ts` preview-only logic with RLS-backed membership lookup
-- [ ] Platform admin check (`platform_admins`) for `/platform`
-- [ ] Audit logging RPC + first audited actions (membership/role changes)
-- [ ] Persist contact inquiries (consent recorded)
-- [ ] Live auth e2e (sign up → confirm → sign in → workspace) against the dev project
-- [ ] Move rate limiting to a shared store (Postgres-backed) for auth endpoints
+## Phase 2: Auth, tenants & security foundation (critical gate). Project: `agent` (`zijruhuvzxtuudsvnwgy`)
+
+- [x] Dedicated Supabase project identified and inspected (empty, eu-central-1, Free plan)
+- [ ] `supabase/migrations/` in git as the single source of truth
+- [ ] Migration 1: extensions (`citext`; `vector` later), `app` schema helpers, `revoke execute on public.rls_auto_enable() from anon, authenticated`
+- [ ] Tables: tenants, tenant_settings, tenant_branding, tenant_domains, profiles, platform_admins, tenant_memberships, permissions, roles, role_permissions, membership_roles, departments, membership_departments, invitations, support_access_grants, audit_logs, platform_inquiries
+- [ ] RLS on every table + composite same-tenant FKs + indexes
+- [ ] Seed: permission catalog, system role templates, demo tenant "Northbridge University" (replaces `demo-tenants.ts` in the product)
+- [ ] Isolation tests T1–T15 (pgTAP in the project + local Postgres harness for CI) and T18 (HTTP/Server Actions)
+- [ ] RLS-backed tenant context in `src/lib/tenancy/context.ts`; `AccessSnapshot` from real roles and features
+- [ ] `platform_admins` gate for `/platform` + documented one-time owner bootstrap
+- [ ] Audit-log RPC; audit membership and role changes
+- [ ] Persist contact inquiries (consent recorded) + sales notification
+- [ ] Shared rate limiting (Postgres-backed) with trusted-proxy IP extraction
 - [ ] Generated DB types committed
+- [ ] Re-run security advisors after migrations (must be clean)
 
-## Spike after Phase 2
+## Operations (start alongside Phase 2)
 
-- [ ] Deployment spike: Vercel vs Cloudflare Workers (OpenNext) with Next 16 Cache Components → ADR-011 final
+- [ ] CI (GitHub Actions): `npm run check`, build, e2e
+- [ ] Error tracking (e.g. Sentry) + request IDs in logs
+- [ ] **Before real university data:** upgrade the Supabase plan (backups), PITR for production, tested restore runbook
+- [ ] Hosting spike: Vercel vs Cloudflare Workers (ADR-011)
 
 ## Later phases
 
-See `docs/roadmap.md` for Phases 3–17 and their acceptance criteria.
+See `docs/roadmap.md` (Phases 3–17). Nothing in Phases 3–17 has been started: there is no AI,
+knowledge base, RAG, citations, tickets, departments routing, analytics, branding persistence,
+subscriptions, notifications, voice or integrations.
 
-## Known follow-ups (tracked)
+## Known follow-ups
 
-- [ ] Nonce-based CSP for `/app` and `/platform` (ADR-013, Phase 16)
-- [ ] Legal review of Privacy Policy and Terms (currently labelled drafts)
-- [ ] Real support/sales email addresses in production env
-- [ ] Dark mode (tokens are ready; not designed yet)
-- [ ] CI workflow (GitHub Actions) running `npm run check`, build and e2e
+- [ ] Nonce-based CSP for `/app` and `/platform` (ADR-013)
+- [ ] Remove HSTS `preload` until production domains are final; drop the deprecated `interest-cohort`
+- [ ] Unique landmark ids across retained routes (duplicate `#main` after workspace switch)
+- [ ] `robots.txt` and sitemap
+- [ ] Legal review of Privacy Policy and Terms
+- [ ] Real support/sales emails in production env
+- [ ] Extend e2e viewport matrix (tablet, landscape, all routes)
+- [ ] Dark mode (tokens ready, not designed)

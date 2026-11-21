@@ -3,8 +3,9 @@
 Multi-tenant AI agent platform for universities. Each university gets its own branded environment
 (users, knowledge, AI agents, tickets, analytics), and the platform owner manages all of them centrally.
 
-> **Status:** Phase 0 (architecture) and Phase 1 (foundation and design system) are complete. There is
-> no database or live authentication yet; that is Phase 2. See [`PROJECT_STATUS.md`](PROJECT_STATUS.md).
+> **Status:** Foundation only. See the [implementation audit](docs/IMPLEMENTATION_AUDIT.md) for what really works.
+> The dedicated Supabase project ("agent") has no tables yet, authentication is only partially verified,
+> and there is no AI yet. See [`PROJECT_STATUS.md`](PROJECT_STATUS.md).
 > The product name is configurable (`NEXT_PUBLIC_PLATFORM_NAME`); "UniAgent AI" is a working title.
 
 ## Quick start
@@ -60,6 +61,7 @@ docs/                        Architecture, security, operations
 | Task checklist | [TASKS.md](TASKS.md) |
 | Architecture decisions (ADRs) | [ARCHITECTURE_DECISIONS.md](ARCHITECTURE_DECISIONS.md) |
 | Repository inspection (Phase 0) | [docs/00-repository-inspection.md](docs/00-repository-inspection.md) |
+| **Implementation audit (current real state)** | [docs/IMPLEMENTATION_AUDIT.md](docs/IMPLEMENTATION_AUDIT.md) |
 | System architecture | [docs/architecture.md](docs/architecture.md) |
 | Database schema | [docs/database-schema.md](docs/database-schema.md) |
 | Tenant isolation | [docs/tenant-isolation.md](docs/tenant-isolation.md) |

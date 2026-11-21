@@ -17,3 +17,16 @@ Chronological log of significant work. For the current snapshot see `PROJECT_STA
   accessibility checks), production build ✔.
 - Fixed during QA: unlabeled branding inputs and low-contrast phase markers (both found by axe), the
   preview banner clipping the sidebar, and Arabic avatar initials forming an unintended word.
+
+## 2026-11-21: Implementation audit
+
+- Audited the code, routes, integrations and the new dedicated Supabase project **"agent"**
+  (`zijruhuvzxtuudsvnwgy`, eu-central-1, Free plan). It is empty: no app tables, migrations or users.
+  The CodeBlue and Terma projects were not accessed or modified.
+- Confirmed: 0 database queries in code, no AI integration, no migrations. Auth is the only backend integration.
+- Ran non-mutating live checks against "agent": proxy 307 ✔, wrong-password sign-in ✔ (en/ar),
+  bad code/OTP ✔, reset without session ✔.
+- Found defects: **sign-out broken** (form detached when the dropdown closes), **post-login dead end**
+  for real users, Auth settings unconfigured, marketing copy overstates availability, hardcoded tenant
+  timezone and locale. No fixes were applied during the audit (by request).
+- Report: `docs/IMPLEMENTATION_AUDIT.md`. PROJECT_STATUS.md and TASKS.md were rewritten to match it.
