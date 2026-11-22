@@ -1,5 +1,6 @@
 import type { PlatformBranding } from '@/lib/branding/platform'
 import type { Dictionary } from './en'
+import { managementAr } from './management.ar'
 
 /** Arabic UI dictionary (Modern Standard Arabic). Must match the English shape exactly. */
 export const ar = (brand: PlatformBranding): Dictionary => ({
@@ -119,6 +120,15 @@ export const ar = (brand: PlatformBranding): Dictionary => ({
     messageTooLong: 'يرجى ألا تتجاوز رسالتك 2,000 حرف.',
     consentRequired: 'يرجى تأكيد موافقتك على التواصل معك.',
     invalidValue: 'تحقّق من هذا الحقل.',
+    slugInvalid: 'استخدم من 1 إلى 48 حرفاً إنجليزياً صغيراً أو رقماً أو شرطة (ليست في البداية أو النهاية).',
+    slugTaken: 'هذا العنوان مستخدم بالفعل.',
+    timezoneInvalid: 'اختر منطقة زمنية صالحة، مثل Africa/Khartoum أو UTC.',
+    roleRequired: 'اختر دوراً.',
+    hexInvalid: 'استخدم لوناً بصيغة hex مثل #1b4f8f.',
+    reasonRequired: 'اكتب السبب في 10 أحرف على الأقل.',
+    fileRequired: 'اختر ملفاً.',
+    fileTooLarge: 'يجب ألا يتجاوز حجم الملف 1 ميغابايت.',
+    fileType: 'استخدم صورة PNG أو JPEG أو WebP.',
   },
   contactForm: {
     name: 'الاسم الكامل',
@@ -235,7 +245,6 @@ export const ar = (brand: PlatformBranding): Dictionary => ({
         slug: 'عنوان مساحة العمل',
         defaultLanguage: 'اللغة الافتراضية',
         timezone: 'المنطقة الزمنية',
-        readOnly: 'يتوفر تعديل إعدادات الجامعة مع وحدة إدارة الجامعات في المرحلة 3.',
       },
       branding: {
         heading: 'الهوية البصرية',
@@ -251,7 +260,6 @@ export const ar = (brand: PlatformBranding): Dictionary => ({
         invalidHex: 'استخدم لوناً بصيغة hex مثل ‎#1b4f8f.',
         picker: 'منتقي الألوان',
         reset: 'استعادة المحفوظ',
-        saveDisabled: 'يتوفر حفظ الهوية البصرية ونشرها في المرحلة 3. التغييرات هنا للمعاينة فقط.',
         sampleQuestion: 'متى يبدأ التسجيل للفصل الدراسي القادم؟',
         sampleAnswerNote: 'تخطيط توضيحي فقط. الإجابات الحقيقية تأتي من وثائقكم.',
         askPlaceholder: 'اكتب سؤالك…',
@@ -291,7 +299,8 @@ export const ar = (brand: PlatformBranding): Dictionary => ({
       },
       status: { configured: 'مهيأ', missing: 'غير مهيأ', planned: 'مخطط' },
       nextStepsTitle: 'المرحلة القادمة',
-      nextSteps: 'تربط المرحلة 2 مشروع Supabase مخصصاً وتضيف الجامعات والأدوار وأمان مستوى الصفوف وسجل التدقيق، مع اختبارات آلية لعزل بيانات الجامعات.',
+      nextSteps: 'تضيف المرحلة 4 قاعدة المعرفة: رفع الوثائق الرسمية ومعالجتها في الخلفية والبحث فيها مع ذكر المصادر، ضمن نطاق كل جامعة.',
     },
   },
+  management: managementAr,
 })

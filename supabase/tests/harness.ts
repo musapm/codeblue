@@ -74,6 +74,15 @@ export async function createTestDatabase() {
 
 /** Run `fn` as the given actor inside a transaction that is always rolled back. */
 export async function as<T>(pool: pg.Pool, actor: Actor, fn: (client: pg.PoolClient) => Promise<T>): Promise<T> {
+  return runAs(pool, actor, fn, false)
+}
+
+/** Like `as`, but commits on success: for fixtures that later steps must see (e.g. invitations). */
+export async function asCommitted<T>(pool: pg.Pool, actor: Actor, fn: (client: pg.PoolClient) => Promise<T>): Promise<T> {
+  return runAs(pool, actor, fn, true)
+}
+
+async function runAs<T>(pool: pg.Pool, actor: Actor, fn: (client: pg.PoolClient) => Promise<T>, commit: boolean): Promise<T> {
   const client = await pool.connect()
   try {
     await client.query('begin')
@@ -86,7 +95,9 @@ export async function as<T>(pool: pg.Pool, actor: Actor, fn: (client: pg.PoolCli
     await client.query(`select set_config('request.jwt.claims', $1, true)`, [JSON.stringify(claims)])
     const role = actor.kind === 'user' ? 'authenticated' : actor.kind === 'anon' ? 'anon' : 'service_role'
     await client.query(`set local role ${role}`)
-    return await fn(client)
+    const result = await fn(client)
+    if (commit) await client.query('commit')
+    return result
   } finally {
     await client.query('rollback').catch(() => undefined)
     client.release()

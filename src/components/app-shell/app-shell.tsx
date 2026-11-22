@@ -30,7 +30,7 @@ export type AppShellProps = {
   /** Root of this area; the overview link matches it exactly. */
   basePath: string
   sections: ShellNavSection[]
-  identity: { title: string; subtitle: string; monogram: string; primary: string }
+  identity: { title: string; subtitle: string; monogram: string; primary: string; logoUrl?: string }
   workspaces?: ShellWorkspace[]
   currentSlug?: string
   secondaryLink?: { href: string; label: string; kind: 'console' | 'back' }
@@ -96,9 +96,14 @@ function NavList({ sections, basePath, onNavigate, labels }: Pick<AppShellProps,
 function IdentityHeader({ identity, workspaces, currentSlug, labels }: Pick<AppShellProps, 'identity' | 'workspaces' | 'currentSlug' | 'labels'>) {
   const content = (
     <>
-      <span className="flex size-9 shrink-0 items-center justify-center rounded-lg text-xs font-semibold text-white" style={{ backgroundColor: identity.primary }}>
-        {identity.monogram}
-      </span>
+      {identity.logoUrl ? (
+        // eslint-disable-next-line @next/next/no-img-element -- tenant logo from Supabase Storage (CSP img-src)
+        <img src={identity.logoUrl} alt="" className="size-9 shrink-0 rounded-lg border border-border bg-white object-contain p-0.5" />
+      ) : (
+        <span className="flex size-9 shrink-0 items-center justify-center rounded-lg text-xs font-semibold text-white" style={{ backgroundColor: identity.primary }}>
+          {identity.monogram}
+        </span>
+      )}
       <span className="min-w-0 flex-1 text-start">
         <span className="block truncate text-sm font-semibold text-foreground">{identity.title}</span>
         <span className="block truncate text-xs text-muted-foreground">{identity.subtitle}</span>

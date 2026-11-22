@@ -1,4 +1,5 @@
 import type { PlatformBranding } from '@/lib/branding/platform'
+import { managementEn } from './management.en'
 
 /**
  * English UI dictionary (canonical shape). The Arabic dictionary must match this shape
@@ -121,6 +122,15 @@ export const en = (brand: PlatformBranding) => ({
     messageTooLong: 'Please keep your message under 2,000 characters.',
     consentRequired: 'Please confirm you agree to be contacted.',
     invalidValue: 'Check this field.',
+    slugInvalid: 'Use 1–48 lowercase letters, digits or hyphens (not at the start or end).',
+    slugTaken: 'This address is already in use.',
+    timezoneInvalid: 'Choose a valid time zone, such as Africa/Khartoum or UTC.',
+    roleRequired: 'Choose a role.',
+    hexInvalid: 'Use a hex color such as #1b4f8f.',
+    reasonRequired: 'Describe the reason in at least 10 characters.',
+    fileRequired: 'Choose a file.',
+    fileTooLarge: 'The file must be 1 MB or smaller.',
+    fileType: 'Use a PNG, JPEG or WebP image.',
   },
   contactForm: {
     name: 'Full name',
@@ -237,7 +247,6 @@ export const en = (brand: PlatformBranding) => ({
         slug: 'Workspace address',
         defaultLanguage: 'Default language',
         timezone: 'Time zone',
-        readOnly: 'Editing university settings arrives with tenant management in Phase 3.',
       },
       branding: {
         heading: 'Branding',
@@ -253,7 +262,6 @@ export const en = (brand: PlatformBranding) => ({
         invalidHex: 'Use a hex color such as #1b4f8f.',
         picker: 'color picker',
         reset: 'Reset to saved',
-        saveDisabled: 'Saving and publishing branding arrives in Phase 3. Changes here are a preview only.',
         sampleQuestion: 'When does registration for next semester open?',
         sampleAnswerNote: 'Example layout only. Real answers come from your documents.',
         askPlaceholder: 'Ask a question…',
@@ -293,9 +301,9 @@ export const en = (brand: PlatformBranding) => ({
       } as Record<string, string>,
       status: { configured: 'Configured', missing: 'Not configured', planned: 'Planned' },
       nextStepsTitle: 'Next milestone',
-      nextSteps: 'Phase 2 connects a dedicated Supabase project and adds tenants, roles, row-level security and audit logging, with automated tenant-isolation tests.',
+      nextSteps: 'Phase 4 adds the knowledge base: upload official documents, process them in the background and search them with citations, scoped to each university.',
     },
-  },
+  },  management: managementEn,
 })
 
 export type Dictionary = ReturnType<typeof en>

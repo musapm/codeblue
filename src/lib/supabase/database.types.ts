@@ -1,5 +1,5 @@
-// Generated from the Supabase project "agent" (zijruhuvzxtuudsvnwgy) after the Phase 2
-// migrations (MCP generate_typescript_types; unused helper types trimmed). Regenerate after every migration.
+// Generated from the Supabase project "agent" (zijruhuvzxtuudsvnwgy) after migration 6
+// (management) (MCP generate_typescript_types; unused helper types trimmed). Regenerate after every migration.
 
 export type Json =
   | string
@@ -633,6 +633,16 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      accept_invitation: { Args: { p_token: string }; Returns: string }
+      create_invitation: {
+        Args: {
+          p_email: string
+          p_role_key: string
+          p_tenant_slug: string
+          p_valid_days?: number
+        }
+        Returns: Json
+      }
       create_tenant: {
         Args: {
           p_default_locale?: string
@@ -644,12 +654,28 @@ export type Database = {
         }
         Returns: string
       }
+      invitation_preview: { Args: { p_token: string }; Returns: Json }
       my_platform_role: {
         Args: never
         Returns: Database["public"]["Enums"]["platform_role"]
       }
       my_tenant_access: { Args: { p_slug: string }; Returns: Json }
       my_workspaces: { Args: never; Returns: Json }
+      platform_staff: { Args: never; Returns: Json }
+      platform_tenants: { Args: never; Returns: Json }
+      publish_branding: { Args: { p_tenant_slug: string }; Returns: undefined }
+      revoke_invitation: { Args: { p_invitation: string }; Returns: undefined }
+      tenant_invitations: { Args: { p_tenant_slug: string }; Returns: Json }
+      tenant_members: { Args: { p_tenant_slug: string }; Returns: Json }
+      update_tenant_profile: {
+        Args: {
+          p_default_locale: string
+          p_name_translations: Json
+          p_tenant_slug: string
+          p_timezone: string
+        }
+        Returns: undefined
+      }
     }
     Enums: {
       membership_status: "invited" | "active" | "suspended"

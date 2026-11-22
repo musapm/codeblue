@@ -1,4 +1,5 @@
 import { z } from 'zod'
+import { logoPublicUrl } from '@/lib/branding/logo'
 import { resolveTheme, type ThemeColors } from '@/lib/branding/theme'
 import type { Locale } from '@/lib/i18n/config'
 import type { AccessSnapshot } from '@/lib/navigation/workspace-nav'
@@ -22,6 +23,7 @@ const brandingSchema = z
     welcome: z.string().max(280).optional(),
     welcome_ar: z.string().max(280).optional(),
     monogram: z.string().max(3).optional(),
+    logo_path: z.string().optional(),
   })
   .catch({})
 
@@ -52,6 +54,7 @@ export type TenantSummary = {
   name: string
   shortName: string
   monogram: string
+  logoUrl?: string
   assistantName: string
   welcome: string
   colors: ThemeColors
@@ -95,6 +98,7 @@ export function toTenantSummary(
     name: localizedName,
     shortName: tenant.name,
     monogram: branding.monogram?.toUpperCase() || deriveMonogram(tenant.name),
+    logoUrl: logoPublicUrl(branding.logo_path),
     assistantName,
     welcome,
     colors: resolveTheme(branding),

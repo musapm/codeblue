@@ -81,7 +81,7 @@ export function LoginForm({ locale, copy, enabled, next }: CommonProps & { next?
       </fieldset>
       <p className="text-center text-sm text-muted-foreground">
         {t.login.noAccount}{' '}
-        <Link href={`/${locale}/register`} className="font-medium text-primary hover:underline">
+        <Link href={`/${locale}/register${next ? `?next=${encodeURIComponent(next)}` : ''}`} className="font-medium text-primary hover:underline">
           {t.login.createAccount}
         </Link>
       </p>
@@ -89,7 +89,7 @@ export function LoginForm({ locale, copy, enabled, next }: CommonProps & { next?
   )
 }
 
-export function RegisterForm({ locale, copy, enabled }: CommonProps) {
+export function RegisterForm({ locale, copy, enabled, next }: CommonProps & { next?: string }) {
   const [state, action] = useActionState(signUp, initialAuthState)
   const err = useFieldError(state, copy)
   const t = copy.auth
@@ -101,6 +101,7 @@ export function RegisterForm({ locale, copy, enabled }: CommonProps) {
   return (
     <form action={action} className="space-y-5" noValidate>
       <input type="hidden" name="locale" value={locale} />
+      {next ? <input type="hidden" name="next" value={next} /> : null}
       <FormError state={state} copy={copy} />
       <fieldset disabled={!enabled} className="space-y-5 disabled:opacity-60">
         <Field label={t.register.fullName} error={err('fullName')}>
@@ -119,7 +120,7 @@ export function RegisterForm({ locale, copy, enabled }: CommonProps) {
       </fieldset>
       <p className="text-center text-sm text-muted-foreground">
         {t.register.haveAccount}{' '}
-        <Link href={`/${locale}/login`} className="font-medium text-primary hover:underline">
+        <Link href={`/${locale}/login${next ? `?next=${encodeURIComponent(next)}` : ''}`} className="font-medium text-primary hover:underline">
           {t.register.signIn}
         </Link>
       </p>

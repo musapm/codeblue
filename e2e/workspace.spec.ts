@@ -87,6 +87,68 @@ test.describe('workspace shell (UI preview mode)', () => {
   })
 })
 
+test.describe('university management pages (UI preview mode, read-only)', () => {
+  for (const [path, heading] of [
+    ['/en/app/northbridge/members', 'Members & roles'],
+    ['/en/app/northbridge/departments', 'Departments'],
+    ['/en/app/northbridge/audit', 'Audit log'],
+    ['/en/platform/tenants', 'Universities'],
+    ['/en/platform/audit', 'Platform audit log'],
+  ] as const) {
+    test(`${path} renders honestly without data`, async ({ page }) => {
+      const errors = trackErrors(page)
+      await page.goto(path)
+      await expect(page.getByRole('heading', { level: 1 })).toHaveText(heading)
+      // Preview never pretends to have data or to save anything.
+      await expect(page.getByRole('button', { name: /Create invitation|Create department|Create university/ })).toHaveCount(0)
+      expect(errors).toEqual([])
+    })
+  }
+
+  test('members page shows the read-only preview notice and role catalog', async ({ page }) => {
+    await page.goto('/en/app/northbridge/members')
+    await expect(page.getByText('Preview mode: the lists are empty and nothing can be saved.')).toBeVisible()
+    await expect(page.getByText('No members yet.')).toBeVisible()
+  })
+
+  test('branding page cannot save in preview mode', async ({ page }) => {
+    await page.goto('/en/app/northbridge/settings/branding')
+    await expect(page.getByText('Preview mode: the lists are empty and nothing can be saved.')).toBeVisible()
+    await expect(page.getByRole('button', { name: 'Save and publish' })).toHaveCount(0)
+  })
+
+  test('navigation marks Phase 3 modules as available', async ({ page }) => {
+    await page.goto('/en/app/northbridge')
+    const nav = page.getByRole('navigation', { name: 'Workspace navigation' }).first()
+    await nav.getByRole('link', { name: /Members & roles/ }).click()
+    await expect(page).toHaveURL(/\/en\/app\/northbridge\/members$/)
+  })
+
+  test('invitation page asks to sign in and does not leak the URL', async ({ page }) => {
+    const token = 'a'.repeat(64)
+    const response = await page.goto(`/en/invite/${token}`)
+    expect(response?.status()).toBeLessThan(500)
+    await expect(page.getByRole('heading', { level: 1 })).toHaveText('You have been invited')
+    await expect(page.locator('meta[name="referrer"]')).toHaveAttribute('content', 'no-referrer')
+    await expect(page.locator('meta[name="robots"]')).toHaveAttribute('content', /noindex/)
+  })
+
+  test('Arabic members page is translated and right-to-left', async ({ page }) => {
+    await page.goto('/ar/app/northbridge/members')
+    await expect(page.locator('html')).toHaveAttribute('dir', 'rtl')
+    await expect(page.getByRole('heading', { level: 1 })).toHaveText('الأعضاء والأدوار')
+  })
+
+  for (const path of ['/en/app/northbridge/members', '/en/app/northbridge/settings/branding', '/en/platform/tenants', '/ar/app/northbridge/departments']) {
+    test(`${path} has no serious accessibility violations`, async ({ page }) => {
+      await page.goto(path)
+      const results = await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa']).analyze()
+      const serious = results.violations.filter((v) => v.impact === 'serious' || v.impact === 'critical')
+      expect(serious.map((v) => `${v.id}: ${v.nodes.length} node(s)`)).toEqual([])
+    })
+  }
+})
+
 test.describe('workspace on mobile @mobile', () => {
   test('sidebar is available from the menu button', async ({ page }) => {
     await page.goto('/en/app/northbridge')

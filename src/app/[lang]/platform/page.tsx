@@ -14,7 +14,7 @@ export default async function PlatformOverviewPage() {
   const { locale, dict } = await getI18n()
   const t = dict.platform.overview
   const checks = getReadinessChecks()
-  const modules = PLATFORM_NAV.flatMap((s) => s.items).filter((i) => i.status === 'planned')
+  const modules = PLATFORM_NAV.flatMap((s) => s.items).filter((i) => i.segment !== '')
 
   return (
     <>
@@ -72,7 +72,11 @@ export default async function PlatformOverviewPage() {
                           <span className="block text-sm font-medium">{dict.platform.items[item.key]}</span>
                           <span className="block truncate text-xs text-muted-foreground">{dict.platform.descriptions[item.key]}</span>
                         </span>
-                        <Badge variant="outline">{dict.common.plannedPhase(item.phase)}</Badge>
+                        {item.status === 'available' ? (
+                          <Badge variant="success">{dict.workspace.overview.available}</Badge>
+                        ) : (
+                          <Badge variant="outline">{dict.common.plannedPhase(item.phase)}</Badge>
+                        )}
                         <ArrowRight aria-hidden className="size-4 text-muted-foreground rtl:-scale-x-100" />
                       </Link>
                     </li>

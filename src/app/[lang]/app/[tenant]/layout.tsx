@@ -49,7 +49,7 @@ export default async function WorkspaceLayout({ children, params }: LayoutProps<
       basePath={basePath}
       themeStyle={buildThemeVariables(ctx.tenant.colors)}
       sections={buildShellSections(WORKSPACE_NAV, ctx.access, basePath, dict.workspace, dict)}
-      identity={{ title: ctx.tenant.name, subtitle: dict.workspace.universityWorkspace, monogram: ctx.tenant.monogram, primary: ctx.tenant.colors.primary }}
+      identity={{ title: ctx.tenant.name, subtitle: dict.workspace.universityWorkspace, monogram: ctx.tenant.monogram, primary: ctx.tenant.colors.primary, logoUrl: ctx.tenant.logoUrl }}
       workspaces={ctx.memberships.map((w) => ({
         slug: w.slug,
         name: w.name,

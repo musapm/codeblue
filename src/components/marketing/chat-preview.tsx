@@ -7,6 +7,8 @@ export type ChatPreviewProps = {
   universityName: string
   assistantName: string
   monogram: string
+  /** Public URL of the tenant logo (Supabase Storage); falls back to the monogram. */
+  logoUrl?: string
   question: string
   answer: string
   citationTitle?: string
@@ -29,7 +31,14 @@ export function ChatPreview(props: ChatPreviewProps) {
       className={cn('overflow-hidden rounded-2xl border border-border bg-card shadow-[0_12px_40px_-12px_rgb(15_42_74_/_0.25)]', props.className)}
     >
       <div className="flex items-center gap-3 bg-secondary px-4 py-3 text-secondary-foreground">
-        <span className="flex size-9 items-center justify-center rounded-lg bg-primary text-sm font-semibold text-primary-foreground">{props.monogram}</span>
+        {props.logoUrl ? (
+          // Tenant logos come from Supabase Storage (allowed by the CSP img-src); next/image
+          // would need a remote pattern per project, and these files are already ≤ 1 MB.
+          // eslint-disable-next-line @next/next/no-img-element
+          <img src={props.logoUrl} alt="" className="size-9 rounded-lg bg-white object-contain p-0.5" />
+        ) : (
+          <span className="flex size-9 items-center justify-center rounded-lg bg-primary text-sm font-semibold text-primary-foreground">{props.monogram}</span>
+        )}
         <div className="min-w-0">
           <p className="truncate text-sm font-semibold">{props.assistantName}</p>
           <p className="truncate text-xs opacity-75">{props.universityName}</p>

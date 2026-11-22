@@ -12,6 +12,8 @@ const nextConfig: NextConfig = {
   experimental: {
     // Root layout lives under app/[lang], so unmatched URLs need a global 404.
     globalNotFound: true,
+    // Logo uploads (≤ 1 MB, checked again in the action and by the storage bucket).
+    serverActions: { bodySizeLimit: '2mb' },
   },
   turbopack: {
     rules: {

@@ -78,7 +78,8 @@ export async function signUp(_prev: AuthActionState, formData: FormData): Promis
     email: parsed.data.email,
     password: parsed.data.password,
     options: {
-      emailRedirectTo: authCallbackUrl(localizedPath(locale, '/app')),
+      // Return to where sign-up started (e.g. an invitation link), never to another site.
+      emailRedirectTo: authCallbackUrl(safeRedirectPath(formData.get('next'), localizedPath(locale, '/app'))),
       data: { full_name: parsed.data.fullName, locale },
     },
   })
@@ -144,5 +145,7 @@ export async function signOut(formData: FormData): Promise<void> {
     const { error } = await supabase.auth.signOut()
     if (error) log.warn('auth.signout_failed', { code: error.code })
   }
-  redirect(localizedPath(locale, '/login'))
+  // Optional same-origin return path (e.g. sign in with another account to accept an invitation).
+  const next = safeRedirectPath(formData.get('next'), '')
+  redirect(localizedPath(locale, '/login') + (next ? `?next=${encodeURIComponent(next)}` : ''))
 }

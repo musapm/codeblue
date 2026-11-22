@@ -7,6 +7,7 @@ import { buttonClasses } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { localizedPath } from '@/lib/i18n/config'
 import { getI18n } from '@/lib/i18n/server'
+import { findNavItem, WORKSPACE_NAV } from '@/lib/navigation/workspace-nav'
 import { getWorkspaceContext } from '@/lib/tenancy/context'
 
 export default async function WorkspaceOverviewPage({ params }: PageProps<'/[lang]/app/[tenant]'>) {
@@ -41,7 +42,11 @@ export default async function WorkspaceOverviewPage({ params }: PageProps<'/[lan
                     <span className="min-w-0 flex-1">
                       <span className="flex flex-wrap items-center gap-2">
                         <span className="text-sm font-medium">{step.title}</span>
-                        <Badge variant="outline">{dict.common.plannedPhase(step.phase)}</Badge>
+                        {findNavItem(WORKSPACE_NAV, step.href.split('/')[0] ?? '')?.status === 'available' ? (
+                          <Badge variant="success">{t.available}</Badge>
+                        ) : (
+                          <Badge variant="outline">{dict.common.plannedPhase(step.phase)}</Badge>
+                        )}
                       </span>
                       <span className="mt-1 block text-sm text-muted-foreground">{step.body}</span>
                     </span>
@@ -55,7 +60,12 @@ export default async function WorkspaceOverviewPage({ params }: PageProps<'/[lan
 
         <Card className="h-fit overflow-hidden">
           <div className="flex items-center gap-3 bg-secondary px-5 py-4 text-secondary-foreground">
-            <span className="flex size-10 items-center justify-center rounded-lg bg-primary text-sm font-semibold text-primary-foreground">{tenant.monogram}</span>
+            {tenant.logoUrl ? (
+              // eslint-disable-next-line @next/next/no-img-element -- tenant logo from Supabase Storage (CSP img-src)
+              <img src={tenant.logoUrl} alt="" className="size-10 rounded-lg bg-white object-contain p-0.5" />
+            ) : (
+              <span className="flex size-10 items-center justify-center rounded-lg bg-primary text-sm font-semibold text-primary-foreground">{tenant.monogram}</span>
+            )}
             <div className="min-w-0">
               <p className="truncate text-sm font-semibold">{tenant.assistantName}</p>
               <p className="truncate text-xs opacity-75">{tenant.name}</p>

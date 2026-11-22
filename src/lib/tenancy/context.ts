@@ -34,6 +34,8 @@ export type { TenantSummary }
 
 export type WorkspaceContext = {
   user: SessionUser
+  /** Database id of the tenant (null in UI preview mode, which has no data). */
+  tenantId: string | null
   tenant: TenantSummary
   memberships: TenantSummary[]
   access: AccessSnapshot
@@ -106,6 +108,7 @@ export const getWorkspaceContext = cache(async (locale: Locale, slug: string): P
     if (!tenant) notFound()
     return {
       user,
+      tenantId: null,
       tenant: previewSummary(tenant, locale),
       memberships: workspaces,
       access: { kind: 'all' }, // preview has no data behind any page
@@ -131,6 +134,7 @@ export const getWorkspaceContext = cache(async (locale: Locale, slug: string): P
 
   return {
     user,
+    tenantId: access.tenantId,
     tenant: toTenantSummary(parsed.data.tenant, parsed.data.branding, locale, fallbacks(locale)),
     memberships: workspaces,
     access: access.access,
@@ -140,6 +144,11 @@ export const getWorkspaceContext = cache(async (locale: Locale, slug: string): P
     canAccessPlatformConsole: platformRole !== null,
   }
 })
+
+/** Does the caller hold this permission in the workspace? (Preview: everything is visible.) */
+export function hasWorkspacePermission(ctx: WorkspaceContext, permission: PermissionKey): boolean {
+  return ctx.access.kind === 'all' || ctx.access.permissions.has(permission)
+}
 
 /** Server-side gate for a page or action inside a workspace. Unauthorized → not found. */
 export function requireWorkspaceAccess(ctx: WorkspaceContext, need: { permission?: PermissionKey; feature?: FeatureKey }): void {
