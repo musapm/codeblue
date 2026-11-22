@@ -3,7 +3,7 @@
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { ChevronsUpDown, Eye, LogOut, Menu, ShieldCheck, Check, ArrowLeft } from 'lucide-react'
-import { useState, type CSSProperties, type ReactNode } from 'react'
+import { useRef, useState, type CSSProperties, type ReactNode } from 'react'
 import { LanguageSwitcher } from '@/components/i18n/language-switcher'
 import {
   DropdownMenu,
@@ -145,9 +145,15 @@ function SecondaryLink({ link, onNavigate }: { link: NonNullable<AppShellProps['
 export function AppShell(props: AppShellProps) {
   const { locale, labels, user } = props
   const [mobileOpen, setMobileOpen] = useState(false)
+  // The sign-out form lives outside the dropdown: menu content unmounts as soon as the menu
+  // closes, which would detach a form inside it before the browser submits it.
+  const signOutForm = useRef<HTMLFormElement>(null)
 
   return (
     <div style={props.themeStyle} className="min-h-screen bg-canvas">
+      <form ref={signOutForm} action={signOut} className="hidden" aria-hidden>
+        <input type="hidden" name="locale" value={locale} />
+      </form>
       <div className="flex">
         <aside className="sticky top-0 hidden h-screen w-64 shrink-0 flex-col border-e border-border bg-background lg:flex">
           <div className="border-b border-border p-3">
@@ -199,15 +205,10 @@ export function AppShell(props: AppShellProps) {
                     ) : null}
                   </DropdownMenuLabel>
                   <DropdownMenuSeparator />
-                  <form action={signOut}>
-                    <input type="hidden" name="locale" value={locale} />
-                    <DropdownMenuItem asChild>
-                      <button type="submit" className="w-full">
-                        <LogOut aria-hidden className="rtl:-scale-x-100" />
-                        {labels.signOut}
-                      </button>
-                    </DropdownMenuItem>
-                  </form>
+                  <DropdownMenuItem onSelect={() => signOutForm.current?.requestSubmit()}>
+                    <LogOut aria-hidden className="rtl:-scale-x-100" />
+                    {labels.signOut}
+                  </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
             </div>

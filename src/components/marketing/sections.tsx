@@ -46,13 +46,16 @@ export function Section({
   )
 }
 
-export function FeatureCard({ icon, title, body, className }: { icon?: ReactNode; title: string; body: string; className?: string }) {
+export function FeatureCard({ icon, title, body, badge, className }: { icon?: ReactNode; title: string; body: string; badge?: ReactNode; className?: string }) {
   return (
     <div className={cn('rounded-card border border-border bg-card p-6', className)}>
       {icon ? (
         <div className="mb-4 flex size-10 items-center justify-center rounded-lg bg-primary-subtle text-primary-subtle-foreground [&_svg]:size-5">{icon}</div>
       ) : null}
-      <h3 className="text-base font-semibold text-foreground">{title}</h3>
+      <div className="flex flex-wrap items-center gap-2">
+        <h3 className="text-base font-semibold text-foreground">{title}</h3>
+        {badge}
+      </div>
       <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{body}</p>
     </div>
   )

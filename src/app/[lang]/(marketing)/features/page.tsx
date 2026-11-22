@@ -1,4 +1,5 @@
 import { PageHero, Section } from '@/components/marketing/sections'
+import { Badge } from '@/components/ui/badge'
 import { getMarketingContent } from '@/content/marketing'
 import { getI18n } from '@/lib/i18n/server'
 import { marketingMetadata } from '@/lib/marketing/metadata'
@@ -19,7 +20,10 @@ export default async function FeaturesPage() {
             <dl className="grid gap-5 sm:grid-cols-3">
               {group.items.map((item) => (
                 <div key={item.title} className="rounded-card border border-border bg-card p-5">
-                  <dt className="text-sm font-semibold">{item.title}</dt>
+                  <dt className="flex flex-wrap items-center gap-2 text-sm font-semibold">
+                    {item.title}
+                    <Badge variant="warning">{dict.common.inDevelopment}</Badge>
+                  </dt>
                   <dd className="mt-2 text-sm leading-relaxed text-muted-foreground">{item.body}</dd>
                 </div>
               ))}

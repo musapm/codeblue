@@ -45,3 +45,12 @@ Both env modules validate with zod at startup. Invalid values raise an error tha
 | Vercel | Project → Settings → Environment Variables (separate values per Preview and Production) |
 | Cloudflare | `wrangler secret put` for secrets, `vars` in `wrangler.toml` for public values (if that host is chosen) |
 | CI | Repository secrets |
+
+## Test-only variables
+
+| Variable | Used by | Purpose |
+| --- | --- | --- |
+| `TEST_DATABASE_URL` | `npm run test:db` | Superuser connection to a **disposable** PostgreSQL server. The suite creates and drops its own temporary database |
+| `LIVE_E2E=1` | `e2e/live` | Enables the live suite (otherwise skipped) |
+| `LIVE_STUDENT_EMAIL` / `_PASSWORD`, `LIVE_OWNER_EMAIL` / `_PASSWORD`, `LIVE_OUTSIDER_EMAIL` / `_PASSWORD` | `e2e/live` | Dedicated test accounts in the target project (never real users) |
+| `LIVE_OTHER_TENANT_SLUG` | `e2e/live` | A tenant the test accounts do not belong to (cross-tenant checks) |

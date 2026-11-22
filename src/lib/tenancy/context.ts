@@ -3,39 +3,49 @@ import { notFound } from 'next/navigation'
 import { cache } from 'react'
 import { requireUser, type SessionUser } from '@/lib/auth/session'
 import { DEMO_TENANTS, findDemoTenant, type TenantBrandingPreview } from '@/lib/branding/demo-tenants'
+import { AppError } from '@/lib/errors'
+import { getDictionary } from '@/lib/i18n/get-dictionary'
 import { localizedPath, type Locale } from '@/lib/i18n/config'
-import type { AccessSnapshot } from '@/lib/navigation/workspace-nav'
+import { logger } from '@/lib/logger'
+import { canSeeNavItem, type AccessSnapshot } from '@/lib/navigation/workspace-nav'
+import type { PermissionKey } from '@/lib/permissions/catalog'
+import type { FeatureKey } from '@/lib/features/catalog'
+import { createSupabaseServerClient } from '@/lib/supabase/server'
+import {
+  tenantAccessPayloadSchema,
+  toTenantAccess,
+  toTenantSummary,
+  workspacesPayloadSchema,
+  type TenantSummary,
+} from './mappers'
 
 /**
- * Tenant context for the workspace (see docs/tenant-isolation.md §4).
+ * Tenant context for the workspace (docs/tenant-isolation.md §4).
  *
- * PHASE 1 STATUS: tenants do not exist in a database yet. Only UI preview mode (which
- * requires that no auth backend is configured) resolves the fictional demo tenants.
- * Real signed-in users get "not found" until Phase 2 replaces this with an RLS-backed
- * membership lookup — there is intentionally no code path that trusts a slug alone.
+ * Real users: everything comes from the database through self-scoped SECURITY DEFINER
+ * functions (my_workspaces, my_tenant_access, my_platform_role) that only ever describe
+ * the caller, on top of Row Level Security. A slug the caller is not a member of yields
+ * "not found" — exactly like a slug that does not exist (no tenant enumeration).
+ *
+ * UI preview mode (no auth backend configured, ADR-012) uses the fictional fixtures.
  */
 
-export type TenantSummary = {
-  slug: string
-  name: string
-  shortName: string
-  monogram: string
-  assistantName: string
-  welcome: string
-  colors: TenantBrandingPreview['colors']
-  defaultLocale: Locale
-  timezone: string
-}
+export type { TenantSummary }
 
 export type WorkspaceContext = {
   user: SessionUser
   tenant: TenantSummary
   memberships: TenantSummary[]
   access: AccessSnapshot
+  accessVia: 'membership' | 'support' | 'preview'
+  roles: string[]
+  departmentIds: string[]
   canAccessPlatformConsole: boolean
 }
 
-function toSummary(t: TenantBrandingPreview, locale: Locale): TenantSummary {
+const log = logger.child({ module: 'tenancy' })
+
+function previewSummary(t: TenantBrandingPreview, locale: Locale): TenantSummary {
   return {
     slug: t.slug,
     name: t.name[locale],
@@ -45,40 +55,103 @@ function toSummary(t: TenantBrandingPreview, locale: Locale): TenantSummary {
     welcome: t.welcome[locale],
     colors: t.colors,
     defaultLocale: 'en',
-    timezone: 'Africa/Khartoum',
+    timezone: 'UTC',
+    status: 'trial',
+    isDemo: true,
   }
 }
+
+function fallbacks(locale: Locale) {
+  const dict = getDictionary(locale)
+  return { assistantName: dict.workspace.defaultAssistantName, welcome: dict.workspace.defaultWelcome }
+}
+
+function rpcFailure(name: string, error: { code?: string; message?: string }): never {
+  log.error('tenancy.rpc_failed', { rpc: name, code: error.code })
+  throw new AppError('internal', `${name} failed`)
+}
+
+/** The caller's platform role (null for everyone who is not platform staff). */
+export const getPlatformRole = cache(async (): Promise<string | null> => {
+  const supabase = await createSupabaseServerClient()
+  const { data, error } = await supabase.rpc('my_platform_role')
+  if (error) rpcFailure('my_platform_role', error)
+  return data ?? null
+})
 
 /** Workspaces the current user can open. Deduplicated per request. */
 export const listWorkspacesForUser = cache(async (locale: Locale): Promise<{ user: SessionUser; workspaces: TenantSummary[] }> => {
   const user = await requireUser(locale, localizedPath(locale, '/app'))
-  if (user.isPreview) return { user, workspaces: DEMO_TENANTS.map((t) => toSummary(t, locale)) }
-  // Phase 2: select tenants joined to tenant_memberships for auth.uid(), via RLS.
-  return { user, workspaces: [] }
+  if (user.isPreview) return { user, workspaces: DEMO_TENANTS.map((t) => previewSummary(t, locale)) }
+
+  const supabase = await createSupabaseServerClient()
+  const { data, error } = await supabase.rpc('my_workspaces')
+  if (error) rpcFailure('my_workspaces', error)
+  const parsed = workspacesPayloadSchema.safeParse(data)
+  if (!parsed.success) {
+    log.error('tenancy.invalid_payload', { rpc: 'my_workspaces' })
+    throw new AppError('internal', 'Invalid workspaces payload')
+  }
+  const fb = fallbacks(locale)
+  return { user, workspaces: parsed.data.map((w) => toTenantSummary(w, w.branding, locale, fb)) }
 })
 
 export const getWorkspaceContext = cache(async (locale: Locale, slug: string): Promise<WorkspaceContext> => {
-  // Authenticate first so the login redirect returns the user to this exact workspace.
+  // Authenticate first so a login redirect returns the user to this exact workspace.
   await requireUser(locale, localizedPath(locale, `/app/${encodeURIComponent(slug)}`))
   const { user, workspaces } = await listWorkspacesForUser(locale)
-  if (!user.isPreview) notFound() // Phase 2 replaces this with a membership-checked lookup.
 
-  const tenant = findDemoTenant(slug)
-  if (!tenant) notFound()
+  if (user.isPreview) {
+    const tenant = findDemoTenant(slug)
+    if (!tenant) notFound()
+    return {
+      user,
+      tenant: previewSummary(tenant, locale),
+      memberships: workspaces,
+      access: { kind: 'all' }, // preview has no data behind any page
+      accessVia: 'preview',
+      roles: [],
+      departmentIds: [],
+      canAccessPlatformConsole: true,
+    }
+  }
+
+  const supabase = await createSupabaseServerClient()
+  const { data, error } = await supabase.rpc('my_tenant_access', { p_slug: slug })
+  if (error) rpcFailure('my_tenant_access', error)
+  if (data === null) notFound() // not a member (or no such tenant): identical response
+
+  const parsed = tenantAccessPayloadSchema.safeParse(data)
+  if (!parsed.success) {
+    log.error('tenancy.invalid_payload', { rpc: 'my_tenant_access' })
+    throw new AppError('internal', 'Invalid tenant access payload')
+  }
+  const access = toTenantAccess(parsed.data)
+  const platformRole = await getPlatformRole()
 
   return {
     user,
-    tenant: toSummary(tenant, locale),
+    tenant: toTenantSummary(parsed.data.tenant, parsed.data.branding, locale, fallbacks(locale)),
     memberships: workspaces,
-    // Preview has no data behind any page, so every navigation item is shown.
-    access: { kind: 'all' },
-    canAccessPlatformConsole: true,
+    access: access.access,
+    accessVia: access.accessVia,
+    roles: access.roles,
+    departmentIds: access.departmentIds,
+    canAccessPlatformConsole: platformRole !== null,
   }
 })
 
-/** Platform console gate. Phase 2 checks the platform_admins table. */
-export const requirePlatformAccess = cache(async (locale: Locale): Promise<SessionUser> => {
+/** Server-side gate for a page or action inside a workspace. Unauthorized → not found. */
+export function requireWorkspaceAccess(ctx: WorkspaceContext, need: { permission?: PermissionKey; feature?: FeatureKey }): void {
+  const allowed = canSeeNavItem({ key: '', segment: '', icon: 'overview', status: 'available', phase: 0, ...need }, ctx.access)
+  if (!allowed) notFound()
+}
+
+/** Platform console gate: platform staff only (platform_admins), or UI preview. */
+export const requirePlatformAccess = cache(async (locale: Locale): Promise<{ user: SessionUser; role: string | null }> => {
   const user = await requireUser(locale, localizedPath(locale, '/platform'))
-  if (!user.isPreview) notFound()
-  return user
+  if (user.isPreview) return { user, role: 'owner' }
+  const role = await getPlatformRole()
+  if (!role) notFound()
+  return { user, role }
 })

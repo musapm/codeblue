@@ -16,6 +16,7 @@ import {
 } from 'lucide-react'
 import { ChatPreview } from '@/components/marketing/chat-preview'
 import { CtaBanner, FeatureCard, Section } from '@/components/marketing/sections'
+import { Badge } from '@/components/ui/badge'
 import { buttonClasses } from '@/components/ui/button'
 import { getMarketingContent } from '@/content/marketing'
 import { PREVIEW_TENANT } from '@/lib/branding/demo-tenants'
@@ -97,7 +98,15 @@ export default async function HomePage() {
         <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
           {c.agents.map((agent) => {
             const Icon = AGENT_ICONS[agent.key]
-            return <FeatureCard key={agent.key} icon={<Icon />} title={agent.title} body={agent.body} />
+            return (
+              <FeatureCard
+                key={agent.key}
+                icon={<Icon />}
+                title={agent.title}
+                body={agent.body}
+                badge={<Badge variant="warning">{dict.common.inDevelopment}</Badge>}
+              />
+            )
           })}
         </div>
       </Section>

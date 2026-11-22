@@ -59,6 +59,13 @@ test.describe('workspace shell (UI preview mode)', () => {
     await expect(page.getByText('All color combinations meet contrast guidelines.')).toBeVisible()
   })
 
+  test('sign out from the user menu works (regression: form was detached)', async ({ page }) => {
+    await page.goto('/en/app/northbridge')
+    await page.getByRole('button', { name: 'Account' }).click()
+    await page.getByRole('menuitem', { name: 'Sign out' }).click()
+    await expect(page).toHaveURL(/\/en\/login$/)
+  })
+
   test('Arabic workspace is right-to-left', async ({ page }) => {
     await page.goto('/ar/app/northbridge')
     await expect(page.locator('html')).toHaveAttribute('dir', 'rtl')

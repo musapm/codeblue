@@ -30,3 +30,19 @@ Chronological log of significant work. For the current snapshot see `PROJECT_STA
   for real users, Auth settings unconfigured, marketing copy overstates availability, hardcoded tenant
   timezone and locale. No fixes were applied during the audit (by request).
 - Report: `docs/IMPLEMENTATION_AUDIT.md`. PROJECT_STATUS.md and TASKS.md were rewritten to match it.
+
+## 2026-11-22: P0 fixes and Phase 2 (database, tenant isolation)
+
+- **P0 fixes:** sign-out repaired (+ regression test); honest "No university access yet" and "workspace
+  unavailable" pages with sign-out; website labels unbuilt capabilities "In development" with a pilot
+  notice; hardcoded tenant time zone and locale removed.
+- **Phase 2 in Supabase project "agent":** 5 migrations covering identity, tenancy, roles, departments,
+  invitations, support grants, features, the audit log, RLS on every table, composite same-tenant FKs,
+  caller-scoped API functions, and the profile-on-signup trigger. Applied and verified byte-identical
+  to git. Demo university "Northbridge" seeded. Types generated.
+- The isolation suite **caught a real flaw** in the first policy draft: platform staff could read all
+  university content without a grant. It was fixed before anything reached the live project (ADR-014).
+- App connected to real data: tenant context from the database, permission gates on settings, branding
+  and modules, support-access banner, platform-owner gate.
+- **Tests:** 88 unit, 50 database isolation, 58 browser (preview), and **6 live tests against "agent"**
+  using temporary accounts that were deleted afterwards.

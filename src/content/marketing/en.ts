@@ -58,8 +58,8 @@ export const enMarketing = (b: PlatformBranding): MarketingContent => ({
     trustItems: [
       { title: 'Tenant isolation', body: 'Row-level security in the database keeps each university’s data separate. Isolation is tested automatically.' },
       { title: 'Role-based access', body: 'Students, departments, and administrators see only what their role allows. Internal notes stay internal.' },
-      { title: 'Human in the loop', body: 'The AI never makes official academic, financial, or disciplinary decisions. Consequential actions need confirmation.' },
-      { title: 'Full audit trail', body: 'Sensitive actions, including support access by the platform team, are recorded in an append-only audit log.' },
+      { title: 'Human in the loop', body: 'Designed so the AI never makes official academic, financial, or disciplinary decisions. Consequential actions require confirmation.' },
+      { title: 'Full audit trail', body: 'Changes to access and roles, and every support-access grant to the platform team, are recorded in an append-only audit log.' },
     ],
     ctaTitle: 'Bring an AI assistant to your campus',
     ctaBody: 'We are onboarding pilot universities. Tell us about your institution and we will set up a guided demo.',
@@ -120,7 +120,7 @@ export const enMarketing = (b: PlatformBranding): MarketingContent => ({
     ],
     priceLabel: 'Custom pricing',
     cta: 'Talk to us',
-    note: 'Plans and limits are configured per university. Features marked as upcoming on our roadmap are included as they become available.',
+    note: 'Capabilities are released in phases during our pilot program. Before any agreement, we confirm exactly what is available for your university. Plans and limits are configured per university.',
     faqHeading: 'Questions',
     faq: [
       { q: 'Can we start with a pilot?', a: 'Yes. We recommend a time-boxed pilot with one or two departments before a wider rollout.' },

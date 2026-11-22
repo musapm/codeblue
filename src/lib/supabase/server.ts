@@ -1,5 +1,6 @@
 import 'server-only'
 import { createServerClient } from '@supabase/ssr'
+import type { Database } from './database.types'
 import { cookies } from 'next/headers'
 import { AppError } from '@/lib/errors'
 import { getSupabaseConfig } from './config'
@@ -16,7 +17,7 @@ export async function createSupabaseServerClient() {
   if (!config) throw new AppError('not_configured', 'Supabase is not configured')
 
   const cookieStore = await cookies()
-  return createServerClient(config.url, config.publishableKey, {
+  return createServerClient<Database>(config.url, config.publishableKey, {
     cookies: {
       getAll() {
         return cookieStore.getAll()

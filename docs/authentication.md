@@ -60,3 +60,34 @@ for this environment"** notice, and the actions refuse to run. Nothing pretends 
 **UI preview mode** (`UNIAGENT_UI_PREVIEW=true`) lets the dashboard shell be viewed during development.
 It is honoured **only when Supabase is not configured**, so no real data or backend exists to expose. It
 shows a permanent banner, and it switches off automatically as soon as Supabase credentials are present.
+
+## Supabase Auth configuration for project "agent" (owner action required)
+
+These settings are in the Supabase dashboard (**Authentication → URL Configuration / Emails / Providers**).
+The tooling in this repository cannot change them.
+
+1. **Site URL:** the deployed app URL (e.g. `https://app.<your-domain>`). For local testing,
+   `http://localhost:3000`.
+2. **Redirect URLs (allow-list):** `<site>/auth/callback` and `<site>/auth/confirm` (also add the
+   localhost equivalents for development).
+3. **SMTP:** configure a transactional email provider (Resend, Postmark, Amazon SES…). Supabase's
+   built-in sender is rate-limited, only intended for testing, and may only deliver to the project's
+   team addresses.
+4. **Email templates (confirm signup, reset password, magic link):** link to
+   `{{ .SiteURL }}/auth/confirm?token_hash={{ .TokenHash }}&type=<signup|recovery|magiclink>&next=/en/app`
+   so links also work when opened in a different browser. Provide Arabic and English text.
+5. **Sign-up policy:** recommended **invitation / approved university domains only**. Until the
+   invitation flow ships (Phase 3), self-registered users land on the "No university access yet" page.
+6. **Password policy:** minimum 10 characters (matches the app), and enable leaked-password protection if your plan offers it.
+
+### Becoming the first platform owner
+
+Sign up in the app, confirm your email, then run `supabase/seed/bootstrap_platform_owner.sql`
+(with your email) in the SQL editor. There is deliberately no way to obtain a platform role through
+the app or API.
+
+### Verified behaviour (live, 2026-11-22)
+
+Password sign-in, the session gate (HTTP 307), sign-out, wrong-password errors (en/ar), rejected bad
+codes and tokens, and reset without a recovery session. **Not yet verified:** sign-up email confirmation
+and password-reset emails, because they depend on steps 1–4 above.

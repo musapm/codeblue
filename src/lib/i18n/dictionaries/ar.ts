@@ -19,6 +19,8 @@ export const ar = (brand: PlatformBranding): Dictionary => ({
     backHome: 'العودة إلى الرئيسية',
     fictional: 'محتوى توضيحي افتراضي',
     plannedPhase: (phase: number) => `مخطط · المرحلة ${phase}`,
+    inDevelopment: 'قيد التطوير',
+    announcement: `${brand.name} قيد التطوير النشط. تُطلق القدرات على مراحل، ونستقبل حالياً الجامعات الراغبة في التجربة الأولية.`,
     optional: 'اختياري',
   },
   nav: {
@@ -192,8 +194,19 @@ export const ar = (brand: PlatformBranding): Dictionary => ({
       plannedCapabilities: 'ما الذي ستقدمه هذه الوحدة',
       backToOverview: 'العودة إلى النظرة العامة',
     },
+    noAccess: {
+      title: 'لا يوجد وصول إلى جامعة بعد',
+      body: 'لقد سجّلت الدخول، لكن حسابك لم يُضف بعد إلى مساحة عمل أي جامعة. اطلب دعوة من مسؤول جامعتك، وإذا كنت تعتقد أن هذا خطأ فتواصل مع الدعم.',
+    },
+    unavailable: {
+      title: 'مساحة العمل هذه غير متاحة',
+      body: 'مساحة عمل هذه الجامعة معلّقة أو مؤرشفة حالياً. تواصل مع مسؤول جامعتك أو مع دعم المنصة.',
+    },
     previewBanner: 'وضع معاينة الواجهة: لا توجد خدمة مصادقة مهيأة، والهوية المعروضة افتراضية، ولا يُحفظ أي شيء.',
     previewUser: 'مسؤول المعاينة',
+    defaultAssistantName: (university: string) => `مساعد ${university}`,
+    defaultWelcome: 'مرحباً! كيف يمكنني مساعدتك اليوم؟',
+    supportAccessBanner: 'وصول الدعم: جلسة قراءة فقط لاستكشاف الأخطاء. هذا الوصول محدود المدة ومسجّل في سجل التدقيق.',
     account: 'الحساب',
     signedInAs: 'مسجّل الدخول باسم',
     overview: {
@@ -204,8 +217,8 @@ export const ar = (brand: PlatformBranding): Dictionary => ({
       setupSubtitle: 'الترتيب المقترح لإطلاق المساعد في جامعتك.',
       steps: [
         { title: 'تهيئة الهوية البصرية', body: 'حدّد الشعار والألوان واسم المساعد ورسالة الترحيب.', phase: 3, href: 'settings/branding' },
-        { title: 'دعوة فريقك', body: 'أضف المسؤولين وموظفي الأقسام بالأدوار المناسبة.', phase: 2, href: 'members' },
-        { title: 'إنشاء الأقسام', body: 'القبول والتسجيل والمالية والدعم التقني وغيرها، لاستخدامها في التوجيه.', phase: 2, href: 'departments' },
+        { title: 'دعوة فريقك', body: 'أضف المسؤولين وموظفي الأقسام بالأدوار المناسبة.', phase: 3, href: 'members' },
+        { title: 'إنشاء الأقسام', body: 'القبول والتسجيل والمالية والدعم التقني وغيرها، لاستخدامها في التوجيه.', phase: 3, href: 'departments' },
         { title: 'رفع الوثائق الرسمية', body: 'الدليل الطلابي والتقويم الأكاديمي والرسوم واللوائح والأسئلة الشائعة.', phase: 4, href: 'knowledge' },
         { title: 'إطلاق مساعد الطلاب', body: 'اختبر الإجابات والمصادر، ثم انشره للطلاب.', phase: 5, href: 'assistant' },
       ],

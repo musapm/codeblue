@@ -1,4 +1,6 @@
 import type { Metadata } from 'next'
+import { Ban } from 'lucide-react'
+import { StatusScreen } from '@/components/app-shell/status-screen'
 import { AppShell } from '@/components/app-shell/app-shell'
 import { buildThemeVariables } from '@/lib/branding/theme'
 import { localizedPath } from '@/lib/i18n/config'
@@ -6,10 +8,11 @@ import { getI18n } from '@/lib/i18n/server'
 import { buildShellSections, shellLabels } from '@/lib/navigation/build-shell'
 import { WORKSPACE_NAV } from '@/lib/navigation/workspace-nav'
 import { getWorkspaceContext } from '@/lib/tenancy/context'
+import { isOperating } from '@/lib/tenancy/mappers'
 
 // The workspace depends on the session, so this segment is allowed to block on the
-// server (no static shell). Resolving the session before streaming starts also means an
-// unknown or unauthorized tenant gets a real 404 status (see docs/tenant-isolation.md).
+// server. Unknown and unauthorized tenants render "not found" identically (the HTTP status
+// stays 200 under Cache Components streaming; content is never rendered — docs/testing.md).
 export const instant = false
 
 export const metadata: Metadata = { robots: { index: false } }
@@ -19,6 +22,26 @@ export default async function WorkspaceLayout({ children, params }: LayoutProps<
   const { locale, dict } = await getI18n()
   const ctx = await getWorkspaceContext(locale, slug)
   const basePath = localizedPath(locale, `/app/${ctx.tenant.slug}`)
+
+  // Suspended/archived university: members keep a way out, but no workspace.
+  if (!isOperating(ctx.tenant.status) && ctx.accessVia === 'membership') {
+    return (
+      <StatusScreen
+        locale={locale}
+        dict={dict}
+        icon={<Ban />}
+        title={dict.workspace.unavailable.title}
+        body={dict.workspace.unavailable.body}
+        email={ctx.user.email}
+      />
+    )
+  }
+
+  const banner = ctx.user.isPreview
+    ? dict.workspace.previewBanner
+    : ctx.accessVia === 'support'
+      ? dict.workspace.supportAccessBanner
+      : undefined
 
   return (
     <AppShell
@@ -37,7 +60,7 @@ export default async function WorkspaceLayout({ children, params }: LayoutProps<
       currentSlug={ctx.tenant.slug}
       secondaryLink={ctx.canAccessPlatformConsole ? { href: localizedPath(locale, '/platform'), label: dict.workspace.platformConsole, kind: 'console' } : undefined}
       user={{ displayName: ctx.user.fullName ?? (ctx.user.isPreview ? dict.workspace.previewUser : ctx.user.email ?? ''), email: ctx.user.email }}
-      previewBanner={ctx.user.isPreview ? dict.workspace.previewBanner : undefined}
+      previewBanner={banner}
       labels={shellLabels(dict, dict.workspace.primaryNav)}
     >
       {children}

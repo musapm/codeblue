@@ -1,101 +1,95 @@
 # Project Status
 
-_Last updated: 2026-11-21 (after the implementation audit: `docs/IMPLEMENTATION_AUDIT.md`)_
+_Last updated: 2026-11-22_
 
 ## Honest summary
 
-UniAgent AI is currently a **well-structured foundation, not a working product**.
-
-- **Database:** the dedicated Supabase project exists but has **no application tables**.
-- **AI:** none. There is no model integration and no AI responses; all chat UIs are labelled illustrations.
-- **Authentication:** code is connected to Supabase. Failure paths are verified against the live project. Success paths have never run, the Auth settings are not configured, and **sign-out is broken**.
-- **Tenant isolation:** designed and documented, **not implemented** (no data exists yet).
-- **Fictional data:** confined to UI preview mode and the marketing demo, and clearly labelled. No dashboard shows fabricated numbers.
+UniAgent AI now has a **real, tested multi-tenant security foundation**:
+- **Database:** a live database in the dedicated Supabase project "agent", with tenant isolation enforced and tested at the database level.
+- **Access:** real sign-in, and real role-based access in the app.
+- **AI and university services:** **not built yet.** There is no AI, knowledge base, document search, tickets or analytics. Every chat UI is still a labelled illustration.
 
 | Phase | Status |
 | --- | --- |
 | 0: Discovery, architecture, planning | ✅ Complete |
-| 1: Foundation & design system | ⚠️ Complete **except two defects found in the audit**: sign-out (broken) and the post-login dead end |
-| 2: Auth, tenants & security foundation | ⏭ Next. Supabase project ready (empty) |
-| 3–17 | Not started |
+| 1: Foundation & design system | ✅ Complete (the audit defects are fixed) |
+| 2: Auth, tenants & security foundation | ✅ **Core complete; isolation gate passed.** Open items below need your input (Auth email settings) or are operational |
+| 3: Super Admin & university management (UI) | ⏭ Next |
+| 4–17 | Not started |
 
-## Supabase
+## Supabase project "agent"
 
 | Item | Value |
 | --- | --- |
-| Project | `agent` (dedicated to UniAgent) · ref `zijruhuvzxtuudsvnwgy` · `https://zijruhuvzxtuudsvnwgy.supabase.co` |
-| Region | eu-central-1 (Frankfurt), permanent |
-| Plan | **Free**: no backups or PITR. Upgrade before real data |
-| State | 0 app tables, 0 migrations, 0 users. `vector`, `pgtap`, `pgmq`, `pg_cron`, `pgroonga` available but not installed |
-| Advisor | 2 low-risk warnings on the pre-existing `public.rls_auto_enable()` (revoke EXECUTE in the first migration) |
-| Auth settings | **Not configured or verified** (Site URL, redirect URLs, SMTP, templates, sign-up policy) |
-| Other projects | CodeBlue and Terma are in a different organization: **not accessed, not modified** |
+| Ref / URL | `zijruhuvzxtuudsvnwgy` · `https://zijruhuvzxtuudsvnwgy.supabase.co` |
+| Region / plan | eu-central-1 (Frankfurt) · **Free** (no backups) |
+| Schema | 18 tables in `public` + 2 private template tables, all with RLS. 5 migrations, byte-identical to git (`supabase/README.md`) |
+| Data | 1 fictional demo university ("Northbridge", 7 departments, 13 roles). **0 users** (temporary test accounts deleted) |
+| Advisors | Only documented, intended findings (see `supabase/README.md`) |
+| Auth settings | **Not configured yet:** Site URL, redirect URLs, SMTP, email templates (owner action, `docs/authentication.md`) |
+| Other projects | CodeBlue and Terma: not accessed, not modified |
 
-## Feature status (see the audit for files, risks and next steps)
+## Feature status
 
 ### 1. Fully implemented and working
-- Public website, 10 pages in English and Arabic (copy needs "Coming soon" labels; see the defects below).
-- Arabic/English switching with RTL.
-- Platform branding configuration and theme engine (env-based).
-- Locale routing and session gate: HTTP 307 to login verified **live** against "agent".
-- Security baseline: headers, redirect guard, validation, redaction, `server-only` boundaries.
-- Error pages and boundaries, health endpoint.
-- Responsive layout (tested on mobile for key pages).
+- Public website, 10 pages in English and Arabic, with honest "In development" labelling.
+- Arabic/English with RTL.
+- Platform branding configuration and theme engine.
+- **Authentication:** password sign-in, session gate (HTTP 307), sign-out, error handling. Verified live against "agent".
+- **Multi-tenant database:**
+  - tenants, memberships, roles (13 system templates + custom), permissions (35), departments, invitations (table), features;
+  - **RLS on every table**, composite same-tenant FKs, append-only **audit log written by database triggers**;
+  - support-access grants (time-boxed, read-only, audited).
+- **Tenant isolation:** 50 database tests (T1–T15 + escalation, suspension, support grants, audit, seed) and **live HTTP-level tests (T18)**.
+- **Workspace on real data:** university list and tenant context from the database; role-based navigation; **server-side permission gates** on settings, branding and modules; suspended-university page; "No university access yet" page.
+- **Super Admin gate:** `platform_admins` + console access check. Platform staff (owner included) **cannot see university content without an audited grant**.
+- Security baseline (headers, validation, redirect guard, redaction), error pages, health endpoint.
 
 ### 2. Implemented but not connected to a real backend
-- Workspace shell and navigation (preview fixtures only).
-- Tenant context (preview fixtures only; real users get "not found").
-- Branding editor (live preview, **nothing persists**).
-- Contact/demo form (validates, **nothing stored or sent**).
-- Permission catalog and navigation filtering (**no enforcement anywhere yet**).
-- Rate limiting (in-memory, per instance, IP from a spoofable header).
-- Platform readiness panel (2 of 5 rows hardcoded as "Planned").
+- **Branding editor:** live preview; **saving/publishing not built** (the database column exists).
+- **Contact/demo form:** validates; **not stored** (`platform_inquiries` not built yet).
+- **Rate limiting:** in-memory per instance.
 
 ### 3. UI-only / placeholder
-17 module placeholders · chat previews (static) · white-label demo (fictional universities) ·
-Settings → General (read-only fixtures) · overview setup checklist (static) · Privacy/Terms (drafts).
+Module pages for assistant, admissions, academic, staff, tickets, knowledge, workflows, campus, analytics,
+quality, members, departments, integrations and audit (labelled "Planned · Phase N"). Chat previews
+(static). Platform console modules. Privacy/Terms drafts.
 
 ### 4. Planned but not implemented
-Database schema and migrations · tenant isolation (RLS) · role enforcement · Super Admin (no
-`platform_admins`, no owner bootstrap) · departments and routing · AI integration · student, admissions,
-academic and staff assistants · knowledge base upload and processing · RAG · citations · tickets and
-handoff · analytics · branding persistence · audit logs · notifications and transactional email ·
-backups and recovery · CI, monitoring and error tracking.
+University management UI (create, invite, roles, departments, audit viewer) · invitation acceptance flow ·
+AI model integration · student, admissions, academic and staff assistants · knowledge base upload and
+processing · RAG and citations · tickets and handoff · analytics · branding persistence · notifications
+and email · subscriptions and plans · voice · integrations · backups and recovery · CI, monitoring and
+error tracking.
 
 ### 5. Broken or incomplete
-| # | Issue | Severity |
-| --- | --- | --- |
-| 5.1 | **Sign-out does nothing.** The form is detached when the dropdown closes ("Form submission canceled because the form is not connected") | High |
-| 5.2 | **Real users hit a dead end after login:** a misleading "not found" message and no sign-out on `/app`. `/platform` returns 404 for everyone real | High |
-| 5.3 | Sign-up, sign-in and reset success paths have never been executed. Supabase Auth URLs, SMTP and templates are not configured | High |
-| 5.4 | Auth settings cannot be read by the tooling; they must be checked in the dashboard | Medium |
-| 5.5 | Marketing copy describes roadmap features in the present tense | Medium (commercial/legal) |
-| 5.6 | Hardcoded: tenant timezone `Africa/Khartoum` and default locale, the platform "back" link to the demo slug, example.com emails | Low–Medium |
-| 5.7 | Duplicate `id="main"` after some client navigations (skip-link target) | Low |
+| Issue | Severity |
+| --- | --- |
+| Email-based auth flows (sign-up confirmation, password reset) unverified: they need Supabase Auth URL, SMTP and template settings | High (owner action) |
+| In-memory rate limiting, IP from a spoofable header | High before launch |
+| No backups on the Free plan | High before real data |
+| CSP allows inline scripts | Medium (Phase 16) |
+| Duplicate `id="main"` after switching workspaces | Low |
 
-## Test results (commit `136cba1`)
+## Test results (2026-11-22)
 
-| Check | Result | Note |
-| --- | --- | --- |
-| Typecheck / lint / build | ✅ | |
-| Vitest | ✅ 81/81 | |
-| Playwright | ✅ 56/56 | **Gap: no sign-out test, which is why 5.1 went undetected.** No success-path auth tests |
-| `npm audit` (prod + dev) | ✅ 0 vulnerabilities | |
-| Live checks against "agent" (audit) | ✅ 307 gate, wrong-password (en/ar), bad code/OTP, reset without session · ❌ sign-out | No data created |
+| Suite | Result |
+| --- | --- |
+| Typecheck / lint / build | ✅ |
+| Unit + component (`npm test`) | ✅ 88/88 |
+| Database isolation (`npm run test:db`) | ✅ 50/50 |
+| Browser e2e, preview mode (`npm run test:e2e`) | ✅ 58/58 (incl. sign-out regression, accessibility checks) |
+| **Live e2e against "agent"** (`e2e/live`, opt-in) | ✅ 6/6: student/owner/outsider flows, T18 cross-tenant, sign-out, Arabic data. Plus a manual check that the platform owner is blocked without a grant |
+| Live API probes (anon) | ✅ All tables and functions denied. Private schema not exposed |
 
-## Security posture
-- **Gate:** no real university data may be onboarded until Phase 2 isolation tests pass.
-- High before launch: sign-out, shared rate limiting, backups (paid plan).
-- Medium: CSP `'unsafe-inline'`, Auth configuration, marketing claims.
-- Verified OK: no secrets in the repo, no unsafe HTML or eval, Host-header-safe auth links, preview mode disabled when Supabase is configured.
+## Decisions and actions needed from you
+1. **Configure Supabase Auth** (Site URL, redirect URLs, SMTP provider, email templates): steps in `docs/authentication.md`. Choose an email provider.
+2. **Become platform owner:** sign up, confirm your email, run `supabase/seed/bootstrap_platform_owner.sql` with your email.
+3. **Sign-up policy:** invitation/approved domains only (recommended) or open?
+4. **Plan upgrade timing:** before the first pilot with real data.
+5. Confirm that Frankfurt is acceptable for target universities.
 
-## Decisions needed from the product owner
-1. **Transactional email provider** for auth emails (e.g. Resend, Postmark, Amazon SES). Supabase's default sender is not suitable for real users.
-2. **Sign-up policy:** open self-registration, or invitation / approved university email domains only? Recommended: invitation and approved domains only.
-3. **Plan upgrade timing:** the Free plan has no backups. Upgrade before any real university data (pilot).
-4. Confirm that Frankfurt (eu-central-1) is acceptable for your target universities' data-residency requirements.
-
-## Next steps (in order)
-1. P0 fixes: sign-out, post-login page, "Coming soon" labels, Supabase Auth configuration.
-2. Phase 2 in project "agent": migrations + RLS + isolation tests (gate), RLS-backed tenant context, platform-owner bootstrap, live auth e2e.
-3. Shared rate limiting, CI, error tracking. Backups before real data.
+## Next steps
+1. Phase 3: university management UI on top of the new schema (create a university, invite members, assign roles and departments, audit viewer, branding save/publish, support-access grant UI).
+2. Operational: CI pipeline (`check` + `test:db` + e2e), error tracking, shared rate limiting, inquiry storage.
+3. Then Phase 4 (knowledge base) → Phase 5 (student assistant with real AI and citations).

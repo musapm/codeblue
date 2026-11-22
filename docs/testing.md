@@ -61,3 +61,27 @@ HTTP status stays 200. The protected content is **never rendered or sent**, and 
 the redirect or shows the 404 UI. When Supabase is configured, `proxy.ts` additionally issues a real
 **HTTP 307** to the login page for requests without a session. Tests assert on behaviour (URL and content),
 not on status codes, for these routes.
+
+## Database isolation tests (Phase 2)
+
+```bash
+TEST_DATABASE_URL=postgres://postgres:postgres@127.0.0.1:5432/postgres npm run test:db
+```
+
+`supabase/tests/rls.test.ts` (50 tests) creates a throw-away database, applies the Supabase shim and
+every migration, and runs each check **as a real database role with Supabase-style JWT claims**, so
+RLS, grants, constraints and triggers behave as they do behind the Supabase Data API. It covers
+isolation tests **T1–T15** from `tenant-isolation.md`, plus escalation attempts, suspension, support
+grants, the append-only audit log, API functions, integrity constraints and the demo seed.
+
+## Live tests against a real Supabase project (opt-in)
+
+`e2e/live/live-auth.spec.ts` covers real sign-in, role-based navigation, server-side enforcement of
+direct URLs, **T18 (HTTP-level cross-tenant attempts)**, sign-out, the owner's settings and branding
+from the database, Arabic tenant names, and the no-access page. It runs only with `LIVE_E2E=1`, a
+build configured with that project's URL and key, and dedicated test accounts (see
+`environment-variables.md`). Never point it at real users.
+
+Last live run: 2026-11-22 against project "agent". **6/6 passed.** A platform owner without a
+support grant was also confirmed to get "not found" on a university workspace. The temporary test
+accounts and tenant were deleted afterwards.

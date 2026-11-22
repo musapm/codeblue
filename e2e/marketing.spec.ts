@@ -36,6 +36,14 @@ test.describe('public website', () => {
     expect(cookies.find((c) => c.name === 'NEXT_LOCALE')?.value).toBe('ar')
   })
 
+  test('roadmap capabilities are labelled as in development', async ({ page }) => {
+    await page.goto('/en')
+    await expect(page.getByRole('note').first()).toContainText('in active development')
+    await expect(page.getByText('In development').first()).toBeVisible()
+    await page.goto('/ar/features')
+    await expect(page.getByText('قيد التطوير').first()).toBeVisible()
+  })
+
   test('pricing shows plans without hardcoded prices', async ({ page }) => {
     await page.goto('/en/pricing')
     await expect(page.getByRole('heading', { name: 'Starter' })).toBeVisible()

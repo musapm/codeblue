@@ -4,8 +4,8 @@ Multi-tenant AI agent platform for universities. Each university gets its own br
 (users, knowledge, AI agents, tickets, analytics), and the platform owner manages all of them centrally.
 
 > **Status:** Foundation only. See the [implementation audit](docs/IMPLEMENTATION_AUDIT.md) for what really works.
-> The dedicated Supabase project ("agent") has no tables yet, authentication is only partially verified,
-> and there is no AI yet. See [`PROJECT_STATUS.md`](PROJECT_STATUS.md).
+> The dedicated Supabase project ("agent") has the multi-tenant schema with tested isolation and live sign-in;
+> AI and university services are not built yet. See [`PROJECT_STATUS.md`](PROJECT_STATUS.md).
 > The product name is configurable (`NEXT_PUBLIC_PLATFORM_NAME`); "UniAgent AI" is a working title.
 
 ## Quick start
@@ -30,6 +30,7 @@ shows a permanent banner. It uses fictional universities, and nothing is saved.
 | `npm run build` / `npm start` | Production build / server |
 | `npm run check` | Typecheck + lint + unit tests |
 | `npm run test:e2e` | Playwright end-to-end tests (after `npm run build`) |
+| `npm run test:db` | Tenant-isolation / RLS tests (needs `TEST_DATABASE_URL`, see `supabase/README.md`) |
 
 ## Tech stack
 
@@ -49,7 +50,8 @@ src/proxy.ts                 Locale routing, session refresh, coarse auth gate
 src/lib/                     Domain and infrastructure modules (env, auth, i18n, branding, tenancy, …)
 src/components/              UI system and feature components
 src/content/marketing/       Typed marketing copy (en, ar)
-e2e/                         Playwright tests
+supabase/                    Migrations, seeds and isolation tests (see supabase/README.md)
+e2e/                         Playwright tests (e2e/live: opt-in tests against a real project)
 docs/                        Architecture, security, operations
 ```
 

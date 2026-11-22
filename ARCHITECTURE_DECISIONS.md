@@ -88,3 +88,29 @@ Format: **ADR-NNN — Title** · Status · Date · Context → Decision → Cons
 **Context:** Nonce CSP requires dynamic rendering, which conflicts with static marketing pages.
 **Decision:** Phase 1 ships strict headers and a CSP with `'unsafe-inline'` scripts (needed for Next's inline bootstrap on static pages) plus `frame-ancestors 'none'`, `object-src 'none'`, `base-uri 'self'`, and `form-action 'self'`. Phase 16 adds nonce-based CSP in the proxy for the dynamic `/app` and `/platform` segments.
 **Consequences:** Good baseline now, with a documented hardening step.
+
+## ADR-014 — No blanket platform-staff access to university content
+**Accepted · 2026-11-22**
+
+**Context:** A first draft of the RLS policies let any platform role read every university's members, roles and departments. The isolation suite caught it (T11). The master prompt requires that administrative access to tenant data happen only through an explicit, audited mechanism.
+**Decision:** Platform roles (owner included) see tenant *metadata and configuration* (tenants, settings, branding, domains, features) and platform tables. Tenant *content* (memberships, profiles, roles, departments, invitations, and later tickets/documents/conversations) requires membership + permission, or an active, time-boxed `support_access_grant` (≤ 24 h, read-only, audited). Platform operations such as onboarding go through audited SECURITY DEFINER functions (`create_tenant`).
+**Consequences:** Verified by tests T11, T11b, T12, T13 and live (platform owner without a grant gets "not found" on a university workspace). Support tooling (Phase 3) must request grants.
+
+## ADR-015 — Migrations in git are the schema's source of truth
+**Accepted · 2026-11-22**
+
+**Decision:** All DDL lives in `supabase/migrations/*.sql`, applied in order; file versions equal the versions recorded in the project, and the applied statements are checked byte-for-byte (md5) against the files. No schema changes through the dashboard.
+**Consequences:** The database can be rebuilt from git; drift is detectable.
+
+## ADR-016 — Isolation tests on plain PostgreSQL with a Supabase shim; live tests opt-in
+**Accepted · 2026-11-22**
+
+**Context:** Docker (Supabase local stack) is not always available; isolation must be tested on every change.
+**Decision:** `supabase/tests/supabase-shim.sql` recreates the Supabase pieces our SQL depends on (roles, `auth.uid()`, default grants). `npm run test:db` applies shim + migrations to a throw-away database and runs the suite as real roles with JWT claims. Live tests against a real project (`e2e/live`) run only with `LIVE_E2E=1` and dedicated test accounts.
+**Consequences:** Fast, CI-friendly isolation tests; the live suite closes the gap to real Supabase Auth/PostgREST behaviour.
+
+## ADR-017 — `tenant_features` as the entitlement source until plans exist
+**Accepted · 2026-11-22**
+
+**Decision:** Every tenant gets all catalog features enabled at creation (`tenant_features`). Server-side checks (`app.tenant_has_feature`, `my_tenant_access.features`) already use it; Phase 3/15 will derive it from plans and overrides.
+**Consequences:** Feature enforcement is real today and will not need to change shape when plans arrive.

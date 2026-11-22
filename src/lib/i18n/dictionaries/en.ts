@@ -21,6 +21,8 @@ export const en = (brand: PlatformBranding) => ({
     backHome: 'Back to home',
     fictional: 'Fictional demo content',
     plannedPhase: (phase: number) => `Planned · Phase ${phase}`,
+    inDevelopment: 'In development',
+    announcement: `${brand.name} is in active development. Capabilities are released in phases, and we are onboarding pilot universities.`,
     optional: 'optional',
   },
   nav: {
@@ -194,8 +196,19 @@ export const en = (brand: PlatformBranding) => ({
       plannedCapabilities: 'What this module will do',
       backToOverview: 'Back to overview',
     },
+    noAccess: {
+      title: 'No university access yet',
+      body: 'You are signed in, but your account has not been added to a university workspace yet. Ask your university administrator for an invitation. If you think this is a mistake, contact support.',
+    },
+    unavailable: {
+      title: 'This workspace is unavailable',
+      body: 'This university workspace is currently suspended or archived. Contact your university administrator or platform support.',
+    },
     previewBanner: 'UI preview mode. No authentication backend is configured, the identity shown is fictional, and nothing is saved.',
     previewUser: 'Preview Administrator',
+    defaultAssistantName: (university: string) => `${university} Assistant`,
+    defaultWelcome: 'Hi! How can I help you today?',
+    supportAccessBanner: 'Support access: read-only troubleshooting session. This access is time-limited and recorded in the audit log.',
     account: 'Account',
     signedInAs: 'Signed in as',
     overview: {
@@ -206,8 +219,8 @@ export const en = (brand: PlatformBranding) => ({
       setupSubtitle: 'Recommended order for launching the assistant at your university.',
       steps: [
         { title: 'Configure branding', body: 'Set your logo, colors, assistant name and welcome message.', phase: 3, href: 'settings/branding' },
-        { title: 'Invite your team', body: 'Add administrators and department staff with the right roles.', phase: 2, href: 'members' },
-        { title: 'Create departments', body: 'Admissions, Registrar, Finance, IT Support and others, used for routing.', phase: 2, href: 'departments' },
+        { title: 'Invite your team', body: 'Add administrators and department staff with the right roles.', phase: 3, href: 'members' },
+        { title: 'Create departments', body: 'Admissions, Registrar, Finance, IT Support and others, used for routing.', phase: 3, href: 'departments' },
         { title: 'Upload official documents', body: 'Handbook, academic calendar, fees, policies and FAQs.', phase: 4, href: 'knowledge' },
         { title: 'Launch the student assistant', body: 'Test answers and citations, then publish to students.', phase: 5, href: 'assistant' },
       ],

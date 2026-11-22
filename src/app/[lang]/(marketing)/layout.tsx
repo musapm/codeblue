@@ -1,3 +1,4 @@
+import Link from 'next/link'
 import { Logo } from '@/components/brand/logo'
 import { SiteFooter } from '@/components/marketing/site-footer'
 import { SiteHeader } from '@/components/marketing/site-header'
@@ -21,6 +22,12 @@ export default async function MarketingLayout({ children }: LayoutProps<'/[lang]
 
   return (
     <div className="flex min-h-screen flex-col">
+      <div role="note" className="bg-secondary px-4 py-2 text-center text-xs text-secondary-foreground">
+        {dict.common.announcement}{' '}
+        <Link href={p('/contact')} className="font-semibold underline underline-offset-2">
+          {dict.common.contactUs}
+        </Link>
+      </div>
       <SiteHeader
         locale={locale}
         logo={<Logo />}

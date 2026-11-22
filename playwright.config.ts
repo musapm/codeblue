@@ -11,6 +11,8 @@ const baseURL = `http://127.0.0.1:${PORT}`
  */
 export default defineConfig({
   testDir: './e2e',
+  // Live tests (e2e/live) need real credentials and a Supabase-configured build.
+  testIgnore: process.env.LIVE_E2E === '1' ? [] : ['**/live/**'],
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 1 : 0,
@@ -29,7 +31,7 @@ export default defineConfig({
     reuseExistingServer: !process.env.CI,
     timeout: 120_000,
     env: {
-      UNIAGENT_UI_PREVIEW: 'true',
+      UNIAGENT_UI_PREVIEW: process.env.LIVE_E2E === '1' ? 'false' : 'true',
       NEXT_PUBLIC_SITE_URL: baseURL,
     },
   },

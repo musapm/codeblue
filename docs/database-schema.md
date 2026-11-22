@@ -1,7 +1,11 @@
 # Database Architecture
 
-> Status: **Phase 0 design.** The Phase 2 tables below are the proposed initial schema. They will
-> be implemented as SQL migrations in `supabase/migrations/` and may be refined during Phase 2.
+> Status: **Phase 2 tables are implemented** in `supabase/migrations/` and applied to project "agent"
+> (see `supabase/README.md`). The SQL in the migrations is authoritative; the sketch below is the design.
+> Differences from the sketch: `slug` and `email` columns are `text` with format checks (no `citext`);
+> `features` + `tenant_features` were added now (ADR-017); role templates live in the private `app` schema;
+> `audit_logs.tenant_id` has no FK, so history survives deletions. `platform_inquiries` is not built yet.
+> Later-phase tables are listed to show that the design accommodates them.
 > Later-phase tables are listed to show that the design accommodates them.
 
 ## 1. Conventions

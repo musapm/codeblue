@@ -1,71 +1,65 @@
 # Task Checklist
 
-Legend: `[x]` done and verified · `[~]` partial (note says what is missing) · `[!]` broken (found in audit) · `[ ]` not started
+Legend: `[x]` done and verified · `[~]` partial (note says what is missing) · `[ ]` not started
 
-Source of truth for the current state: `docs/IMPLEMENTATION_AUDIT.md` (2026-11-21).
+Current state: `PROJECT_STATUS.md` · Audit history: `docs/IMPLEMENTATION_AUDIT.md`
 
 ## Phase 0: Discovery, architecture, planning ✅
 
-- [x] Repository and environment inspection
-- [x] Architecture, database, tenant-isolation, authn/authz, AI, RAG, deployment, security docs
-- [x] Roadmap, ADR-001…013, PROJECT_STATUS.md, TASKS.md
-- [x] Implementation audit (`docs/IMPLEMENTATION_AUDIT.md`)
+- [x] Inspection, architecture, database, isolation, authn/authz, AI, RAG, deployment, security docs
+- [x] Roadmap, ADR-001…017, implementation audit
 
-## Phase 1: Foundation & design system (complete except two audit defects)
+## Phase 1: Foundation & design system ✅
 
-- [x] Next.js 16.4 + TypeScript strict + Tailwind v4 project, scripts, lint, tests
-- [x] Validated env config, logger with redaction, AppError, security headers, redirect guard
-- [x] Design system components and theme engine (validated hex → CSS variables, contrast checks)
-- [x] Central platform branding (env-based) with a guard test against hardcoded names
-- [x] i18n en/ar with RTL, negotiation, switcher, parity test
-- [x] Public website: 10 pages × 2 languages, white-label demo
-- [x] Locale routing + session refresh + auth gate in the proxy (307 verified live against "agent")
-- [x] Error boundaries, 404s, health endpoint
-- [~] Auth pages and actions connected to Supabase: failure paths verified live; **success paths never executed**; Auth settings not configured
-- [!] **Sign-out from the user menu does nothing** (form detached when the dropdown closes)
-- [!] **Post-login dead end** for real users (misleading message, no sign-out on `/app`)
-- [~] Workspace shell, branding editor, platform console: UI only on preview fixtures; nothing persists
-- [~] Contact form: validates, but nothing stored or sent
-- [~] Rate limiting: in-memory per instance, spoofable IP source
+- [x] Next.js 16.4 / TypeScript / Tailwind v4, design system, theme engine, platform branding
+- [x] en/ar with RTL; public website (10 pages × 2); white-label demo
+- [x] Auth pages + Supabase SSR + proxy; workspace and platform shells; error handling
+- [x] Audit fixes: sign-out (+ regression test), no-access/unavailable pages, "In development" labels, no hardcoded tenant time zone or locale
 
-## P0: Fix before any new feature
+## Phase 2: Auth, tenants & security foundation ✅ core complete (gate passed)
 
-- [ ] Fix sign-out (submit outside the dropdown or via `onSelect`) + e2e test
-- [ ] "No university access yet" page with sign-out for signed-in users without memberships
-- [ ] Label roadmap features as "Coming soon" on the website (en + ar) and adjust present-tense claims
-- [ ] Remove hardcoded tenant timezone and locale assumptions (move to the tenant record in Phase 2) and the platform "back" link to the demo slug
-- [ ] Configure Supabase Auth for "agent": Site URL, redirect URLs (`/auth/callback`, `/auth/confirm`), custom SMTP (provider decision needed), bilingual email templates using `token_hash`, sign-up policy
-- [ ] Live auth e2e with a dedicated test account (sign up → confirm → sign in → sign out → reset)
-
-## Phase 2: Auth, tenants & security foundation (critical gate). Project: `agent` (`zijruhuvzxtuudsvnwgy`)
-
-- [x] Dedicated Supabase project identified and inspected (empty, eu-central-1, Free plan)
-- [ ] `supabase/migrations/` in git as the single source of truth
-- [ ] Migration 1: extensions (`citext`; `vector` later), `app` schema helpers, `revoke execute on public.rls_auto_enable() from anon, authenticated`
-- [ ] Tables: tenants, tenant_settings, tenant_branding, tenant_domains, profiles, platform_admins, tenant_memberships, permissions, roles, role_permissions, membership_roles, departments, membership_departments, invitations, support_access_grants, audit_logs, platform_inquiries
-- [ ] RLS on every table + composite same-tenant FKs + indexes
-- [ ] Seed: permission catalog, system role templates, demo tenant "Northbridge University" (replaces `demo-tenants.ts` in the product)
-- [ ] Isolation tests T1–T15 (pgTAP in the project + local Postgres harness for CI) and T18 (HTTP/Server Actions)
-- [ ] RLS-backed tenant context in `src/lib/tenancy/context.ts`; `AccessSnapshot` from real roles and features
-- [ ] `platform_admins` gate for `/platform` + documented one-time owner bootstrap
-- [ ] Audit-log RPC; audit membership and role changes
-- [ ] Persist contact inquiries (consent recorded) + sales notification
+- [x] Dedicated Supabase project "agent" (eu-central-1, Free plan)
+- [x] Migrations in git (5), applied and verified byte-identical
+- [x] Tables: tenants, tenant_settings, tenant_branding, tenant_domains, profiles, platform_admins, tenant_memberships, permissions, features, tenant_features, roles, role_permissions, membership_roles, departments, membership_departments, invitations, support_access_grants, audit_logs
+- [x] `app.*` caller-scoped helpers (private schema), RLS on every table, composite same-tenant FKs, least-privilege grants (incl. no TRUNCATE)
+- [x] Seeds: 35 permissions, 15 features, 13 system role templates; demo tenant "Northbridge"
+- [x] Database-enforced append-only audit log (triggers)
+- [x] Support-access grants (≤24 h, read-only, audited). No blanket platform access to tenant content (ADR-014)
+- [x] Profile-on-signup trigger (verified on the real `auth.users`)
+- [x] API functions: create_tenant, my_workspaces, my_tenant_access, my_platform_role
+- [x] Isolation tests T1–T15 (+T11b) on Postgres with Supabase shim (`npm run test:db`, 50 tests)
+- [x] T18 live HTTP-level isolation (`e2e/live`, 6 tests passed against "agent")
+- [x] App: RLS-backed tenant context, server-side permission gates, platform-owner gate, suspended state, support banner
+- [x] Generated DB types; catalog-sync test (TypeScript ↔ SQL)
+- [x] Platform-owner bootstrap script (`supabase/seed/bootstrap_platform_owner.sql`)
+- [ ] **Owner action:** Supabase Auth Site URL, redirect URLs, SMTP, email templates (`docs/authentication.md`)
+- [ ] Live verification of sign-up confirmation and password-reset emails (after the above)
+- [ ] Persist contact inquiries (`platform_inquiries`) with consent + spam protection
 - [ ] Shared rate limiting (Postgres-backed) with trusted-proxy IP extraction
-- [ ] Generated DB types committed
-- [ ] Re-run security advisors after migrations (must be clean)
 
-## Operations (start alongside Phase 2)
+## Operations (in parallel with Phase 3)
 
-- [ ] CI (GitHub Actions): `npm run check`, build, e2e
-- [ ] Error tracking (e.g. Sentry) + request IDs in logs
-- [ ] **Before real university data:** upgrade the Supabase plan (backups), PITR for production, tested restore runbook
+- [ ] CI (GitHub Actions): `npm run check`, `npm run test:db` (Postgres service), build, e2e
+- [ ] Error tracking + request IDs in logs
+- [ ] **Before real university data:** paid Supabase plan (backups), PITR for production, tested restore runbook
 - [ ] Hosting spike: Vercel vs Cloudflare Workers (ADR-011)
+
+## Phase 3: Super Admin & university management (NEXT)
+
+- [ ] Platform console: universities list, create university (`create_tenant`), status changes (suspend/archive), feature toggles
+- [ ] Invitations: create (hashed token), email, accept flow (RPC), expiry and revocation
+- [ ] Members & roles UI (assign roles and departments; custom roles)
+- [ ] Departments UI
+- [ ] Audit log viewer (tenant + platform)
+- [ ] Branding save/publish (draft → published) + logo upload (storage with tenant-scoped policies)
+- [ ] Support-access grant UI (request, approve, revoke, banner)
+- [ ] University settings editing (name, locale, time zone, sign-up domains)
 
 ## Later phases
 
-See `docs/roadmap.md` (Phases 3–17). Nothing in Phases 3–17 has been started: there is no AI,
-knowledge base, RAG, citations, tickets, departments routing, analytics, branding persistence,
-subscriptions, notifications, voice or integrations.
+See `docs/roadmap.md` (Phases 4–17): knowledge base, student assistant (AI + RAG + citations),
+admissions, tickets, analytics, academic, staff, workflows, campus, voice, notifications/integrations,
+subscriptions, security review, launch.
 
 ## Known follow-ups
 
@@ -75,5 +69,4 @@ subscriptions, notifications, voice or integrations.
 - [ ] `robots.txt` and sitemap
 - [ ] Legal review of Privacy Policy and Terms
 - [ ] Real support/sales emails in production env
-- [ ] Extend e2e viewport matrix (tablet, landscape, all routes)
-- [ ] Dark mode (tokens ready, not designed)
+- [ ] Extended e2e viewport matrix

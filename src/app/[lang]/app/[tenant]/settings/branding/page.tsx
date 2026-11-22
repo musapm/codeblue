@@ -1,11 +1,13 @@
 import { BrandingEditor } from '@/components/branding/branding-editor'
 import { getI18n } from '@/lib/i18n/server'
-import { getWorkspaceContext } from '@/lib/tenancy/context'
+import { getWorkspaceContext, requireWorkspaceAccess } from '@/lib/tenancy/context'
 
 export default async function BrandingSettingsPage({ params }: PageProps<'/[lang]/app/[tenant]/settings/branding'>) {
   const { tenant: slug } = await params
   const { locale, dict } = await getI18n()
-  const { tenant } = await getWorkspaceContext(locale, slug)
+  const ctx = await getWorkspaceContext(locale, slug)
+  requireWorkspaceAccess(ctx, { permission: 'tenant.branding.manage' })
+  const { tenant } = ctx
   const t = dict.workspace.settings.branding
 
   return (

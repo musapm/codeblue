@@ -79,10 +79,10 @@ export const WORKSPACE_NAV: NavSection[] = [
   {
     key: 'administration',
     items: [
-      { key: 'members', segment: 'members', icon: 'members', status: 'planned', phase: 2, permission: 'members.read' },
-      { key: 'departments', segment: 'departments', icon: 'departments', status: 'planned', phase: 2, permission: 'departments.manage' },
+      { key: 'members', segment: 'members', icon: 'members', status: 'planned', phase: 3, permission: 'members.read' },
+      { key: 'departments', segment: 'departments', icon: 'departments', status: 'planned', phase: 3, permission: 'departments.manage' },
       { key: 'integrations', segment: 'integrations', icon: 'integrations', status: 'planned', phase: 14, permission: 'integrations.manage', feature: 'integrations' },
-      { key: 'audit', segment: 'audit', icon: 'audit', status: 'planned', phase: 2, permission: 'audit.read' },
+      { key: 'audit', segment: 'audit', icon: 'audit', status: 'planned', phase: 3, permission: 'audit.read' },
       { key: 'settings', segment: 'settings', icon: 'settings', status: 'available', phase: 1, permission: 'tenant.settings.read' },
     ],
   },
@@ -97,7 +97,7 @@ export const PLATFORM_NAV: NavSection[] = [
       { key: 'plans', segment: 'plans', icon: 'plans', status: 'planned', phase: 15 },
       { key: 'usage', segment: 'usage', icon: 'usage', status: 'planned', phase: 15 },
       { key: 'ai', segment: 'ai', icon: 'ai', status: 'planned', phase: 5 },
-      { key: 'audit', segment: 'audit', icon: 'audit', status: 'planned', phase: 2 },
+      { key: 'audit', segment: 'audit', icon: 'audit', status: 'planned', phase: 3 },
       { key: 'settings', segment: 'settings', icon: 'settings', status: 'planned', phase: 3 },
     ],
   },

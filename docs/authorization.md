@@ -77,6 +77,10 @@ Tenant admins can create **custom roles** from the catalog. Permission keys cann
 | `support` | Tenant metadata and health. Tenant content only through a time-boxed, audited `support_access_grant` |
 | `billing` | Subscriptions, payment records, usage reports |
 
+**No platform role, including `owner`, can read university content** (members, profiles, roles,
+departments, invitations, and later tickets, documents and conversations) without an active,
+time-boxed support grant. This is enforced by RLS and covered by isolation tests T11, T11b, T12 and T13 (ADR-014).
+
 ## 5. Features (entitlements)
 
 Feature keys (`src/lib/features/catalog.ts`): `student_assistant`, `admissions_agent`,
