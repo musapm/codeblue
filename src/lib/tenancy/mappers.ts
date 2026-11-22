@@ -109,13 +109,22 @@ export function toTenantSummary(
   }
 }
 
+/**
+ * What a support-access session may look at (read-only troubleshooting, ADR-014). The
+ * database grants support sessions no tenant permissions and rejects every write; these
+ * keys only decide which read-only pages are shown, and each of them is backed by a read
+ * path the database allows for support grants (tenant_members, settings, features).
+ */
+export const SUPPORT_READ_PERMISSIONS = ['tenant.settings.read', 'tenant.features.read', 'members.read'] as const
+
 export function toTenantAccess(payload: z.infer<typeof tenantAccessPayloadSchema>): TenantAccess {
+  const permissions = payload.access_via === 'support' ? [...SUPPORT_READ_PERMISSIONS] : payload.permissions
   return {
     tenantId: payload.tenant.id,
     accessVia: payload.access_via,
     roles: payload.roles,
     departmentIds: payload.department_ids,
-    access: { kind: 'scoped', permissions: new Set(payload.permissions), features: new Set(payload.features) },
+    access: { kind: 'scoped', permissions: new Set(permissions), features: new Set(payload.features) },
   }
 }
 

@@ -7,7 +7,7 @@ Current state: `PROJECT_STATUS.md` · Audit history: `docs/IMPLEMENTATION_AUDIT.
 ## Phase 0: Discovery, architecture, planning ✅
 
 - [x] Inspection, architecture, database, isolation, authn/authz, AI, RAG, deployment, security docs
-- [x] Roadmap, ADR-001…017, implementation audit
+- [x] Roadmap, ADR-001…020, implementation audit
 
 ## Phase 1: Foundation & design system ✅
 
@@ -37,23 +37,27 @@ Current state: `PROJECT_STATUS.md` · Audit history: `docs/IMPLEMENTATION_AUDIT.
 - [ ] Persist contact inquiries (`platform_inquiries`) with consent + spam protection
 - [ ] Shared rate limiting (Postgres-backed) with trusted-proxy IP extraction
 
-## Operations (in parallel with Phase 3)
+## Operations (in parallel with Phase 4)
 
 - [ ] CI (GitHub Actions): `npm run check`, `npm run test:db` (Postgres service), build, e2e
 - [ ] Error tracking + request IDs in logs
 - [ ] **Before real university data:** paid Supabase plan (backups), PITR for production, tested restore runbook
 - [ ] Hosting spike: Vercel vs Cloudflare Workers (ADR-011)
 
-## Phase 3: Super Admin & university management (NEXT)
+## Phase 3: Super Admin & university management ✅ core complete (verified live)
 
-- [ ] Platform console: universities list, create university (`create_tenant`), status changes (suspend/archive), feature toggles
-- [ ] Invitations: create (hashed token), email, accept flow (RPC), expiry and revocation
-- [ ] Members & roles UI (assign roles and departments; custom roles)
-- [ ] Departments UI
-- [ ] Audit log viewer (tenant + platform)
-- [ ] Branding save/publish (draft → published) + logo upload (storage with tenant-scoped policies)
-- [ ] Support-access grant UI (request, approve, revoke, banner)
-- [ ] University settings editing (name, locale, time zone, sign-up domains)
+- [x] Migration 6 `management` + migration 7 `owner_protection`, applied to "agent", byte-identical to git
+- [x] Platform console: universities list (aggregates only), create university (`create_tenant`), status changes (trial/active/suspended/archived), feature toggles
+- [~] Invitations: create (256-bit token, SHA-256 hash stored), accept flow (confirmed matching email), expiry, revocation, replacement, preview page. **Missing:** sending the email (link is shown once; needs a transactional email provider)
+- [~] Members & roles UI: assign/remove roles and departments, suspend/reactivate, remove, no-escalation invites, ownership reserved to owners. **Missing:** custom roles editor (roles are read-only built-ins)
+- [x] Departments UI (create, edit, archive/restore, en/ar names)
+- [x] Audit log viewer (tenant + platform, keyset pagination)
+- [x] Branding save/publish (draft → published) + logo upload (tenant-scoped storage policies, content sniffing, SVG refused)
+- [x] Support-access grant UI (grant ≤ 24 h with reason, revoke, banner, read-only page set ADR-019)
+- [~] University settings editing (display names en/ar, locale, time zone, support email). **Missing:** sign-up domains / self-join (no join flow exists yet)
+- [x] Tests: 30 new database tests (invitations, escalation, owner guard, profile, branding, platform functions, T16 storage), unit tests, preview e2e + axe, live onboarding suite (`e2e/live/live-management.spec.ts`)
+- [ ] Remove replaced logo files from storage (cleanup job)
+- [ ] Live re-run of the 2 Phase 2 owner cases with a dedicated demo-tenant owner (blocked from deletion by the owner guard; needs a second owner or a dedicated test tenant)
 
 ## Later phases
 

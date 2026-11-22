@@ -114,3 +114,42 @@ Format: **ADR-NNN — Title** · Status · Date · Context → Decision → Cons
 
 **Decision:** Every tenant gets all catalog features enabled at creation (`tenant_features`). Server-side checks (`app.tenant_has_feature`, `my_tenant_access.features`) already use it; Phase 3/15 will derive it from plans and overrides.
 **Consequences:** Feature enforcement is real today and will not need to change shape when plans arrive.
+
+## ADR-018 — Ownership changes are reserved to owners
+**Accepted · 2026-11-22**
+
+**Context:** `university_admin` holds every permission, including `roles.manage` and `members.manage`. Through the API an administrator could therefore grant themselves `university_owner` or suspend an owner, so the two roles would differ only in name.
+**Decision:**
+- Migration 7 adds BEFORE triggers on `membership_roles` (insert/delete) and `tenant_memberships` (status change/delete). When a direct API write (`current_user = authenticated`) touches the owner role or an owner's membership, the caller must be an active owner of that university or a platform owner/admin.
+- `app.can_grant_role` applies the same rule to invitations into the owner role.
+- SECURITY DEFINER functions that already authorize the caller (`create_tenant`, `accept_invitation`) and backend sessions are not affected.
+- Migration 6's last-owner guard (every university keeps one active owner) still applies to everyone.
+
+**Consequences:**
+- Ownership is handed over by adding a second owner first.
+- Platform staff onboard owners by invitation, never by editing role rows directly (ADR-014).
+- Deleting the account of a university's only owner is refused until ownership is transferred.
+
+## ADR-019 — Support sessions get a fixed read-only page set
+**Accepted · 2026-11-22**
+
+**Context:** `my_tenant_access` returns no tenant permissions for support-access sessions (ADR-014). The live test showed the consequence: staff with a valid grant could open only the overview, so support access was useless for troubleshooting.
+**Decision:**
+- The app maps support sessions to a fixed set: `tenant.settings.read`, `tenant.features.read` and `members.read`. Every page in the set is backed by a read path the database allows for support grants (`tenant_members`, settings, features).
+- Write controls are hidden for support sessions, and the database rejects support writes regardless.
+- Branding, departments management, audit and every future content module stay hidden unless explicitly added here, with a matching database read path and a test.
+
+**Consequences:** Troubleshooting works without widening database privileges. The page set is reviewed whenever a module adds sensitive content (tickets, documents, conversations).
+
+## ADR-020 — Invitations: hashed single-use tokens, link shown once, email delivery later
+**Accepted · 2026-11-22**
+
+**Decision:**
+- `create_invitation` generates 32 random bytes (`gen_random_bytes`), returns the hex token once, and stores only its SHA-256 hash.
+- Acceptance requires a signed-in user whose **confirmed** email equals the invited address.
+- A new invitation for the same email revokes the pending one; links last 1–30 days.
+- The preview reveals only a masked email.
+- The invitation page is `noindex` and sends `Referrer-Policy: no-referrer`.
+- Until a transactional email provider is chosen, the inviter copies the link from the UI. It cannot be shown again.
+
+**Consequences:** A leaked database does not leak usable links, and a forwarded link is useless to anyone else. Email delivery can be added later without changing the token model.

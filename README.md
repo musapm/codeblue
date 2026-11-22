@@ -3,9 +3,10 @@
 Multi-tenant AI agent platform for universities. Each university gets its own branded environment
 (users, knowledge, AI agents, tickets, analytics), and the platform owner manages all of them centrally.
 
-> **Status:** Foundation only. See the [implementation audit](docs/IMPLEMENTATION_AUDIT.md) for what really works.
-> The dedicated Supabase project ("agent") has the multi-tenant schema with tested isolation and live sign-in;
-> AI and university services are not built yet. See [`PROJECT_STATUS.md`](PROJECT_STATUS.md).
+> **Status:** Foundation and university management (Phase 3). See the [implementation audit](docs/IMPLEMENTATION_AUDIT.md) for what really works.
+> The dedicated Supabase project ("agent") has the multi-tenant schema with tested isolation, live sign-in,
+> invitations, members and roles, departments, branding and the platform console. AI and the knowledge base
+> are not built yet. See [`PROJECT_STATUS.md`](PROJECT_STATUS.md).
 > The product name is configurable (`NEXT_PUBLIC_PLATFORM_NAME`); "UniAgent AI" is a working title.
 
 ## Quick start

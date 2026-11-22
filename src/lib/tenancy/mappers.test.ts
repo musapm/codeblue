@@ -68,6 +68,22 @@ describe('tenancy mappers', () => {
     }
   })
 
+  it('support sessions get only the fixed read-only page set, never write permissions', () => {
+    const payload = tenantAccessPayloadSchema.parse({
+      tenant: { ...workspace, id: '00000000-0000-4000-8000-000000000001' },
+      branding: {},
+      access_via: 'support',
+      roles: [],
+      permissions: ['members.manage', 'roles.manage'], // even if the payload claimed more
+      department_ids: [],
+      features: [],
+    })
+    const access = toTenantAccess(payload)
+    if (access.access.kind !== 'scoped') throw new Error('expected scoped access')
+    expect([...access.access.permissions].sort()).toEqual(['members.read', 'tenant.features.read', 'tenant.settings.read'])
+    expect(access.accessVia).toBe('support')
+  })
+
   it('derives monograms and operating status', () => {
     expect(deriveMonogram('Northbridge University')).toBe('NU')
     expect(deriveMonogram('University of the Nile')).toBe('UN')

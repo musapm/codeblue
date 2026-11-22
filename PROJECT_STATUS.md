@@ -1,21 +1,25 @@
 # Project Status
 
-_Last updated: 2026-11-22_
+_Last updated: 2026-11-22 (Phase 3)_
 
 ## Honest summary
 
-UniAgent AI now has a **real, tested multi-tenant security foundation**:
-- **Database:** a live database in the dedicated Supabase project "agent", with tenant isolation enforced and tested at the database level.
-- **Access:** real sign-in, and real role-based access in the app.
-- **AI and university services:** **not built yet.** There is no AI, knowledge base, document search, tickets or analytics. Every chat UI is still a labelled illustration.
+UniAgent AI now has a **tested multi-tenant foundation plus real university management**:
+- **Platform owners/admins** create universities, invite their owners, control status and features, and grant time-limited, read-only support access.
+- **Universities** manage members (roles, departments, suspension), departments, their profile, and branding with logo.
+- **Everything is audited** by database triggers.
+- **Verification:** the full onboarding path was tested live against the dedicated Supabase project "agent".
+
+**Not built yet:** AI, the knowledge base, document search, tickets and analytics. Every chat UI is still a labelled illustration. Invitations are not emailed yet: the link is shown once to copy and send.
 
 | Phase | Status |
 | --- | --- |
 | 0: Discovery, architecture, planning | ✅ Complete |
-| 1: Foundation & design system | ✅ Complete (the audit defects are fixed) |
-| 2: Auth, tenants & security foundation | ✅ **Core complete; isolation gate passed.** Open items below need your input (Auth email settings) or are operational |
-| 3: Super Admin & university management (UI) | ⏭ Next |
-| 4–17 | Not started |
+| 1: Foundation & design system | ✅ Complete |
+| 2: Auth, tenants & security foundation | ✅ Core complete (isolation gate passed). Auth email settings need your input |
+| 3: Super Admin & university management | ✅ **Core complete, verified live.** Deferred: invitation email, custom roles, sign-up domains (see TASKS.md) |
+| 4: Knowledge base | ⏭ Next |
+| 5–17 | Not started |
 
 ## Supabase project "agent"
 
@@ -23,51 +27,67 @@ UniAgent AI now has a **real, tested multi-tenant security foundation**:
 | --- | --- |
 | Ref / URL | `zijruhuvzxtuudsvnwgy` · `https://zijruhuvzxtuudsvnwgy.supabase.co` |
 | Region / plan | eu-central-1 (Frankfurt) · **Free** (no backups) |
-| Schema | 18 tables in `public` + 2 private template tables, all with RLS. 5 migrations, byte-identical to git (`supabase/README.md`) |
-| Data | 1 fictional demo university ("Northbridge", 7 departments, 13 roles). **0 users** (temporary test accounts deleted) |
-| Advisors | Only documented, intended findings (see `supabase/README.md`) |
+| Schema | 18 tables + private templates, all with RLS. **7 migrations**, byte-identical to git (`supabase/README.md`). Storage bucket `tenant-assets` (logos, per-tenant write policies) |
+| Data | 1 fictional demo university ("Northbridge"). The Phase 3 live run's temporary accounts and test universities: see "Cleanup" below |
+| Advisors | Only documented, intended findings (`supabase/README.md`) |
 | Auth settings | **Not configured yet:** Site URL, redirect URLs, SMTP, email templates (owner action, `docs/authentication.md`) |
 | Other projects | CodeBlue and Terma: not accessed, not modified |
 
+**Cleanup:** the test logo was deleted through the Storage API. Deleting the temporary `e2e-*@uniagent.test` accounts, the temporary platform-admin row, and the universities `e2e-live-university` and `e2e-other-university` is waiting for your confirmation in the Supabase tool. Audit rows from the test run stay; the log is append-only by design and contains only fictional `.test` addresses.
+
 ## Feature status
 
-### 1. Fully implemented and working
-- Public website, 10 pages in English and Arabic, with honest "In development" labelling.
-- Arabic/English with RTL.
-- Platform branding configuration and theme engine.
-- **Authentication:** password sign-in, session gate (HTTP 307), sign-out, error handling. Verified live against "agent".
-- **Multi-tenant database:**
-  - tenants, memberships, roles (13 system templates + custom), permissions (35), departments, invitations (table), features;
-  - **RLS on every table**, composite same-tenant FKs, append-only **audit log written by database triggers**;
-  - support-access grants (time-boxed, read-only, audited).
-- **Tenant isolation:** 50 database tests (T1–T15 + escalation, suspension, support grants, audit, seed) and **live HTTP-level tests (T18)**.
-- **Workspace on real data:** university list and tenant context from the database; role-based navigation; **server-side permission gates** on settings, branding and modules; suspended-university page; "No university access yet" page.
-- **Super Admin gate:** `platform_admins` + console access check. Platform staff (owner included) **cannot see university content without an audited grant**.
+### 1. Fully implemented and working (verified)
+- Public website (10 pages, en/ar, RTL), platform branding, theme engine.
+- **Authentication:** password sign-in, session gate, sign-out (with an optional return path), and registration that returns to the invitation.
+- **Multi-tenant database:** RLS on every table, composite same-tenant FKs, append-only audit log written by triggers, support-access grants (≤ 24 h, read-only).
+- **Tenant isolation:** 80 database tests (T1–T16 + escalation, ownership, invitations, storage) and live HTTP tests (T18).
+- **Platform console:**
+  - universities list (aggregate counts only);
+  - create a university (+ owner invitation link);
+  - lifecycle status (trial/active/suspended/archived) and per-university feature toggles;
+  - owner/admin invitations;
+  - support-access grant/revoke;
+  - platform audit log.
+- **Invitations:**
+  - 256-bit single-use token, only its SHA-256 hash stored;
+  - 1–30 days validity, revocable, and a new invitation replaces the pending one;
+  - accepting requires the invited, confirmed email address;
+  - no privilege escalation: people can grant only roles whose permissions they hold, and only owners or the platform can grant ownership.
+- **University workspace:**
+  - members & roles: assign/remove roles and departments, suspend/reactivate, remove;
+  - departments (create, edit, archive/restore, Arabic names);
+  - audit log viewer;
+  - settings (display names en/ar, default language, time zone, support email);
+  - branding draft/publish (colors, assistant names, welcome texts in en/ar, monogram) and logo upload (PNG/JPEG/WebP ≤ 1 MB, content-sniffed; SVG refused).
+- **Ownership protection:**
+  - every university keeps at least one active owner;
+  - administrators cannot promote themselves or suspend owners.
+- **Support access:** read-only pages (overview, members, settings), banner, immediate revocation.
 - Security baseline (headers, validation, redirect guard, redaction), error pages, health endpoint.
 
 ### 2. Implemented but not connected to a real backend
-- **Branding editor:** live preview; **saving/publishing not built** (the database column exists).
-- **Contact/demo form:** validates; **not stored** (`platform_inquiries` not built yet).
-- **Rate limiting:** in-memory per instance.
+- **Contact/demo form:** validates; not stored (`platform_inquiries` not built).
+- **Rate limiting:** in-memory per instance (now also on invitations, uploads, university creation).
 
 ### 3. UI-only / placeholder
-Module pages for assistant, admissions, academic, staff, tickets, knowledge, workflows, campus, analytics,
-quality, members, departments, integrations and audit (labelled "Planned · Phase N"). Chat previews
-(static). Platform console modules. Privacy/Terms drafts.
+Module pages for assistant, admissions, academic, staff, tickets, knowledge, workflows, campus,
+analytics, quality, integrations; platform plans/usage/AI/settings (labelled "Planned · Phase N").
+Chat previews (static). Privacy/Terms drafts.
 
 ### 4. Planned but not implemented
-University management UI (create, invite, roles, departments, audit viewer) · invitation acceptance flow ·
-AI model integration · student, admissions, academic and staff assistants · knowledge base upload and
-processing · RAG and citations · tickets and handoff · analytics · branding persistence · notifications
-and email · subscriptions and plans · voice · integrations · backups and recovery · CI, monitoring and
-error tracking.
+Invitation emails (needs transactional email) · custom roles editor · sign-up domain rules and
+self-service join · AI integration and all assistants · knowledge base · RAG and citations · tickets ·
+analytics · notifications · subscriptions and plans · voice · integrations · backups · CI, monitoring.
 
 ### 5. Broken or incomplete
 | Issue | Severity |
 | --- | --- |
-| Email-based auth flows (sign-up confirmation, password reset) unverified: they need Supabase Auth URL, SMTP and template settings | High (owner action) |
+| Email-based auth flows (sign-up confirmation, password reset) unverified: need Supabase Auth URL, SMTP and template settings | High (owner action) |
 | In-memory rate limiting, IP from a spoofable header | High before launch |
 | No backups on the Free plan | High before real data |
+| Replaced logo files are not deleted from storage (only the reference changes) | Low (cleanup job later) |
+| Deleting the account of a university's only owner is blocked by the owner guard (transfer ownership first). No self-service account deletion exists yet | Low (by design; document in support runbook) |
 | CSP allows inline scripts | Medium (Phase 16) |
 | Duplicate `id="main"` after switching workspaces | Low |
 
@@ -76,20 +96,24 @@ error tracking.
 | Suite | Result |
 | --- | --- |
 | Typecheck / lint / build | ✅ |
-| Unit + component (`npm test`) | ✅ 88/88 |
-| Database isolation (`npm run test:db`) | ✅ 50/50 |
-| Browser e2e, preview mode (`npm run test:e2e`) | ✅ 58/58 (incl. sign-out regression, accessibility checks) |
-| **Live e2e against "agent"** (`e2e/live`, opt-in) | ✅ 6/6: student/owner/outsider flows, T18 cross-tenant, sign-out, Arabic data. Plus a manual check that the platform owner is blocked without a grant |
-| Live API probes (anon) | ✅ All tables and functions denied. Private schema not exposed |
+| Unit + component (`npm test`) | ✅ 97/97 |
+| Database isolation (`npm run test:db`) | ✅ 80/80 |
+| Browser e2e, preview mode (`npm run test:e2e`) | ✅ 72/72 (incl. new management pages, invitation page, accessibility checks) |
+| **Live e2e against "agent"** (`e2e/live`, opt-in) | ✅ Phase 3 onboarding path 9/9: steps 1–7 in one run, then 8–9 after a test-selector fix and the support-access fix below. Phase 2 regression 4/4 (the 2 owner cases need a demo-tenant owner and were skipped, see `docs/testing.md`) |
+
+Real defects found by the live run and fixed:
+- Support sessions had no visible pages. They now get a fixed read-only page set (ADR-019).
+- An owner was offered a button to remove their own owner role. It is now hidden; the database already refused it if they were the last owner.
 
 ## Decisions and actions needed from you
-1. **Configure Supabase Auth** (Site URL, redirect URLs, SMTP provider, email templates): steps in `docs/authentication.md`. Choose an email provider.
-2. **Become platform owner:** sign up, confirm your email, run `supabase/seed/bootstrap_platform_owner.sql` with your email.
-3. **Sign-up policy:** invitation/approved domains only (recommended) or open?
-4. **Plan upgrade timing:** before the first pilot with real data.
-5. Confirm that Frankfurt is acceptable for target universities.
+1. **Confirm the cleanup** of the temporary live-test data in "agent" (see above).
+2. **Configure Supabase Auth** (Site URL, redirect URLs incl. `/auth/callback`, SMTP provider, email templates): `docs/authentication.md`.
+3. **Become platform owner:** sign up, confirm your email, run `supabase/seed/bootstrap_platform_owner.sql` with your email.
+4. **Transactional email provider** (e.g. Resend, Postmark, SES) for invitation emails and auth emails.
+5. **Sign-up policy:** invitation-only (current behaviour) or allow approved email domains to self-join?
+6. Plan upgrade timing (before the first pilot with real data); Frankfurt region OK?
 
 ## Next steps
-1. Phase 3: university management UI on top of the new schema (create a university, invite members, assign roles and departments, audit viewer, branding save/publish, support-access grant UI).
-2. Operational: CI pipeline (`check` + `test:db` + e2e), error tracking, shared rate limiting, inquiry storage.
-3. Then Phase 4 (knowledge base) → Phase 5 (student assistant with real AI and citations).
+1. Phase 4: knowledge base (document upload to tenant-scoped storage, background processing, chunking, embeddings, `match_chunks` with isolation test T17).
+2. Phase 3 follow-ups: invitation email (after the provider decision), custom roles editor, sign-up domains.
+3. Operational: CI pipeline (`check` + `test:db` + e2e), error tracking, shared rate limiting, inquiry storage.

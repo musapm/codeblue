@@ -10,15 +10,16 @@ _Date: 2026-11-21 · Commit audited: `136cba1` · Auditor: engineering (Claude C
 > | 5.2 Post-login dead end | ✅ **Fixed.** An honest "No university access yet" page with sign-out. Suspended universities get an "unavailable" page |
 > | 5.5 Marketing overstates availability | ✅ **Fixed.** Site-wide "in development / pilot" notice, "In development" badges on agents and features, claims reworded |
 > | 5.6 Hardcoded tenant time zone and locale, demo back-link | ✅ **Fixed.** Values now come from the database (`tenants.timezone`, `default_locale`). The console back-link uses the user's real workspaces |
-> | Database schema / migrations (Cat. 4) | ✅ **Implemented.** 5 migrations in git, applied to "agent" and verified byte-identical |
-> | Tenant isolation / RLS (Cat. 4) | ✅ **Implemented and tested.** 50 DB tests (T1–T15) + live T18 |
+> | Database schema / migrations (Cat. 4) | ✅ **Implemented.** 7 migrations in git, applied to "agent" and verified byte-identical |
+> | Tenant isolation / RLS (Cat. 4) | ✅ **Implemented and tested.** 80 DB tests (T1–T16) + live T18 |
 > | Role enforcement (Cat. 4) | ✅ In the database (RLS) and in the app (server-side gates on settings, branding and modules) |
 > | Super Admin access (Cat. 4) | ✅ `platform_admins` + console gate + one-time bootstrap script. Platform staff need audited grants to see university content |
-> | Departments (Cat. 4) | ⚠️ Tables and isolation done (demo seeded). **Management UI and ticket routing not built** (Phase 3/7) |
-> | Audit logs (Cat. 4) | ✅ Database-enforced, append-only triggers. **No UI yet** (Phase 3) |
+> | Departments (Cat. 4) | ✅ Management UI (Phase 3), verified live. **Ticket routing not built** (Phase 7) |
+> | Audit logs (Cat. 4) | ✅ Database-enforced, append-only triggers. Tenant and platform viewers (Phase 3) |
+> | University management (Phase 3) | ✅ Platform console, invitations, members & roles, settings, branding publish + logo, support-access UI. Verified live 9/9. **Missing:** invitation email, custom roles, sign-up domains |
 > | 2.1/2.2 Workspace and tenant context on fixtures | ✅ Real data for signed-in users. Preview fixtures only when no backend is configured |
 > | 5.3/5.4 Auth success paths, Auth config | ⚠️ Password sign-in and sign-out verified live. **Email flows still need your Supabase Auth settings + SMTP** (see `docs/authentication.md`) |
-> | AI, knowledge base, RAG, citations, assistants, tickets, analytics, branding persistence, backups | ❌ Unchanged: not implemented (later phases); backups need a paid plan |
+> | AI, knowledge base, RAG, citations, assistants, tickets, analytics, backups | ❌ Unchanged: not implemented (later phases); backups need a paid plan. Branding persistence is now done |
 
 This audit describes what the code **actually does today**. It does not describe what the UI suggests
 or what the design documents plan. Every claim below comes from reading the code, running the

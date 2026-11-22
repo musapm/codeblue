@@ -54,3 +54,5 @@ Both env modules validate with zod at startup. Invalid values raise an error tha
 | `LIVE_E2E=1` | `e2e/live` | Enables the live suite (otherwise skipped) |
 | `LIVE_STUDENT_EMAIL` / `_PASSWORD`, `LIVE_OWNER_EMAIL` / `_PASSWORD`, `LIVE_OUTSIDER_EMAIL` / `_PASSWORD` | `e2e/live` | Dedicated test accounts in the target project (never real users) |
 | `LIVE_OTHER_TENANT_SLUG` | `e2e/live` | A tenant the test accounts do not belong to (cross-tenant checks) |
+| `LIVE_PLATFORM_EMAIL` / `_PASSWORD`, `LIVE_NEW_OWNER_EMAIL` / `_PASSWORD`, `LIVE_NEW_STUDENT_EMAIL` / `_PASSWORD` | `e2e/live/live-management.spec.ts` | Temporary platform admin and two accounts without memberships (Phase 3 onboarding run) |
+| `LIVE_NEW_TENANT_SLUG` | `e2e/live/live-management.spec.ts` | Slug of the university the run creates (must not exist) |

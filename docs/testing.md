@@ -62,7 +62,7 @@ the redirect or shows the 404 UI. When Supabase is configured, `proxy.ts` additi
 **HTTP 307** to the login page for requests without a session. Tests assert on behaviour (URL and content),
 not on status codes, for these routes.
 
-## Database isolation tests (Phase 2)
+## Database isolation tests (Phases 2–3)
 
 ```bash
 TEST_DATABASE_URL=postgres://postgres:postgres@127.0.0.1:5432/postgres npm run test:db
@@ -74,6 +74,16 @@ RLS, grants, constraints and triggers behave as they do behind the Supabase Data
 isolation tests **T1–T15** from `tenant-isolation.md`, plus escalation attempts, suspension, support
 grants, the append-only audit log, API functions, integrity constraints and the demo seed.
 
+`supabase/tests/management.test.ts` (30 tests, Phase 3) covers:
+- invitations: hash-only storage, escalation rules, owner-role invitations, replacement, acceptance with a confirmed matching email, revoked/expired/unknown tokens, masked preview;
+- member listing (including support grants);
+- the last-owner guard and owner protection (ADR-018);
+- profile and branding validation and publishing;
+- platform overview functions;
+- **T16**: tenant-scoped storage for brand assets.
+
+Total: **80 tests**. Fixtures that later steps must see (invitations) use `asCommitted`; everything else rolls back.
+
 ## Live tests against a real Supabase project (opt-in)
 
 `e2e/live/live-auth.spec.ts` covers real sign-in, role-based navigation, server-side enforcement of
@@ -82,6 +92,27 @@ from the database, Arabic tenant names, and the no-access page. It runs only wit
 build configured with that project's URL and key, and dedicated test accounts (see
 `environment-variables.md`). Never point it at real users.
 
-Last live run: 2026-11-22 against project "agent". **6/6 passed.** A platform owner without a
-support grant was also confirmed to get "not found" on a university workspace. The temporary test
-accounts and tenant were deleted afterwards.
+`e2e/live/live-management.spec.ts` (Phase 3) walks the onboarding path through the real UI and
+database:
+1. A platform admin creates a university and gets the owner invitation link. A duplicate address is refused.
+2. The admin toggles a feature.
+3. The owner signs in from the invitation and accepts. The link then reads "already used".
+4. The owner invites a student, creates a department, edits settings, publishes branding with a logo (a disguised SVG is refused), and sees the theme in the shell and the entries in the audit log.
+5. Another account cannot use the student's link.
+6. The student accepts and gets "not found" on staff pages.
+7. The owner suspends the student, who loses access.
+8. Support access is granted, read-only, visible in the platform audit log, and revoked.
+9. Suspending the university shows its members the unavailable screen.
+
+It needs `LIVE_PLATFORM_*`, `LIVE_NEW_OWNER_*`, `LIVE_NEW_STUDENT_*`, `LIVE_OUTSIDER_*` and
+`LIVE_NEW_TENANT_SLUG` (temporary accounts on the reserved `.test` domain), and a build with
+`NEXT_PUBLIC_SITE_URL` set to the test server's URL (invitation links are built from it).
+
+Live runs on 2026-11-22 against project "agent":
+- **Phase 2 (`live-auth`)**:
+  - first run: 6/6 passed;
+  - after Phase 3: the 4 student/outsider cases passed again. The 2 owner cases need an owner in the demo university, and the owner guard (ADR-018) prevents deleting such a temporary account afterwards, so they were skipped. Use a dedicated test tenant for them in future.
+- **Phase 3 (`live-management`)**: 9/9.
+  - Steps 1–7 passed in one run.
+  - Steps 8–9 passed after fixing a test selector and a real defect: support sessions had no visible pages (ADR-019).
+  - The temporary accounts, test universities and test logo are removed after each run. The audit rows remain (append-only, fictional addresses only).

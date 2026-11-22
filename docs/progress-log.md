@@ -46,3 +46,18 @@ Chronological log of significant work. For the current snapshot see `PROJECT_STA
   and modules, support-access banner, platform-owner gate.
 - **Tests:** 88 unit, 50 database isolation, 58 browser (preview), and **6 live tests against "agent"**
   using temporary accounts that were deleted afterwards.
+
+## 2026-11-22: Phase 3 (university management)
+
+- **Database:** migration 6 (`management`) and migration 7 (`owner_protection`) are applied to "agent" and byte-identical to git.
+  - Invitations: hashed single-use tokens, confirmed-email acceptance, no escalation.
+  - Member listing, profile and branding publishing, platform overviews.
+  - Last-owner guard and owner-only ownership changes. The second guard was found during design: administrators held `roles.manage` and could otherwise promote themselves.
+  - Logo bucket with per-tenant policies.
+- **App:**
+  - platform console: universities, create, status, features, owner invitations, support access, audit;
+  - workspace: members & roles, departments, audit, editable settings, branding publish + logo;
+  - invitation page; registration and sign-out keep a safe return path.
+- **Tests:** 97 unit, 80 database, 72 browser (preview + axe). The live onboarding suite ran 9/9 against "agent".
+- **The live run found a real gap:** support sessions could see only the overview. Fixed with a fixed read-only page set (ADR-019).
+- **Deferred:** invitation email (provider decision), custom roles editor, sign-up domains.

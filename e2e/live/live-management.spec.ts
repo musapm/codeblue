@@ -194,7 +194,8 @@ test('support access is granted, read-only, visible in the audit log, and revoke
   await page.goto(`/en/platform/tenants/${SLUG}`)
   await page.locator('textarea[name="reason"]').fill('E2E: verify read-only support access')
   await page.getByRole('button', { name: 'Grant access' }).click()
-  await expect(page.getByText('Active', { exact: true })).toBeVisible()
+  const grant = page.getByRole('listitem').filter({ hasText: 'E2E: verify read-only support access' }).first()
+  await expect(grant.getByText('Active', { exact: true })).toBeVisible()
 
   await page.goto(ws())
   await expect(page.getByRole('note')).toContainText('Support access')
@@ -203,8 +204,9 @@ test('support access is granted, read-only, visible in the audit log, and revoke
   await expect(page.getByRole('button', { name: 'Create invitation' })).toHaveCount(0)
 
   await page.goto(`/en/platform/tenants/${SLUG}`)
-  await page.getByRole('button', { name: 'Revoke', exact: true }).last().click()
-  await expect(page.getByText('Revoked', { exact: true })).toBeVisible()
+  const activeGrant = page.getByRole('listitem').filter({ hasText: 'E2E: verify read-only support access' }).filter({ has: page.getByRole('button', { name: 'Revoke' }) })
+  await activeGrant.getByRole('button', { name: 'Revoke', exact: true }).click()
+  await expect(page.getByRole('listitem').filter({ hasText: 'E2E: verify read-only support access' }).getByText('Revoked', { exact: true }).first()).toBeVisible()
   await page.goto(ws())
   await expect(page.getByRole('heading', { name: 'Page not found' })).toBeVisible()
 

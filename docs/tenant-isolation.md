@@ -119,17 +119,18 @@ a platform owner, a platform support user (with and without a grant), and an ano
 | T17 | Retrieval: `match_chunks` as A-student never returns B chunks or A's staff-only chunks | Verified |
 | T18 | HTTP-level: tampered tenant slug, IDs, and form fields against Server Actions | 404 / 403, no data |
 
-Phase 2 is complete only when T1–T15 and T18 pass. T16 and T17 are completed with Phases 4 and 5.
+Phase 2 is complete only when T1–T15 and T18 pass. T16 is implemented for brand assets (Phase 3) and is extended for documents in Phase 4; T17 is completed with Phases 4 and 5.
 
 ## 6. Implementation status (2026-11-22)
 
 | Test | Status |
 | --- | --- |
 | T1–T15 | ✅ Implemented in `supabase/tests/rls.test.ts`, passing (50 tests including escalation, suspension and seed checks) |
+| Phase 3 | ✅ `supabase/tests/management.test.ts` (30 tests): invitation escalation, cross-tenant invitations, ownership protection (ADR-018), member listing, platform functions |
 | T11b | ✅ Added: even the platform **owner** cannot read university members, profiles or roles without a grant (ADR-014) |
-| T16 (storage) | ⏳ Phase 4, when storage buckets exist |
+| T16 (storage) | ✅ Bucket `tenant-assets`: branding managers write/list only `<their tenant id>/…`; another tenant's folder, students, malformed paths and other buckets are refused. Document storage (Phase 4) must add its own T16 cases |
 | T17 (retrieval) | ⏳ Phase 4/5, when `match_chunks` exists |
-| T18 (HTTP / app layer) | ✅ Live suite `e2e/live` against project "agent": foreign and unknown tenant slugs, direct URLs to unauthorized modules, the platform console. All return the identical "not found" |
+| T18 (HTTP / app layer) | ✅ Live suites `e2e/live` against project "agent": foreign and unknown tenant slugs, direct URLs to unauthorized modules, the platform console, students on staff pages, platform staff without a grant, a wrong account using an invitation. All are refused. Server Actions take tenant IDs from forms, but every write is authorized by RLS/definer checks and composite same-tenant FKs, and "0 rows changed" is reported as forbidden |
 
 Live probes of the Data API with the public key (anon): every table → `permission denied`, every
 API function → `permission denied`, the private schema `app` → not exposed (406), private helpers →

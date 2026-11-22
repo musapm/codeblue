@@ -25,12 +25,14 @@ Migration file versions match the versions recorded in the project
 | `20261121200313_access_policies.sql` | `app.*` access helpers (SECURITY DEFINER, caller-scoped) and every RLS policy |
 | `20261121200345_auth_hooks_and_rpc.sql` | profile-on-signup trigger; API functions `create_tenant`, `my_workspaces`, `my_tenant_access`, `my_platform_role` |
 | `20261121200323_audit.sql` | database-enforced audit triggers on all access/configuration tables |
+| `20261122105259_management.sql` | Phase 3: invitations (`create_invitation`, `invitation_preview`, `accept_invitation`, `tenant_invitations`, `revoke_invitation`), `tenant_members`, `update_tenant_profile`, `publish_branding`, `platform_tenants`, `platform_staff`; last-owner guard; `tenant-assets` storage bucket + per-tenant policies; `department_admin` gains `academic.use` |
+| `20261122105537_owner_protection.sql` | Phase 3: only owners (or platform owners/admins) change ownership (ADR-018) |
 
 ## Rules for new migrations
 
 1. Every new table: `tenant_id` (if tenant-owned), composite `(tenant_id, id)` FKs for children,
    `enable row level security`, explicit policies `to authenticated`, `revoke all … from anon`.
-2. Add isolation tests in `tests/rls.test.ts` in the same change.
+2. Add isolation tests in `tests/rls.test.ts` (foundation) or `tests/management.test.ts` (Phase 3) in the same change.
 3. Apply to the dev project, re-run security advisors (must be clean except documented items),
    regenerate `src/lib/supabase/database.types.ts`.
 
@@ -52,5 +54,6 @@ TEST_DATABASE_URL=postgres://postgres:postgres@127.0.0.1:5432/postgres npm run t
 
 | Finding | Why it is accepted |
 | --- | --- |
-| `authenticated` can execute SECURITY DEFINER `create_tenant`, `my_workspaces`, `my_tenant_access`, `my_platform_role` | They are the API. `my_*` only return data about the caller; `create_tenant` checks platform-owner/admin itself. `anon` cannot execute any of them. |
+| `authenticated` can execute SECURITY DEFINER `create_tenant`, `my_workspaces`, `my_tenant_access`, `my_platform_role` and the Phase 3 functions (`create_invitation`, `invitation_preview`, `accept_invitation`, `tenant_invitations`, `revoke_invitation`, `tenant_members`, `update_tenant_profile`, `publish_branding`, `platform_tenants`, `platform_staff`) | They are the API. `my_*` and `invitation_preview` only describe the caller; every other function checks permissions itself (tested in `tests/management.test.ts`). `anon` cannot execute any of them. |
+| Public bucket `tenant-assets` | Logos must load for students without a session. Writes/listing require `tenant.branding.manage` for the folder's tenant (T16); 1 MB limit; PNG/JPEG/WebP only. |
 | RLS enabled without policies on `app.role_templates`, `app.role_template_permissions` | Intentional deny-all; private schema, not exposed through the Data API. |

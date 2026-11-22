@@ -217,7 +217,28 @@ app.write_audit(…) returns void                                         -- use
 platform admins and the support read scope. Suspending a tenant therefore immediately blocks its
 users at the database level.
 
-## 3. Phase 3 / 15 — plans, features, subscriptions
+## 2b. Phase 3 — university management (implemented, migrations 6–7)
+
+No new tables. New API functions (SECURITY DEFINER, `search_path = ''`, `authenticated` only):
+
+| Function | Authorization | Purpose |
+| --- | --- | --- |
+| `create_invitation(slug, email, role_key, valid_days=7)` | `members.invite` + `app.can_grant_role` (subset rule; owner role: owners or platform owner/admin) or platform owner/admin; tenant operating | Returns `{id, token, expires_at}` once; stores SHA-256 of the token; revokes the pending invitation for that email |
+| `invitation_preview(token)` | any signed-in user holding the token | University, role, status, `email_matches`, masked email |
+| `accept_invitation(token)` | confirmed email = invited email; pending; tenant operating | Upserts an active membership + role; returns the slug |
+| `tenant_invitations(slug)` / `revoke_invitation(id)` | `members.invite`/`members.manage` or platform owner/admin | Pending list (never the hash) / revoke |
+| `tenant_members(slug)` | `members.read` or support grant | Members with email, roles, departments |
+| `update_tenant_profile(slug, name_translations, locale, timezone)` | `tenant.settings.manage` | Display names en/ar, defaults |
+| `publish_branding(slug)` | `tenant.branding.manage` | Draft → published, `published_by = caller` |
+| `platform_tenants()` / `platform_staff()` | any platform role / platform owner, admin | Aggregate counts only / staff directory |
+
+Guards:
+- `app.ensure_tenant_keeps_owner` (AFTER triggers): every university keeps one active owner.
+- `app.guard_owner_changes` (BEFORE triggers, migration 7): direct API writes that touch ownership require an owner or platform owner/admin (ADR-018).
+
+Storage: public bucket `tenant-assets` (1 MB, PNG/JPEG/WebP). Insert/update/delete/list require `tenant.branding.manage` for the tenant in the first path segment (`app.try_uuid`). `app.valid_branding` limits `logo_path` to `<uuid>/<safe name>`.
+
+## 3. Phase 15 — plans, features, subscriptions (planned)
 
 ```
 features            (key pk, name, description, category)             -- catalog
