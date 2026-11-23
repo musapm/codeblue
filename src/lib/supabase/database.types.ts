@@ -1,6 +1,8 @@
 // Generated from the Supabase project "agent" (zijruhuvzxtuudsvnwgy) after migration 6
 // (management) (MCP generate_typescript_types; unused helper types trimmed). Regenerate after every migration.
-// Knowledge entries (migration 8) are hand-written until the migration is applied and types regenerated.
+// Knowledge entries (migration 8) were compared with the generated types on 2026-11-23: rows, functions and
+// enums match. Intentional deviations: Insert/Update are `never` (all writes go through the knowledge_*
+// functions) and knowledge_begin_upload.p_document accepts null (new document), which PostgREST passes through.
 
 export type Json =
   | string

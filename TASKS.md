@@ -59,9 +59,10 @@ Current state: `PROJECT_STATUS.md` · Audit history: `docs/IMPLEMENTATION_AUDIT.
 - [ ] Remove replaced logo files from storage (cleanup job)
 - [ ] Live re-run of the 2 Phase 2 owner cases with a dedicated demo-tenant owner (blocked from deletion by the owner guard; needs a second owner or a dedicated test tenant)
 
-## Phase 4: Knowledge base & ingestion (built and tested locally; live run pending)
+## Phase 4: Knowledge base & ingestion ✅ core complete (verified live 6/6)
 
-- [~] Migration 8 `knowledge` written and tested locally (98 DB tests). **Not applied to "agent" yet**: the Supabase connector's confirmation prompt has not been answered
+- [x] Migration 8 `knowledge` applied to "agent" (byte-identical)
+- [~] Migration 9 `knowledge_file_cleanup` (files of deleted documents were left in storage, found live): tested locally, **awaiting Supabase confirmation**; then remove the 2 leftover test files
 - [x] Tables: knowledge_documents (metadata, visibility, authority, dates, source URL), knowledge_document_versions (upload state machine, hash, page/char/chunk counts, safe error codes), knowledge_chunks (Arabic + English full-text, optional pgvector embedding + model), knowledge_document_access (restricted lists)
 - [x] Visibility: public / members / staff / restricted (departments, roles); drafts hidden until published (knowledge.publish); archived and expired documents excluded; support sessions excluded
 - [x] Atomic version activation (retrieval never mixes versions); deletion removes versions + chunks in one transaction, then files
@@ -72,7 +73,7 @@ Current state: `PROJECT_STATUS.md` · Audit history: `docs/IMPLEMENTATION_AUDIT.
 - [x] Upload flow: signed direct-to-storage upload, server verification (size, signature, SHA-256), processing after the response (`after()`), retry
 - [x] UI: list with live status, upload with full metadata, document page (passage preview, versions, downloads, publish/archive/delete, new version), test search; en/ar
 - [x] Tests: unit 117 (incl. real-file extraction with generated fixtures), preview e2e 76, live spec written (`e2e/live/live-knowledge.spec.ts`)
-- [ ] Apply migration 8 to "agent", regenerate types, run the live knowledge suite
+- [x] Live knowledge suite against "agent": 6/6 (English/Arabic PDF, DOCX, scanned PDF, disguised file, EN/AR search, T17 live, versioning, deletion)
 - [~] Embeddings: provider interface + storage + vector search path implemented and tested with synthetic vectors. **Needs a provider and key** (Voyage AI / OpenAI / Cohere) and the Arabic/English benchmark (ADR-021)
 - [ ] OCR for scanned PDFs (later)
 - [ ] Background worker with retries for large files (currently processed after the upload response, with the uploader's session; ADR-022)

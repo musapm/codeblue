@@ -116,3 +116,15 @@ Live runs on 2026-11-22 against project "agent":
   - Steps 1–7 passed in one run.
   - Steps 8–9 passed after fixing a test selector and a real defect: support sessions had no visible pages (ADR-019).
   - The temporary accounts, test universities and test logo are removed after each run. The audit rows remain (append-only, fictional addresses only).
+
+### Knowledge base (Phase 4)
+
+- **Database:** `supabase/tests/knowledge.test.ts` (19 tests) covers:
+  - the upload state machine, versioning and visibility rules;
+  - publishing, archive/expiry and deletion;
+  - T16 (originals in storage, including orphan cleanup);
+  - T17 (search isolation and ranking);
+  - Arabic normalization and hostile query text.
+- **Unit:** `src/lib/knowledge/*.test.ts` covers the chunker, normalization, CSV, file signatures and PDF bidi reconstruction. `extract.test.ts` extracts real fictional fixtures in `src/lib/knowledge/__fixtures__/` (English and Arabic PDFs printed by Chromium, a scanned PDF, DOCX and broken DOCX).
+- **Live:** `e2e/live/live-knowledge.spec.ts` needs `LIVE_KNOWLEDGE_TENANT_SLUG` (a university where `LIVE_NEW_OWNER_*` is owner) and `NEXT_PUBLIC_SUPABASE_*` in the environment for the student API check. Run on 2026-11-23: **6/6**.
+  - The in-memory login rate limit (20 per 10 minutes per IP) can stop long local runs; restarting the server resets it.

@@ -27,7 +27,8 @@ Migration file versions match the versions recorded in the project
 | `20261121200323_audit.sql` | database-enforced audit triggers on all access/configuration tables |
 | `20261122105259_management.sql` | Phase 3: invitations (`create_invitation`, `invitation_preview`, `accept_invitation`, `tenant_invitations`, `revoke_invitation`), `tenant_members`, `update_tenant_profile`, `publish_branding`, `platform_tenants`, `platform_staff`; last-owner guard; `tenant-assets` storage bucket + per-tenant policies; `department_admin` gains `academic.use` |
 | `20261122105537_owner_protection.sql` | Phase 3: only owners (or platform owners/admins) change ownership (ADR-018) |
-| `20261123090000_knowledge.sql` | Phase 4: knowledge base (documents, versions, chunks, access lists, search_knowledge, `tenant-documents` bucket). **Not yet applied to "agent"**; the file will be renamed to the recorded version after applying |
+| `20261123100613_knowledge.sql` | Phase 4: knowledge base (documents, versions, chunks, access lists, search_knowledge, `tenant-documents` bucket) |
+| `20261123120000_knowledge_file_cleanup.sql` | Phase 4: managers may see files of deleted documents so they can be removed. **Not yet applied** (awaiting confirmation); will be renamed to the recorded version |
 
 ## Rules for new migrations
 
@@ -56,5 +57,6 @@ TEST_DATABASE_URL=postgres://postgres:postgres@127.0.0.1:5432/postgres npm run t
 | Finding | Why it is accepted |
 | --- | --- |
 | `authenticated` can execute SECURITY DEFINER `create_tenant`, `my_workspaces`, `my_tenant_access`, `my_platform_role` and the Phase 3 functions (`create_invitation`, `invitation_preview`, `accept_invitation`, `tenant_invitations`, `revoke_invitation`, `tenant_members`, `update_tenant_profile`, `publish_branding`, `platform_tenants`, `platform_staff`) | They are the API. `my_*` and `invitation_preview` only describe the caller; every other function checks permissions itself (tested in `tests/management.test.ts`). `anon` cannot execute any of them. |
+| `search_knowledge` and the `knowledge_*` functions (Phase 4) | Same pattern: each checks `app.can_manage_knowledge` / membership itself; reads go through RLS (`app.can_read_knowledge`). Covered by `tests/knowledge.test.ts`. |
 | Public bucket `tenant-assets` | Logos must load for students without a session. Writes/listing require `tenant.branding.manage` for the folder's tenant (T16); 1 MB limit; PNG/JPEG/WebP only. |
 | RLS enabled without policies on `app.role_templates`, `app.role_template_permissions` | Intentional deny-all; private schema, not exposed through the Data API. |

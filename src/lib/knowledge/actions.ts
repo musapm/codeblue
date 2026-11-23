@@ -176,8 +176,12 @@ export async function deleteKnowledgeDocument(_prev: ActionState, formData: Form
   const paths = (deleted.data ?? []) as string[]
   if (paths.length) {
     const removed = await ctx.supabase.storage.from('tenant-documents').remove(paths)
-    // The database rows are gone either way; a leftover file is logged for cleanup.
-    if (removed.error) log.warn('knowledge.file_cleanup_failed', { count: paths.length })
+    // The database rows are gone either way. Storage silently skips files the caller cannot
+    // see, so compare counts: anything left over is logged for cleanup (migration 9 lets
+    // knowledge managers see orphaned files so this normally removes all of them).
+    if (removed.error || (removed.data?.length ?? 0) < paths.length) {
+      log.warn('knowledge.file_cleanup_incomplete', { expected: paths.length, removed: removed.data?.length ?? 0 })
+    }
   }
   redirect(localizedPath(locale, `/app/${slug.data}/knowledge`))
 }

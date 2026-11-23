@@ -33,7 +33,7 @@ async function signIn(page: Page, email: string, password: string) {
 
 async function upload(page: Page, file: { name: string; mimeType: string; buffer: Buffer }, meta: { title: string; visibility?: string }) {
   await page.goto(kb())
-  await page.locator('input[name="file"]').setInputFiles(file)
+  await page.locator('input[name="file"]:visible').setInputFiles(file)
   await page.locator('input[name="title"]').fill(meta.title)
   if (meta.visibility) await page.locator(`input[name="visibility"][value="${meta.visibility}"]`).check()
   await page.getByRole('button', { name: 'Upload and process' }).click()
@@ -134,8 +134,10 @@ test('a new version replaces the old passages; deletion removes document and fil
   await signIn(page, env('LIVE_NEW_OWNER_EMAIL'), env('LIVE_NEW_OWNER_PASSWORD'))
   await page.goto(kb())
   await page.getByRole('link').filter({ hasText: 'Exam postponement policy (staff)' }).click()
+  // Next.js keeps the previous page mounted but hidden: wait for the detail page and use visible controls only.
+  await expect(page.getByRole('heading', { level: 1 })).toHaveText('Exam postponement policy (staff)')
   const v2 = Buffer.from('Exam Postponement Policy (2027)\n\nStudents may postpone one exam per semester. Requests go to the registrar within 3 days.')
-  await page.locator('input[name="file"]').setInputFiles({ name: 'policy-v2.txt', mimeType: 'text/plain', buffer: v2 })
+  await page.locator('input[name="file"]:visible').setInputFiles({ name: 'policy-v2.txt', mimeType: 'text/plain', buffer: v2 })
   await page.getByRole('button', { name: 'Upload and process' }).click()
   await expect(page.getByText(/Requests go to the registrar within 3 days/)).toBeVisible({ timeout: 60_000 })
   await expect(page.getByText(/postpone an exam for medical reasons/)).toHaveCount(0)

@@ -1,6 +1,6 @@
 # Project Status
 
-_Last updated: 2026-11-23 (Phase 4 in progress)_
+_Last updated: 2026-11-23 (Phase 4)_
 
 ## Honest summary
 
@@ -18,7 +18,7 @@ UniAgent AI now has a **tested multi-tenant foundation plus real university mana
 | 1: Foundation & design system | ✅ Complete |
 | 2: Auth, tenants & security foundation | ✅ Core complete (isolation gate passed). Auth email settings need your input |
 | 3: Super Admin & university management | ✅ **Core complete, verified live.** Deferred: invitation email, custom roles, sign-up domains (see TASKS.md) |
-| 4: Knowledge base | 🟡 **Built and tested locally.** Migration 8 not yet applied to "agent" (Supabase confirmation pending); live run pending; embeddings need a provider key |
+| 4: Knowledge base | ✅ **Core complete, verified live (6/6).** Migration 9 (file-cleanup fix) awaiting your confirmation; embeddings need a provider key |
 | 5–17 | Not started |
 
 ## Supabase project "agent"
@@ -106,17 +106,28 @@ Real defects found by the live run and fixed:
 - An owner was offered a button to remove their own owner role. It is now hidden; the database already refused it if they were the last owner.
 
 ## Decisions and actions needed from you
-1. **Confirm the cleanup** of the temporary live-test data in "agent" (see above).
-2. **Configure Supabase Auth** (Site URL, redirect URLs incl. `/auth/callback`, SMTP provider, email templates): `docs/authentication.md`.
-3. **Become platform owner:** sign up, confirm your email, run `supabase/seed/bootstrap_platform_owner.sql` with your email.
-4. **Transactional email provider** (e.g. Resend, Postmark, SES) for invitation emails and auth emails.
-5. **Sign-up policy:** invitation-only (current behaviour) or allow approved email domains to self-join?
-6. Plan upgrade timing (before the first pilot with real data); Frankfurt region OK?
+1. **Confirm migration 9** (Supabase prompt) and the **cleanup** of the temporary live-test data in "agent".
+2. **Enable leaked-password protection** in Supabase Auth (security advisor finding).
+3. **Configure Supabase Auth** (Site URL, redirect URLs incl. `/auth/callback`, SMTP provider, email templates): `docs/authentication.md`.
+4. **Become platform owner:** sign up, confirm your email, run `supabase/seed/bootstrap_platform_owner.sql` with your email.
+5. **Transactional email provider** (e.g. Resend, Postmark, SES) for invitation emails and auth emails.
+6. **Sign-up policy:** invitation-only (current behaviour) or allow approved email domains to self-join?
+7. **Embeddings provider** (Voyage AI, OpenAI or Cohere) for semantic search.
+8. Plan upgrade timing (before the first pilot with real data); Frankfurt region OK?
 
 ## Phase 4 status (2026-11-23)
-- **Built and tested locally:** knowledge schema, visibility rules, upload/processing pipeline (PDF incl. Arabic reading order, DOCX, TXT, CSV), Arabic/English search with permission filtering before ranking, knowledge UI.
-- **Tests:** 117 unit (incl. real PDF/DOCX fixtures), 98 database (incl. T16 originals, T17 retrieval), 76 browser (preview).
-- **Not yet done:** applying migration 8 to "agent" (the Supabase connector asks for a confirmation in the app that has not been answered), the live knowledge run, embeddings (needs a provider key and benchmark).
+- **Migration 8 `knowledge` applied to "agent"** (byte-identical; pgvector 0.8.2, private bucket, 3 storage policies).
+- **Live run against "agent": 6/6 passed.** It covered:
+  - an English PDF (text per page, publishing) and an Arabic PDF read in correct reading order;
+  - a staff-only DOCX, a scanned PDF flagged "Needs OCR", and a disguised file refused by content;
+  - English and Arabic test search;
+  - **T17 live:** a student retrieves members documents but never staff-only ones, cannot read chunks directly, and cannot search another university;
+  - a new version replacing the old passages, and deletion.
+- **Defects the live run found:**
+  - **Files of deleted documents stayed in storage.** Storage only deletes files the caller can read, and the document row was already gone. Fixed by migration 9 (`knowledge_file_cleanup`, tested locally, 99/99 DB tests), which is **waiting for your confirmation** in the Supabase prompt. 2 leftover test files will be removed after it is applied.
+  - A race in the test itself (Next.js keeps the previous page mounted but hidden). The test was fixed; the product was not affected.
+- **Other test suites:** 117 unit (incl. real PDF/DOCX fixtures) and 76 browser (preview) tests pass.
+- **Not done:** embeddings (needs a provider key and a benchmark, ADR-021), OCR, a background worker for large files (ADR-022).
 
 ## Next steps
 1. Apply migration 8 and run `e2e/live/live-knowledge.spec.ts`; then Phase 5 (student assistant with citations).

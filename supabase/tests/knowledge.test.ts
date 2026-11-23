@@ -322,6 +322,17 @@ describe('T16 · original files in storage', () => {
     expect(bucket).toEqual({ public: false, file_size_limit: '26214400' })
   })
 
+  it('after a document is deleted its leftover files are visible to managers only (for cleanup)', async () => {
+    const orphan = `${tenantA}/00000000-0000-4000-8000-00000000dead/v1/source.pdf`
+    await pool.query(`insert into storage.objects (bucket_id, name) values ('tenant-documents', $1)`, [orphan])
+    const names = async (actor: string) => (await query(pool, user(actor), `select name from storage.objects where name = $1`, [orphan])).rows.length
+    expect(await names(U.deptAdminA)).toBe(1) // knowledge.manage in tenant A
+    expect(await names(U.studentA)).toBe(0)
+    expect(await names(U.ownerB)).toBe(0) // manager of another tenant
+    const del = await query(pool, user(U.deptAdminA), `delete from storage.objects where name = $1`, [orphan])
+    expect(del.rowCount).toBe(1)
+  })
+
   it('deleting a document removes versions and chunks in one step and returns its file paths', async () => {
     const doc = await ingest(U.deptAdminA, 'uni-a', { title: 'To be deleted', visibility: 'members' }, [{ content: 'Temporary content about parking.' }])
     await expect(query(pool, user(U.studentA), `select public.knowledge_delete_document($1)`, [doc.documentId])).rejects.toMatchObject({ code: '42501' })
