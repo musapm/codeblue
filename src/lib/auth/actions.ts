@@ -18,6 +18,12 @@ const log = logger.child({ module: 'auth' })
 const ipLimiter = createMemoryRateLimiter({ limit: 20, windowMs: 10 * 60_000 })
 const emailLimiter = createMemoryRateLimiter({ limit: 5, windowMs: 10 * 60_000 })
 
+/** Turnstile token from the form (only present when CAPTCHA is configured). */
+function captchaToken(formData: FormData): string | undefined {
+  const v = formData.get('captchaToken')
+  return typeof v === 'string' && v.length > 0 && v.length <= 4096 ? v : undefined
+}
+
 function readLocale(formData: FormData): Locale {
   const value = formData.get('locale')
   return isLocale(value) ? value : defaultLocale
@@ -49,7 +55,7 @@ export async function signIn(_prev: AuthActionState, formData: FormData): Promis
   if (await isRateLimited('signin', parsed.data.email)) return { status: 'error', error: 'rateLimited', email }
 
   const supabase = await createSupabaseServerClient()
-  const { error } = await supabase.auth.signInWithPassword(parsed.data)
+  const { error } = await supabase.auth.signInWithPassword({ ...parsed.data, options: { captchaToken: captchaToken(formData) } })
   if (error) {
     const key = mapAuthErrorCode(error.code)
     if (key === 'generic') log.warn('auth.signin_failed', { code: error.code, status: error.status })
@@ -81,6 +87,7 @@ export async function signUp(_prev: AuthActionState, formData: FormData): Promis
       // Return to where sign-up started (e.g. an invitation link), never to another site.
       emailRedirectTo: authCallbackUrl(safeRedirectPath(formData.get('next'), localizedPath(locale, '/app'))),
       data: { full_name: parsed.data.fullName, locale },
+      captchaToken: captchaToken(formData),
     },
   })
   if (error) {
@@ -106,6 +113,7 @@ export async function requestPasswordReset(_prev: AuthActionState, formData: For
   const supabase = await createSupabaseServerClient()
   const { error } = await supabase.auth.resetPasswordForEmail(parsed.data.email, {
     redirectTo: authCallbackUrl(localizedPath(locale, '/reset-password')),
+    captchaToken: captchaToken(formData),
   })
   if (error && mapAuthErrorCode(error.code) === 'rateLimited') return { status: 'error', error: 'rateLimited', email }
   if (error) log.warn('auth.reset_request_failed', { code: error.code, status: error.status })
@@ -127,7 +135,8 @@ export async function updatePassword(_prev: AuthActionState, formData: FormData)
 
   const supabase = await createSupabaseServerClient()
   const { data: userData, error: userError } = await supabase.auth.getUser()
-  if (userError || !userData.user) return { status: 'error', error: 'linkExpired' }
+  // Anonymous visitor sessions have no account to set a password for.
+  if (userError || !userData.user || userData.user.is_anonymous) return { status: 'error', error: 'linkExpired' }
 
   const { error } = await supabase.auth.updateUser({ password: parsed.data.password })
   if (error) {

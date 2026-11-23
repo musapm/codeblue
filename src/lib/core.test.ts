@@ -80,7 +80,7 @@ describe('contact schema', () => {
 
 describe('environment parsing', () => {
   it('applies safe defaults and the legacy anon key fallback', () => {
-    expect(parsePublicEnv({})).toEqual({ siteUrl: 'http://localhost:3000', supabaseUrl: undefined, supabasePublishableKey: undefined })
+    expect(parsePublicEnv({})).toEqual({ siteUrl: 'http://localhost:3000', supabaseUrl: undefined, supabasePublishableKey: undefined, turnstileSiteKey: undefined })
     expect(parsePublicEnv({ NEXT_PUBLIC_SITE_URL: 'https://app.example.com/', NEXT_PUBLIC_SUPABASE_ANON_KEY: 'anon' })).toMatchObject({
       siteUrl: 'https://app.example.com',
       supabasePublishableKey: 'anon',
@@ -166,5 +166,13 @@ describe('security headers', () => {
     expect(prod).toContain('Strict-Transport-Security')
     expect(dev).not.toContain('Strict-Transport-Security')
     expect(buildContentSecurityPolicy({ isDev: true })).toContain("'unsafe-eval'")
+  })
+
+  it('allows Cloudflare Turnstile only when it is configured', () => {
+    const off = buildContentSecurityPolicy({ isDev: false })
+    const on = buildContentSecurityPolicy({ isDev: false, turnstile: true })
+    expect(off).not.toContain('challenges.cloudflare.com')
+    expect(on).toMatch(/script-src [^;]*https:\/\/challenges\.cloudflare\.com/)
+    expect(on).toContain("frame-src 'self' https://challenges.cloudflare.com")
   })
 })

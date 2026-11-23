@@ -6,6 +6,8 @@
 // Assistant entries (migration 10) were compared with the generated types on 2026-11-23: rows and functions match.
 // Same intentional deviations: Insert/Update are `never`, and p_conversation / p_model / p_usage / p_comment /
 // p_instructions accept null (PostgREST passes SQL null).
+// Admissions entries (migration 11) are hand-written from the migration until it is applied and compared;
+// admission_programs keeps Insert/Update because staff write it directly (RLS: programs.manage).
 
 export type Json =
   | string
@@ -23,6 +25,171 @@ export type Database = {
   }
   public: {
     Tables: {
+      admission_lead_events: {
+        Row: {
+          actor_id: string | null
+          created_at: string
+          from_value: string | null
+          id: number
+          kind: string
+          lead_id: string
+          tenant_id: string
+          to_value: string | null
+        }
+        Insert: never
+        Update: never
+        Relationships: []
+      }
+      admission_lead_notes: {
+        Row: {
+          author_id: string | null
+          body: string
+          created_at: string
+          id: string
+          lead_id: string
+          tenant_id: string
+        }
+        Insert: never
+        Update: never
+        Relationships: []
+      }
+      admission_leads: {
+        Row: {
+          assigned_to: string | null
+          consent_at: string
+          consent_text: string
+          consent_version: string
+          conversation_id: string | null
+          country: string | null
+          created_at: string
+          email: string | null
+          full_name: string
+          id: string
+          intake: string | null
+          locale: string
+          lost_reason: string | null
+          message: string | null
+          phone: string | null
+          program_id: string | null
+          reference: string
+          source: string
+          stage: string
+          submitted_by: string | null
+          tenant_id: string
+          updated_at: string
+        }
+        Insert: never
+        Update: never
+        Relationships: []
+      }
+      admission_programs: {
+        Row: {
+          application_deadline: string | null
+          application_url: string | null
+          code: string
+          created_at: string
+          created_by: string | null
+          department_id: string | null
+          description: string | null
+          description_ar: string | null
+          duration_months: number | null
+          id: string
+          intakes: string | null
+          intakes_ar: string | null
+          level: string
+          name: string
+          name_ar: string | null
+          published_at: string | null
+          requirements: string | null
+          requirements_ar: string | null
+          sort_order: number
+          status: string
+          study_mode: string | null
+          teaching_language: string | null
+          tenant_id: string
+          tuition_amount: number | null
+          tuition_currency: string | null
+          tuition_note: string | null
+          tuition_note_ar: string | null
+          tuition_period: string | null
+          updated_at: string
+        }
+        Insert: {
+          application_deadline?: string | null
+          application_url?: string | null
+          code: string
+          department_id?: string | null
+          description?: string | null
+          description_ar?: string | null
+          duration_months?: number | null
+          id?: string
+          intakes?: string | null
+          intakes_ar?: string | null
+          level?: string
+          name: string
+          name_ar?: string | null
+          requirements?: string | null
+          requirements_ar?: string | null
+          sort_order?: number
+          status?: string
+          study_mode?: string | null
+          teaching_language?: string | null
+          tenant_id: string
+          tuition_amount?: number | null
+          tuition_currency?: string | null
+          tuition_note?: string | null
+          tuition_note_ar?: string | null
+          tuition_period?: string | null
+        }
+        Update: {
+          application_deadline?: string | null
+          application_url?: string | null
+          code?: string
+          department_id?: string | null
+          description?: string | null
+          description_ar?: string | null
+          duration_months?: number | null
+          intakes?: string | null
+          intakes_ar?: string | null
+          level?: string
+          name?: string
+          name_ar?: string | null
+          requirements?: string | null
+          requirements_ar?: string | null
+          sort_order?: number
+          status?: string
+          study_mode?: string | null
+          teaching_language?: string | null
+          tuition_amount?: number | null
+          tuition_currency?: string | null
+          tuition_note?: string | null
+          tuition_note_ar?: string | null
+          tuition_period?: string | null
+        }
+        Relationships: []
+      }
+      admissions_settings: {
+        Row: {
+          assistant_enabled: boolean
+          assistant_instructions: string | null
+          consent_text: string | null
+          consent_text_ar: string | null
+          consent_version: number
+          contact_email: string | null
+          daily_questions_per_visitor: number
+          monthly_budget_usd: number
+          privacy_url: string | null
+          public_enabled: boolean
+          tenant_id: string
+          updated_at: string
+          updated_by: string | null
+          welcome: string | null
+          welcome_ar: string | null
+        }
+        Insert: never
+        Update: never
+        Relationships: []
+      }
       ai_usage_events: {
         Row: {
           cache_read_tokens: number
@@ -43,6 +210,7 @@ export type Database = {
       }
       assistant_conversations: {
         Row: {
+          agent: string
           created_at: string
           id: string
           tenant_id: string
@@ -802,6 +970,83 @@ export type Database = {
     }
     Functions: {
       accept_invitation: { Args: { p_token: string }; Returns: string }
+      admissions_add_note: { Args: { p_body: string; p_lead: string }; Returns: string }
+      admissions_analytics: { Args: { p_tenant_slug: string }; Returns: Json }
+      admissions_assignees: { Args: { p_tenant_slug: string }; Returns: Json }
+      admissions_begin_turn: {
+        Args: { p_conversation: string | null; p_question: string; p_tenant_slug: string }
+        Returns: Json
+      }
+      admissions_create_lead: {
+        Args: {
+          p_consent_note: string
+          p_country: string | null
+          p_email: string | null
+          p_full_name: string
+          p_intake: string | null
+          p_locale: string
+          p_message: string | null
+          p_phone: string | null
+          p_program: string | null
+          p_tenant_slug: string
+        }
+        Returns: Json
+      }
+      admissions_delete_lead: { Args: { p_lead: string }; Returns: undefined }
+      admissions_search: {
+        Args: { p_limit?: number; p_query: string; p_tenant_slug: string }
+        Returns: Json
+      }
+      admissions_submit_lead: {
+        Args: {
+          p_consent_text: string
+          p_consent_version: string
+          p_conversation: string | null
+          p_country: string | null
+          p_email: string | null
+          p_full_name: string
+          p_intake: string | null
+          p_locale: string
+          p_message: string | null
+          p_phone: string | null
+          p_program: string | null
+          p_tenant_slug: string
+        }
+        Returns: Json
+      }
+      admissions_update_assistant: {
+        Args: {
+          p_daily_questions: number
+          p_enabled: boolean
+          p_instructions: string | null
+          p_monthly_budget_usd: number
+          p_tenant_slug: string
+        }
+        Returns: undefined
+      }
+      admissions_update_lead: {
+        Args: {
+          p_assigned_to: string | null
+          p_lead: string
+          p_lost_reason: string | null
+          p_program: string | null
+          p_stage: string
+        }
+        Returns: undefined
+      }
+      admissions_update_settings: {
+        Args: {
+          p_consent_text: string | null
+          p_consent_text_ar: string | null
+          p_contact_email: string | null
+          p_privacy_url: string | null
+          p_public_enabled: boolean
+          p_tenant_slug: string
+          p_welcome: string | null
+          p_welcome_ar: string | null
+        }
+        Returns: undefined
+      }
       assistant_begin_turn: {
         Args: { p_conversation: string | null; p_question: string; p_tenant_slug: string }
         Returns: Json
@@ -904,6 +1149,7 @@ export type Database = {
       my_workspaces: { Args: never; Returns: Json }
       platform_staff: { Args: never; Returns: Json }
       platform_tenants: { Args: never; Returns: Json }
+      public_admissions: { Args: { p_tenant_slug: string }; Returns: Json }
       publish_branding: { Args: { p_tenant_slug: string }; Returns: undefined }
       search_knowledge: {
         Args: {

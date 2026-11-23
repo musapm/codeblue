@@ -23,12 +23,15 @@ const publicEnvSchema = z.object({
   NEXT_PUBLIC_SUPABASE_URL: optionalUrl.optional(),
   NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: optionalString,
   NEXT_PUBLIC_SUPABASE_ANON_KEY: optionalString,
+  // Cloudflare Turnstile site key (public). Set it together with CAPTCHA protection in Supabase Auth.
+  NEXT_PUBLIC_TURNSTILE_SITE_KEY: optionalString,
 })
 
 export type PublicEnv = {
   siteUrl: string
   supabaseUrl: string | undefined
   supabasePublishableKey: string | undefined
+  turnstileSiteKey: string | undefined
 }
 
 export function parsePublicEnv(raw: Record<string, string | undefined>): PublicEnv {
@@ -44,6 +47,7 @@ export function parsePublicEnv(raw: Record<string, string | undefined>): PublicE
     supabaseUrl: env.NEXT_PUBLIC_SUPABASE_URL,
     // Prefer the new publishable key; fall back to the legacy anon key name.
     supabasePublishableKey: env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY ?? env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
+    turnstileSiteKey: env.NEXT_PUBLIC_TURNSTILE_SITE_KEY,
   }
 }
 
@@ -52,4 +56,5 @@ export const publicEnv: PublicEnv = parsePublicEnv({
   NEXT_PUBLIC_SUPABASE_URL: process.env.NEXT_PUBLIC_SUPABASE_URL,
   NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY,
   NEXT_PUBLIC_SUPABASE_ANON_KEY: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
+  NEXT_PUBLIC_TURNSTILE_SITE_KEY: process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY,
 })

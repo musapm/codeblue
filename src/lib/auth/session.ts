@@ -34,6 +34,9 @@ export async function getCurrentUser(): Promise<SessionUser | null> {
     // getUser() verifies the session with the Auth server (authoritative).
     const { data, error } = await supabase.auth.getUser()
     if (error || !data.user) return null
+    // Anonymous visitor sessions (public admissions, ADR-025) are not accounts: everywhere
+    // that asks for a user they count as signed out.
+    if (data.user.is_anonymous) return null
     const meta = data.user.user_metadata as Record<string, unknown> | undefined
     return {
       id: data.user.id,
@@ -54,4 +57,22 @@ export async function requireUser(locale: Locale, nextPath?: string): Promise<Se
     redirect(nextPath ? `${login}?next=${encodeURIComponent(nextPath)}` : login)
   }
   return user
+}
+
+/**
+ * Any Supabase session, including anonymous visitor sessions (public admissions only).
+ * Returns null without a session or when Supabase is not configured.
+ */
+export async function getSessionIdentity(): Promise<{ id: string; isAnonymous: boolean } | null> {
+  await connection()
+  if (!isSupabaseConfigured()) return null
+  try {
+    const supabase = await createSupabaseServerClient()
+    const { data, error } = await supabase.auth.getUser()
+    if (error || !data.user) return null
+    return { id: data.user.id, isAnonymous: Boolean(data.user.is_anonymous) }
+  } catch (error) {
+    logger.error('auth.get_session_failed', { error })
+    return null
+  }
 }

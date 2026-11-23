@@ -5,6 +5,7 @@ import { MailCheck } from 'lucide-react'
 import { useActionState, type ReactNode } from 'react'
 import { PasswordInput } from '@/components/auth/password-input'
 import { SubmitButton } from '@/components/forms/submit-button'
+import { TurnstileField } from '@/components/forms/turnstile-field'
 import { Alert } from '@/components/ui/alert'
 import { Field } from '@/components/ui/field'
 import { Input } from '@/components/ui/input'
@@ -75,6 +76,7 @@ export function LoginForm({ locale, copy, enabled, next }: CommonProps & { next?
             </Link>
           </div>
         </div>
+        <TurnstileField locale={locale} resetKey={state} />
         <SubmitButton className="w-full" pendingLabel={copy.loading}>
           {t.login.submit}
         </SubmitButton>
@@ -114,6 +116,7 @@ export function RegisterForm({ locale, copy, enabled, next }: CommonProps & { ne
           <PasswordInput name="password" autoComplete="new-password" required minLength={10} maxLength={72} showLabel={t.showPassword} hideLabel={t.hidePassword} />
         </Field>
         <p className="text-xs text-muted-foreground">{t.register.agreement}</p>
+        <TurnstileField locale={locale} resetKey={state} />
         <SubmitButton className="w-full" pendingLabel={copy.loading}>
           {t.register.submit}
         </SubmitButton>
@@ -150,6 +153,7 @@ export function ForgotPasswordForm({ locale, copy, enabled }: CommonProps) {
         <Field label={t.email} error={err('email')}>
           <Input name="email" type="email" autoComplete="email" required defaultValue={state.email} dir="ltr" />
         </Field>
+        <TurnstileField locale={locale} resetKey={state} />
         <SubmitButton className="w-full" pendingLabel={copy.loading}>
           {t.forgot.submit}
         </SubmitButton>

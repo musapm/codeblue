@@ -8,6 +8,8 @@ export type SecurityHeaderOptions = {
   isDev: boolean
   /** Supabase project URL, if configured, so the browser may call Auth/Storage. */
   supabaseUrl?: string
+  /** Cloudflare Turnstile is configured: allow its script and challenge frame. */
+  turnstile?: boolean
 }
 
 function originOf(url: string | undefined): string | null {
@@ -19,7 +21,9 @@ function originOf(url: string | undefined): string | null {
   }
 }
 
-export function buildContentSecurityPolicy({ isDev, supabaseUrl }: SecurityHeaderOptions): string {
+const TURNSTILE_ORIGIN = 'https://challenges.cloudflare.com'
+
+export function buildContentSecurityPolicy({ isDev, supabaseUrl, turnstile }: SecurityHeaderOptions): string {
   const supabaseOrigin = originOf(supabaseUrl)
   const connect = ["'self'"]
   if (supabaseOrigin) {
@@ -34,11 +38,12 @@ export function buildContentSecurityPolicy({ isDev, supabaseUrl }: SecurityHeade
     'default-src': ["'self'"],
     // 'unsafe-inline' is required for Next.js inline bootstrap scripts on statically
     // prerendered pages. Nonce-based CSP for dynamic app routes is planned (ADR-013).
-    'script-src': ["'self'", "'unsafe-inline'", ...(isDev ? ["'unsafe-eval'"] : [])],
+    'script-src': ["'self'", "'unsafe-inline'", ...(isDev ? ["'unsafe-eval'"] : []), ...(turnstile ? [TURNSTILE_ORIGIN] : [])],
     'style-src': ["'self'", "'unsafe-inline'"],
     'img-src': img,
     'font-src': ["'self'", 'data:'],
     'connect-src': connect,
+    'frame-src': turnstile ? ["'self'", TURNSTILE_ORIGIN] : ["'self'"],
     'frame-ancestors': ["'none'"],
     'form-action': ["'self'"],
     'base-uri': ["'self'"],

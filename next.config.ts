@@ -27,7 +27,7 @@ const nextConfig: NextConfig = {
     return [
       {
         source: '/:path*',
-        headers: buildSecurityHeaders({ isDev, supabaseUrl: process.env.NEXT_PUBLIC_SUPABASE_URL }),
+        headers: buildSecurityHeaders({ isDev, supabaseUrl: process.env.NEXT_PUBLIC_SUPABASE_URL, turnstile: Boolean(process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY) }),
       },
     ]
   },

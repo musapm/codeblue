@@ -21,6 +21,9 @@ export type RetrievedChunk = {
   heading: string | null
   content: string
   score: number
+  /** Set for admissions program records (not stored knowledge chunks). */
+  program_id?: string
+  program_code?: string
 }
 
 export type HistoryTurn = { role: 'user' | 'assistant'; content: string }
@@ -33,16 +36,32 @@ export type AnswerCitation = {
   page_from: number | null
   page_to: number | null
   cited_text: string
+  program_id?: string
+  program_code?: string
 }
 
-export function buildSystemPrompt(opts: { universityName: string; assistantName: string; supportEmail?: string | null; instructions?: string | null }): string {
-  const contact = opts.supportEmail ? `the university support team (${opts.supportEmail})` : 'the responsible university office'
+export function buildSystemPrompt(opts: {
+  universityName: string
+  assistantName: string
+  supportEmail?: string | null
+  instructions?: string | null
+  /** students (default): the student assistant. applicants: the public admissions assistant. */
+  audience?: 'students' | 'applicants'
+}): string {
+  const applicants = opts.audience === 'applicants'
+  const contact = opts.supportEmail
+    ? `${applicants ? 'the admissions office' : 'the university support team'} (${opts.supportEmail})`
+    : `the ${applicants ? 'admissions office' : 'responsible university office'}`
   const lines = [
-    `You are ${opts.assistantName}, the official assistant of ${opts.universityName}. You help students with questions about the university.`,
+    applicants
+      ? `You are ${opts.assistantName}, the official admissions assistant of ${opts.universityName}. You help prospective students with questions about programs, admission requirements, fees, deadlines and how to apply.`
+      : `You are ${opts.assistantName}, the official assistant of ${opts.universityName}. You help students with questions about the university.`,
     '',
     'How to answer:',
-    '- Answer only with information from the search results provided with the question. They are passages from official university documents.',
-    `- If the search results do not contain the answer, say plainly that you could not find it in the official documents and suggest contacting ${contact}. Never guess dates, fees, deadlines, grades or rules.`,
+    applicants
+      ? '- Answer only with information from the search results provided with the question. They are official program records and public university documents.'
+      : '- Answer only with information from the search results provided with the question. They are passages from official university documents.',
+    `- If the search results do not contain the answer, say plainly that you could not find it in the official information and suggest contacting ${contact}. Never guess dates, fees, deadlines, grades or rules.`,
     '- When sources disagree, say so and prefer the most recent or authoritative one; mention both.',
     '- Reply in the language the student wrote in (Arabic or English). Use Modern Standard Arabic for Arabic replies.',
     '- Be concise and practical: short paragraphs or a few bullet points, then any next step the student should take.',
@@ -54,6 +73,12 @@ export function buildSystemPrompt(opts: { universityName: string; assistantName:
     '- Do not ask for passwords, payment card numbers or other sensitive personal data. For personal records (grades, payments, account problems), direct the student to the responsible office.',
     '- If a question is about an emergency or someone being at risk, tell the student to contact emergency services or campus security immediately.',
   ]
+  if (applicants) {
+    lines.push(
+      '- Never promise admission, a place, a scholarship or a decision. You cannot see or change anyone\'s application.',
+      `- For a personal application (status, documents, decisions), or to be contacted, point the visitor to the inquiry form on this page or to ${contact}. Do not collect names, phone numbers or other personal details in the chat.`,
+    )
+  }
   if (opts.instructions?.trim()) {
     lines.push(
       '',
@@ -92,7 +117,7 @@ export function buildMessages(opts: { history: HistoryTurn[]; question: string; 
 
   const results: Anthropic.Beta.BetaSearchResultBlockParam[] = opts.chunks.map((c) => ({
     type: 'search_result',
-    source: `kb://${c.document_id}/v${c.version_no}#chunk-${c.chunk_id}`,
+    source: c.program_id ? `program://${c.program_id}` : `kb://${c.document_id}/v${c.version_no}#chunk-${c.chunk_id}`,
     title: `${chunkTitle(c, opts.locale)}${pageLabel(c)}`,
     content: [{ type: 'text', text: c.heading ? `${c.heading}\n${c.content}` : c.content }],
     citations: { enabled: true },
@@ -141,6 +166,7 @@ export function mapCitations(content: ResponseBlock[], chunks: RetrievedChunk[],
           page_from: chunk.page_from,
           page_to: chunk.page_to,
           cited_text: (c.cited_text ?? '').slice(0, 400),
+          ...(chunk.program_id ? { program_id: chunk.program_id, program_code: chunk.program_code } : {}),
         })
       }
       markers.add(n)

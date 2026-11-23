@@ -106,6 +106,7 @@ export const en = (brand: PlatformBranding) => ({
       generic: 'Something went wrong. Please try again.',
       weakPassword: 'Choose a stronger password.',
       linkExpired: 'This link is invalid or has expired.',
+      captcha: 'Please complete the security check and try again.',
     },
   },
   validation: {

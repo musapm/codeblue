@@ -104,6 +104,7 @@ export const ar = (brand: PlatformBranding): Dictionary => ({
       generic: 'حدث خطأ ما. يرجى المحاولة مرة أخرى.',
       weakPassword: 'اختر كلمة مرور أقوى.',
       linkExpired: 'هذا الرابط غير صالح أو منتهي الصلاحية.',
+      captcha: 'يرجى إكمال التحقق الأمني ثم المحاولة مرة أخرى.',
     },
   },
   validation: {

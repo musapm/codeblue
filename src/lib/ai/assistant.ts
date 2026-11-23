@@ -8,9 +8,13 @@ import { estimateCostUsd } from './pricing'
 import { buildMessages, buildSystemPrompt, mapCitations, retrievalQuery, type AnswerCitation, type HistoryTurn, type RetrievedChunk } from './prompt'
 
 /**
- * One student question → one grounded answer (docs/ai-architecture.md, request lifecycle):
- *   gates (assistant_begin_turn: membership, permission, feature, switch, budget)
- *   → retrieval as the student (search_knowledge: only passages they may read, before ranking)
+ * One question → one grounded answer (docs/ai-architecture.md, request lifecycle), for two agents:
+ * - student: gates in assistant_begin_turn (membership, permission, feature, switch, budget);
+ *   retrieval as the student (search_knowledge: only passages they may read, before ranking).
+ * - admissions: gates in admissions_begin_turn (public page and assistant on, budget, per-visitor
+ *   limit; anonymous visitor sessions allowed); retrieval = public documents (admissions_search)
+ *   plus the university's published program records.
+ * Then, for both:
  *   → no passages: a fixed answer without any model call
  *   → Claude with the passages as citable search results (streamed)
  *   → citations mapped to chunks/pages → answer, usage and cost stored (assistant_complete_turn).
@@ -26,7 +30,8 @@ export type AssistantEvent =
   | { type: 'error'; error: AssistantErrorKey }
 
 export type AnswerStatus = 'answered' | 'no_sources' | 'refused' | 'error'
-export type AssistantErrorKey = 'notConfigured' | 'disabled' | 'budget' | 'forbidden' | 'invalid' | 'notFound' | 'generic'
+export type AssistantErrorKey = 'notConfigured' | 'disabled' | 'budget' | 'limit' | 'forbidden' | 'invalid' | 'notFound' | 'generic'
+export type AgentKind = 'student' | 'admissions'
 
 export type AssistantTexts = { noSources: (supportEmail: string | null) => string; refused: string; failed: string }
 
@@ -40,6 +45,8 @@ function beginError(code: string | undefined): AssistantErrorKey {
       return 'disabled'
     case '53400':
       return 'budget'
+    case '54000':
+      return 'limit'
     case '42501':
       return 'forbidden'
     case '22023':
@@ -59,7 +66,12 @@ export async function* answerQuestion(opts: {
   locale: string
   university: { universityName: string; assistantName: string }
   texts: AssistantTexts
+  /** Default 'student'. */
+  agent?: AgentKind
+  /** Admissions only: the published programs (already selected for this question). */
+  programs?: RetrievedChunk[]
 }): AsyncGenerator<AssistantEvent> {
+  const agent = opts.agent ?? 'student'
   const ai = getAiConfig()
   if (!ai.configured) {
     yield { type: 'error', error: 'notConfigured' }
@@ -68,7 +80,8 @@ export async function* answerQuestion(opts: {
   const started = Date.now()
   const { supabase } = opts
 
-  const begun = await supabase.rpc('assistant_begin_turn', { p_tenant_slug: opts.tenantSlug, p_conversation: opts.conversationId, p_question: opts.question })
+  const beginArgs = { p_tenant_slug: opts.tenantSlug, p_conversation: opts.conversationId, p_question: opts.question }
+  const begun = agent === 'admissions' ? await supabase.rpc('admissions_begin_turn', beginArgs) : await supabase.rpc('assistant_begin_turn', beginArgs)
   if (begun.error) {
     const key = beginError(begun.error.code)
     if (key === 'generic') log.error('assistant.begin_failed', { code: begun.error.code })
@@ -95,18 +108,17 @@ export async function* answerQuestion(opts: {
   }
 
   yield { type: 'status', stage: 'searching' }
-  const search = await supabase.rpc('search_knowledge', {
-    p_tenant_slug: opts.tenantSlug,
-    p_query: retrievalQuery(opts.question, turn.history),
-    p_limit: RETRIEVAL_LIMIT,
-  })
+  const searchArgs = { p_tenant_slug: opts.tenantSlug, p_query: retrievalQuery(opts.question, turn.history), p_limit: RETRIEVAL_LIMIT }
+  const search = agent === 'admissions' ? await supabase.rpc('admissions_search', searchArgs) : await supabase.rpc('search_knowledge', searchArgs)
   if (search.error) {
     log.error('assistant.search_failed', { code: search.error.code })
     yield await finish('error', opts.texts.failed, [])
     return
   }
-  const chunks = (search.data ?? []) as unknown as RetrievedChunk[]
-  const sources = chunks.map((c) => ({ chunk_id: c.chunk_id, document_id: c.document_id, version_no: c.version_no, score: c.score }))
+  const chunks = [...((search.data ?? []) as unknown as RetrievedChunk[]), ...(agent === 'admissions' ? (opts.programs ?? []) : [])]
+  const sources = chunks.map((c) =>
+    c.program_id ? { program_id: c.program_id } : { chunk_id: c.chunk_id, document_id: c.document_id, version_no: c.version_no, score: c.score },
+  )
   if (chunks.length === 0) {
     // Nothing the student may read matches: answer honestly without spending on the model.
     yield await finish('no_sources', noSources, [], { sources })
@@ -126,7 +138,12 @@ export async function* answerQuestion(opts: {
       system: [
         {
           type: 'text',
-          text: buildSystemPrompt({ ...opts.university, supportEmail: turn.support_email, instructions: turn.instructions }),
+          text: buildSystemPrompt({
+            ...opts.university,
+            supportEmail: turn.support_email,
+            instructions: turn.instructions,
+            audience: agent === 'admissions' ? 'applicants' : 'students',
+          }),
           cache_control: { type: 'ephemeral' },
         },
       ],

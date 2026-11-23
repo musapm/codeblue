@@ -25,6 +25,8 @@ export function mapAuthErrorCode(code: string | undefined): AuthErrorKey {
     case 'over_request_rate_limit':
     case 'over_email_send_rate_limit':
       return 'rateLimited'
+    case 'captcha_failed':
+      return 'captcha'
     case 'otp_expired':
     case 'flow_state_expired':
     case 'flow_state_not_found':

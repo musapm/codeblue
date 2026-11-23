@@ -13,9 +13,11 @@ import pg from 'pg'
 
 const MIGRATIONS_DIR = join(__dirname, '..', 'migrations')
 
-export type Actor = { kind: 'user'; id: string } | { kind: 'anon' } | { kind: 'service' }
+export type Actor = { kind: 'user'; id: string; anonymous?: boolean } | { kind: 'anon' } | { kind: 'service' }
 
 export const user = (id: string): Actor => ({ kind: 'user', id })
+/** A Supabase anonymous sign-in (role authenticated, claim is_anonymous = true). */
+export const visitor = (id: string): Actor => ({ kind: 'user', id, anonymous: true })
 export const anon: Actor = { kind: 'anon' }
 export const service: Actor = { kind: 'service' }
 
@@ -88,7 +90,7 @@ async function runAs<T>(pool: pg.Pool, actor: Actor, fn: (client: pg.PoolClient)
     await client.query('begin')
     const claims =
       actor.kind === 'user'
-        ? { sub: actor.id, role: 'authenticated' }
+        ? { sub: actor.id, role: 'authenticated', is_anonymous: actor.anonymous ?? false }
         : actor.kind === 'anon'
           ? { role: 'anon' }
           : { role: 'service_role' }
