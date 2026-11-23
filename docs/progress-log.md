@@ -137,3 +137,22 @@ Chronological log of significant work. For the current snapshot see `PROJECT_STA
   - the old charts had two accessibility issues (unnamed focusable columns; `aria-label` on plain text). All fixed.
 - **Not live yet:** migration 14 waits for the owner's Supabase session, together with 12 and 13.
 
+## 2026-11-23: Phase 9 (academic assistant), nothing applied to Supabase
+
+- **Database:** migration 15 `academic` (local, 28 DB tests, 221 total). It adds:
+  - the Faculty member role;
+  - courses with per-course study tools and join codes, and enrollment;
+  - course materials through the existing knowledge pipeline;
+  - private study aids with quiz answers kept in the database;
+  - class figures that show accuracy only from 5 students.
+- **Design decision (ADR-029):**
+  - one ingestion pipeline for the knowledge base and courses, with course materials readable only inside their course;
+  - study aids private to their owner and always labelled as AI-generated, with their sources.
+- **App:**
+  - My courses, the course page and study aids (quiz, flashcards, study plan);
+  - course management and the academic admin;
+  - the analytics academic card.
+  Generation uses one structured-output call with the materials cached.
+- **Checked:** all Phase 4 knowledge tests still pass after the read and manage helpers gained a course branch. Two lint findings (reading the clock during render) were fixed by computing the dates outside the components.
+- **Not live yet:** migration 15 waits for the owner's Supabase session; generation needs the API key.
+

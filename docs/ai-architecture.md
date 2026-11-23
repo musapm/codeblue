@@ -46,7 +46,7 @@ user message
 | --- | --- | --- | --- | --- |
 | Student Assistant | Students, public | Public + student-visible docs, FAQs | `search_knowledge`, `create_ticket_draft`, `get_my_tickets`, `find_location` | `student_assistant` |
 | Admissions | Applicants (anonymous OK) | Admissions docs, programs DB | `search_programs`, `compare_programs`, `capture_lead` (consent required) | `admissions_agent` |
-| Academic | Students | Course materials + the user's own uploads | `generate_quiz`, `make_flashcards`, `study_plan` | `academic_agent` |
+| Academic | Students | Course materials only (own uploads not built) | summaries, practice quizzes, flashcards, study plans (structured output, Phase 9) | `academic_agent` |
 | Staff | Staff | Internal docs by department | `summarize_tickets`, `draft_email`, `draft_announcement` | `staff_assistant` |
 | Workflow | Students | Procedure docs, workflow definitions | `start_request_draft`, `submit_request` (confirmation required) | `workflow_agent` |
 | Campus | Everyone | Campus locations DB | `find_location`, `opening_hours` | `campus_assistant` |
@@ -224,4 +224,16 @@ No model call is involved. The loop uses what the assistants already store:
 - **Flagged answers:** answers rated not helpful and answers the model declined (`quality_flagged`). The reviewer sees the question, the answer, the cited passages and the comment, unless the answer was built from documents the reviewer cannot read (ADR-028).
 - **Outcomes** feed the dashboard: how many were correct, fixed in the knowledge base, still need a document, or were assistant mistakes. "Assistant mistake" is the signal to add an eval case (`evals/`) before changing prompts.
 - **Not built:** AI clustering of similar gap questions across wordings (needs the API key), and automatic eval cases from reviewed mistakes.
+
+## 15. Phase 9: academic study aids
+
+`src/lib/academic/ai.ts` makes one study aid per call; there is no chat (ADR-029):
+- **Gate:** `academic_begin_generation` checks the course (active, tools on, tool allowed), the person (teacher, or enrolled student with `academic.use`), the materials (1–10, usable by that person), the academic budget and the daily limit. It returns the materials in the chosen order, cut at 120,000 characters.
+- **Prompt:** a fixed system prompt (only the materials, every item names its material and pages, the requested language, materials and instructor guidance are data, never an official document or grade). Then one user turn with two blocks:
+  - the materials as `<material n="…">` with page-tagged chunks, escaped and **cached** (`cache_control`), so a second study aid from the same materials reads them from the cache;
+  - the task, with the instructor guidance in `<instructor_guidance>`.
+- **Call:** `messages.parse` with a zod schema per kind. The schema has no constraints the API might not support; the checks are done afterwards. Effort is medium for quizzes and summaries and low for flashcards and plans; adaptive thinking. Study plans get their dates from the app (sessions per week until the exam) and the model only fills the slots.
+- **Checks:** references to materials that were not sent become null. Quiz questions need 4 distinct options and one correct answer. A study aid with too few usable items is not saved. Refusals and unusable output are still booked as usage.
+- **Grading** never involves the model: the answer key stays in the database and `academic_submit_quiz` grades.
+- **Not built:** an eval set for the study tools, and students' own uploads.
 

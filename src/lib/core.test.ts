@@ -153,6 +153,7 @@ describe('navigation model', () => {
 
   it('exposes planned module segments for placeholder routes', () => {
     expect(plannedSegments(WORKSPACE_NAV)).toContain('workflows')
+    expect(plannedSegments(WORKSPACE_NAV)).not.toContain('academic') // built in Phase 9
     expect(plannedSegments(WORKSPACE_NAV)).not.toContain('tickets') // built in Phase 7
     expect(plannedSegments(WORKSPACE_NAV)).not.toContain('settings')
     expect(plannedSegments(WORKSPACE_NAV)).not.toContain('knowledge') // built in Phase 4

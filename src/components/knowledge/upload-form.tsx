@@ -8,6 +8,7 @@ import { FieldErrorProvider, type FormMessages } from '@/components/management/a
 import { FormField } from '@/components/management/form-field'
 import { Alert } from '@/components/ui/alert'
 import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
 import { Spinner } from '@/components/ui/misc'
 import { beginKnowledgeUpload, finishKnowledgeUpload } from '@/lib/knowledge/actions'
 import { KNOWLEDGE_ACCEPT, KNOWLEDGE_MAX_BYTES, knowledgeTypeFor } from '@/lib/knowledge/file-types'
@@ -31,6 +32,8 @@ export type UploadLabels = {
  */
 export function KnowledgeUploadForm({
   tenant,
+  courseId,
+  courseLabels,
   documentId,
   supabaseUrl,
   supabaseKey,
@@ -41,6 +44,9 @@ export function KnowledgeUploadForm({
   messages,
 }: {
   tenant: string
+  /** Phase 9: upload a course material (title fields only; the course decides who reads it). */
+  courseId?: string
+  courseLabels?: { title: string; titleAr: string; optional: string }
   documentId?: string
   supabaseUrl: string
   supabaseKey: string
@@ -75,7 +81,8 @@ export function KnowledgeUploadForm({
     if (file.size > KNOWLEDGE_MAX_BYTES) return fail('invalid', { file: 'knowledgeFileTooLarge' })
 
     setPhase('uploading')
-    const begun = await beginKnowledgeUpload({ tenant, documentId, fileName: file.name, size: file.size, type, meta: documentId ? undefined : metaFromForm(fd) })
+    const meta = documentId ? undefined : courseId ? { title: String(fd.get('title') ?? ''), titleAr: String(fd.get('titleAr') ?? '') } : metaFromForm(fd)
+    const begun = await beginKnowledgeUpload({ tenant, courseId, documentId, fileName: file.name, size: file.size, type, meta: meta as never })
     if (begun.status !== 'success' || !begun.data) {
       return fail(begun.status === 'error' ? begun.error : 'generic', begun.status === 'error' ? ((begun.fieldErrors ?? {}) as Record<string, string>) : {})
     }
@@ -122,7 +129,18 @@ export function KnowledgeUploadForm({
               className="block w-full text-sm text-muted-foreground file:me-3 file:rounded-md file:border file:border-input file:bg-background file:px-3 file:py-1.5 file:text-sm file:font-medium file:text-foreground hover:file:bg-muted"
             />
           </FormField>
-          {metaLabels && !documentId ? <KnowledgeMetaFields departments={departments} roles={roles} labels={metaLabels} /> : null}
+          {courseId && courseLabels && !documentId ? (
+            <div className="grid gap-4 sm:grid-cols-2">
+              <FormField name="title" label={courseLabels.title}>
+                <Input name="title" required minLength={2} maxLength={200} dir="auto" />
+              </FormField>
+              <FormField name="titleAr" label={courseLabels.titleAr} optionalLabel={courseLabels.optional}>
+                <Input name="titleAr" maxLength={200} dir="rtl" lang="ar" />
+              </FormField>
+            </div>
+          ) : metaLabels && !documentId ? (
+            <KnowledgeMetaFields departments={departments} roles={roles} labels={metaLabels} />
+          ) : null}
         </fieldset>
       </FieldErrorProvider>
       <Button type="submit" disabled={busy} aria-disabled={busy}>

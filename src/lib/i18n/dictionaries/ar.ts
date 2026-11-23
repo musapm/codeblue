@@ -2,6 +2,7 @@ import type { PlatformBranding } from '@/lib/branding/platform'
 import type { Dictionary } from './en'
 import { admissionsAr } from './admissions.ar'
 import { managementAr } from './management.ar'
+import { academicAr } from './academic.ar'
 import { analyticsAr } from './analytics.ar'
 import { ticketsAr } from './tickets.ar'
 
@@ -151,6 +152,10 @@ export const ar = (brand: PlatformBranding): Dictionary => ({
     numberInvalid: 'أدخل رقمًا صحيحًا.',
     subjectRequired: 'اكتب موضوعًا من 3 أحرف على الأقل.',
     messageRequired: 'اكتب رسالة.',
+    courseCode: 'استخدم حتى 20 حرفًا أو رقمًا أو مسافة أو نقطة أو شرطة، تبدأ بحرف أو رقم.',
+    courseCodeTaken: 'يوجد مقرر بهذا الرمز في هذا الفصل.',
+    chooseMaterials: 'اختر من 1 إلى 10 مواد.',
+    joinCode: 'أدخل الرمز المكوّن من 8 خانات الذي أعطاك إياه أستاذ المقرر.',
   },
   contactForm: {
     name: 'الاسم الكامل',
@@ -189,6 +194,7 @@ export const ar = (brand: PlatformBranding): Dictionary => ({
     items: {
       overview: 'نظرة عامة',
       ask: 'اسأل المساعد',
+      courses: 'مقرراتي',
       requests: 'طلباتي',
       notifications: 'الإشعارات',
       assistant: 'مساعد الطلاب',
@@ -331,4 +337,5 @@ export const ar = (brand: PlatformBranding): Dictionary => ({
   admissions: admissionsAr,
   tickets: ticketsAr,
   analytics: analyticsAr,
+  academic: academicAr,
 })

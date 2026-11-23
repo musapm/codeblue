@@ -47,6 +47,7 @@ no secrets in code · fail closed.
 - A student asking about another student's data is refused by the tools and by RLS.
 - Consequential actions require explicit user confirmation. Official decisions are never made by the AI.
 - Leads are captured only with explicit consent, which is stored with timestamp and wording version.
+- Academic assistant (ADR-029): study aids and quiz results are private to the student. Quiz answer keys are not readable by clients and are graded in the database. Teachers see class figures only, with accuracy shown from 5 students. Course materials are readable only inside their course.
 - AI quality review (ADR-028): reviewers see single flagged exchanges, never who asked. Contact details, links and long numbers are redacted in the database. Answers built from documents the reviewer cannot read are withheld. People using the assistants are told that this review may happen.
 
 ## 5. Audited actions

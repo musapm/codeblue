@@ -88,6 +88,93 @@ export type Database = {
         Update: never
         Relationships: []
       }
+      academic_items: {
+        Row: {
+          content: Json
+          course_id: string
+          created_at: string
+          id: string
+          kind: string
+          language: string
+          model: string
+          sources: Json
+          state: Json
+          tenant_id: string
+          title: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: never
+        Update: never
+        Relationships: []
+      }
+      academic_quiz_attempts: {
+        Row: {
+          answers: Json
+          course_id: string
+          created_at: string
+          id: string
+          item_id: string
+          results: Json
+          score: number
+          tenant_id: string
+          total: number
+          user_id: string
+        }
+        Insert: never
+        Update: never
+        Relationships: []
+      }
+      academic_settings: {
+        Row: {
+          daily_limit: number
+          monthly_budget_usd: number
+          tenant_id: string
+          updated_at: string
+        }
+        Insert: never
+        Update: never
+        Relationships: []
+      }
+      course_members: {
+        Row: {
+          added_by: string | null
+          course_id: string
+          created_at: string
+          role: string
+          tenant_id: string
+          user_id: string
+        }
+        Insert: never
+        Update: never
+        Relationships: []
+      }
+      courses: {
+        Row: {
+          ai_enabled: boolean
+          allow_flashcards: boolean
+          allow_quizzes: boolean
+          allow_study_plans: boolean
+          allow_summaries: boolean
+          code: string
+          created_at: string
+          created_by: string | null
+          department_id: string | null
+          description: string | null
+          id: string
+          instructions: string | null
+          join_open: boolean
+          status: string
+          tenant_id: string
+          term: string | null
+          title: string
+          title_ar: string | null
+          updated_at: string
+        }
+        Insert: never
+        Update: never
+        Relationships: []
+      }
       ai_quality_reviews: {
         Row: {
           message_id: string
@@ -612,6 +699,7 @@ export type Database = {
         Row: {
           archived_at: string | null
           category: string | null
+          course_id: string | null
           created_at: string
           created_by: string | null
           current_version_id: string | null
@@ -1284,6 +1372,69 @@ export type Database = {
       my_workspaces: { Args: never; Returns: Json }
       platform_staff: { Args: never; Returns: Json }
       platform_tenants: { Args: never; Returns: Json }
+      academic_add_instructor: { Args: { p_course: string; p_email: string }; Returns: Json }
+      academic_begin_generation: { Args: { p_course: string; p_documents: string[]; p_kind: string }; Returns: Json }
+      academic_begin_upload: {
+        Args: { p_course: string; p_document: string | null; p_file_name: string; p_meta?: Json; p_mime_type: string; p_size_bytes: number }
+        Returns: Json
+      }
+      academic_course_admin: { Args: { p_course: string }; Returns: Json }
+      academic_course_insights: { Args: { p_course: string; p_days: number }; Returns: Json }
+      academic_course_roster: { Args: { p_course: string }; Returns: Json }
+      academic_create_course: {
+        Args: { p_code: string; p_department: string | null; p_description: string | null; p_tenant_slug: string; p_term: string | null; p_title: string; p_title_ar: string | null }
+        Returns: string
+      }
+      academic_delete_item: { Args: { p_item: string }; Returns: undefined }
+      academic_join_course: { Args: { p_code: string; p_tenant_slug: string }; Returns: Json }
+      academic_overview: { Args: { p_days: number; p_tenant_slug: string }; Returns: Json }
+      academic_quiz_review: { Args: { p_item: string }; Returns: Json }
+      academic_record_usage: { Args: { p_course: string; p_model: string; p_usage: Json }; Returns: undefined }
+      academic_remove_member: { Args: { p_course: string; p_user: string }; Returns: undefined }
+      academic_save_item: {
+        Args: {
+          p_answer_key: Json | null
+          p_content: Json
+          p_course: string
+          p_kind: string
+          p_language: string
+          p_model: string
+          p_sources: Json
+          p_title: string
+          p_usage: Json
+        }
+        Returns: string
+      }
+      academic_set_join: { Args: { p_course: string; p_open: boolean; p_rotate: boolean }; Returns: string }
+      academic_set_material_published: { Args: { p_document: string; p_published: boolean }; Returns: undefined }
+      academic_submit_quiz: { Args: { p_answers: Json; p_item: string }; Returns: Json }
+      academic_update_course: {
+        Args: {
+          p_code: string
+          p_course: string
+          p_department: string | null
+          p_description: string | null
+          p_status: string
+          p_term: string | null
+          p_title: string
+          p_title_ar: string | null
+        }
+        Returns: undefined
+      }
+      academic_update_course_ai: {
+        Args: {
+          p_ai_enabled: boolean
+          p_course: string
+          p_flashcards: boolean
+          p_instructions: string | null
+          p_quizzes: boolean
+          p_study_plans: boolean
+          p_summaries: boolean
+        }
+        Returns: undefined
+      }
+      academic_update_progress: { Args: { p_item: string; p_state: Json }; Returns: undefined }
+      academic_update_settings: { Args: { p_daily_limit: number; p_monthly_budget_usd: number; p_tenant_slug: string }; Returns: undefined }
       analytics_overview: { Args: { p_days: number; p_tenant_slug: string }; Returns: Json }
       quality_flagged: {
         Args: { p_agent: string | null; p_days: number; p_kind: string; p_limit: number; p_state: string; p_tenant_slug: string }

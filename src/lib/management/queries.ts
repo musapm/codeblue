@@ -51,6 +51,7 @@ export const ROLE_ORDER = [
   'finance_staff',
   'it_support',
   'academic_affairs',
+  'faculty',
   'library_staff',
   'hr_staff',
   'quality_reviewer',

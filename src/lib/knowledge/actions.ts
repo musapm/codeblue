@@ -24,9 +24,20 @@ import { knowledgeMetaSchema, toMetaJson, type KnowledgeMetaInput } from './sche
  */
 
 const uuid = z.uuid()
+const courseMaterialMetaSchema = z.object({
+  title: z.string().trim().min(2, 'nameRequired').max(200, 'nameTooLong'),
+  titleAr: z
+    .string()
+    .trim()
+    .max(200, 'nameTooLong')
+    .optional()
+    .transform((s) => (s ? s : null)),
+})
 
 export type BeginUploadInput = {
   tenant: string
+  /** Phase 9: a course material (only its title is asked; the course decides who reads it). */
+  courseId?: string
   documentId?: string
   fileName: string
   size: number
@@ -46,22 +57,38 @@ export async function beginKnowledgeUpload(input: BeginUploadInput): Promise<Act
   const fileName = String(input.fileName ?? '').slice(0, 255)
   if (!fileName.trim()) return errorState('invalid', { file: 'fileRequired' })
 
+  const courseId = input.courseId ? uuid.safeParse(input.courseId) : null
+  if (courseId && !courseId.success) return errorState('invalid')
+
   let meta: { [key: string]: Json } = {}
-  if (!documentId) {
+  if (!documentId && courseId) {
+    const parsed = courseMaterialMetaSchema.safeParse(input.meta ?? {})
+    if (!parsed.success) return errorState('invalid', toFieldErrors(parsed.error))
+    meta = { title: parsed.data.title, title_ar: parsed.data.titleAr }
+  } else if (!documentId) {
     const parsed = knowledgeMetaSchema.safeParse(input.meta ?? {})
     if (!parsed.success) return errorState('invalid', toFieldErrors(parsed.error))
     meta = toMetaJson(parsed.data)
   }
   if (await isRateLimited('upload', ctx.user.id)) return errorState('rateLimited')
 
-  const begun = await ctx.supabase.rpc('knowledge_begin_upload', {
-    p_tenant_slug: slug.data,
-    p_document: documentId ? documentId.data! : null,
-    p_file_name: fileName,
-    p_mime_type: input.type,
-    p_size_bytes: input.size,
-    p_meta: meta,
-  })
+  const begun = courseId
+    ? await ctx.supabase.rpc('academic_begin_upload', {
+        p_course: courseId.data!,
+        p_document: documentId ? documentId.data! : null,
+        p_file_name: fileName,
+        p_mime_type: input.type,
+        p_size_bytes: input.size,
+        p_meta: meta,
+      })
+    : await ctx.supabase.rpc('knowledge_begin_upload', {
+        p_tenant_slug: slug.data,
+        p_document: documentId ? documentId.data! : null,
+        p_file_name: fileName,
+        p_mime_type: input.type,
+        p_size_bytes: input.size,
+        p_meta: meta,
+      })
   if (begun.error) return begun.error.code === '55P03' ? errorState('conflict') : dbFailure('knowledge_begin_upload', begun.error)
   const row = begun.data as { document_id: string; version_id: string; storage_path: string }
 

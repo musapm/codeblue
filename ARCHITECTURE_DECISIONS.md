@@ -289,3 +289,36 @@ Format: **ADR-NNN — Title** · Status · Date · Context → Decision → Cons
 - The tables themselves keep their row-level security: reviewers still cannot select assistant messages or feedback. Only the review functions expose single, redacted exchanges.
 
 **Consequences:** Conversations are no longer seen only by their author. The knowledge-gap and flagged-answer exceptions are narrow, pseudonymized, redacted and disclosed to the people asking. The rules are covered by 25 DB tests. Re-identification from what someone wrote remains possible in small groups; universities should say so in their privacy notice. AI clustering of gap questions (which would need the API key) and email digests are not built.
+
+## ADR-029 — Academic assistant: course materials in the knowledge pipeline, private study aids, answers kept in the database
+**Accepted · 2026-11-23**
+
+**Context:** Phase 9 adds study tools: summaries, practice quizzes, flashcards and study plans, built from the materials instructors provide. They must be labelled as AI-generated and switched on per course. Course content belongs to a course, not to the whole university. Students' study data is personal.
+**Decision:**
+- **Who:**
+  - Academic managers (`academic.manage`) create courses and assign instructors.
+  - Instructors are course members with the role `instructor` (they need `academic.use`). They manage only their courses: materials, the study tools, enrollment, class figures.
+  - Students join an active course with an 8-character code (no look-alike characters). Teachers can close joining or make a new code. Wrong codes are counted in the database: after 10 in an hour, joining is refused.
+  - A new system role **Faculty member** gives teaching staff academic access without managing courses. It is added to existing universities as well.
+- **Course materials reuse the Phase 4 pipeline** (upload, verification, extraction, chunks, versions, storage). A material is a knowledge document with `course_id`, always `restricted`:
+  - only the course's teachers read it (drafts included);
+  - its enrolled students read it once published;
+  - knowledge-base roles do not reach it;
+  - it never appears in the university knowledge base or in the general assistant's retrieval.
+  `app.can_read_knowledge` and `app.can_manage_knowledge` gained a course branch; the other rules are unchanged, and all Phase 4 tests still pass. Teachers delete a material's files first, then its rows, because the storage delete rule needs the document to exist.
+- **Per-course enablement:** the tools are off until a teacher turns them on, and each of the four tools can be allowed or not. The database refuses generation for a course or tool that is off, or a course that is archived.
+- **Generation** is one structured-output call per study aid:
+  - the materials (up to 120,000 characters, in the chosen order) go first as cached data, then the task and the instructor's guidance (`<instructor_guidance>`, which cannot change the rules);
+  - every item carries a reference to its material and pages, and references to materials that were not sent are dropped;
+  - malformed quiz questions are removed (4 distinct options, one correct);
+  - effort is medium for quizzes and summaries, low for flashcards and plans;
+  - usage is booked as `academic_agent`, with its own monthly budget (default 20 USD) and a daily limit per person (default 20).
+- **Labelling:** every study aid shows "AI-generated", a notice that it can contain mistakes, is not an official course document and does not count towards any grade, and the materials it was made from.
+- **Privacy:**
+  - study aids and quiz attempts are visible only to the person who made them, not to instructors, managers or the owner;
+  - a quiz's answer key is a column clients cannot select; grading happens in the database (`academic_submit_quiz`), and the answers are returned only after an attempt;
+  - teachers see class figures only. Quiz accuracy per material appears once at least 5 students answered on it;
+  - study data is not copied into the audit log. Courses, enrollment and settings are.
+- **Not built:** students' own uploads, instructor-reviewed quizzes shared with the class, a course chat, eval sets for the study tools, LMS/SIS integration (Phase 14).
+
+**Consequences:** One ingestion pipeline serves both the knowledge base and courses. The access rules are enforced and tested in the database (28 tests). As with ADR-024, generated content and usage are saved with the student's own session: a student could store fake content in their own private study aids or under-report usage. This is accepted for now; a service-role worker would close it.

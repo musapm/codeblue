@@ -61,7 +61,8 @@ Permission keys follow `resource.action[_scope]`. The canonical list is
 | `student_affairs` | Student-affairs tickets and knowledge |
 | `finance_staff` | Finance tickets and workflows (no access to unrelated student records) |
 | `it_support` | Technical tickets, technical knowledge |
-| `academic_affairs` | Academic knowledge, `academic.manage` |
+| `academic_affairs` | Academic knowledge, `academic.manage` (create courses, assign instructors, academic AI budget) |
+| `faculty` | Faculty member (Phase 9): staff baseline + `academic.use`; teaches the courses they are assigned to (course-level instructor role) |
 | `library_staff`, `hr_staff` | Their department's tickets and knowledge |
 | `quality_reviewer` | `quality.review`, read access to flagged conversations (no PII export) |
 | `student` | `assistant.use`, `tickets.create`, `tickets.read_own`, `knowledge.read_public`, `academic.use` |
@@ -98,3 +99,11 @@ Feature keys (`src/lib/features/catalog.ts`): `student_assistant`, `admissions_a
   confirmation**. They never complete an official action on their own.
 - If a user asks about another person's data, retrieval and tools return nothing, and the assistant
   says it cannot share that information.
+
+## Course-level roles (Phase 9)
+
+Inside a course, `course_members.role` is `instructor` or `student`. It does not replace the tenant permissions; it narrows them:
+- **Teach a course** (materials, study tools, enrollment, class figures): `academic.manage` in the university, or `instructor` in that course together with `academic.use`.
+- **Study in a course** (published materials, study tools when on): `student` in that course, with `academic.use`, while the course is active.
+- Course materials are readable only through these rules, never through knowledge-base permissions (ADR-029).
+

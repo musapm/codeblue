@@ -1,6 +1,7 @@
 import type { PlatformBranding } from '@/lib/branding/platform'
 import { admissionsEn } from './admissions.en'
 import { managementEn } from './management.en'
+import { academicEn } from './academic.en'
 import { analyticsEn } from './analytics.en'
 import { ticketsEn } from './tickets.en'
 
@@ -153,6 +154,10 @@ export const en = (brand: PlatformBranding) => ({
     numberInvalid: 'Enter a valid number.',
     subjectRequired: 'Write a subject of at least 3 characters.',
     messageRequired: 'Write a message.',
+    courseCode: 'Use up to 20 letters, digits, spaces, dots, dashes or underscores, starting with a letter or digit.',
+    courseCodeTaken: 'A course with this code already exists for this term.',
+    chooseMaterials: 'Choose 1 to 10 materials.',
+    joinCode: 'Enter the 8-character code from your instructor.',
   },
   contactForm: {
     name: 'Full name',
@@ -191,6 +196,7 @@ export const en = (brand: PlatformBranding) => ({
     items: {
       overview: 'Overview',
       ask: 'Ask the assistant',
+      courses: 'My courses',
       requests: 'My requests',
       notifications: 'Notifications',
       assistant: 'Student assistant',
@@ -333,6 +339,7 @@ export const en = (brand: PlatformBranding) => ({
   admissions: admissionsEn,
   tickets: ticketsEn,
   analytics: analyticsEn,
+  academic: academicEn,
 })
 
 export type Dictionary = ReturnType<typeof en>

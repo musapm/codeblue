@@ -32,7 +32,7 @@ export function AnalyticsView({
   days: Period
   /** Workspace root, e.g. /en/app/northbridge */
   base: string
-  links: { knowledge: boolean; leads: boolean }
+  links: { knowledge: boolean; leads: boolean; academic?: boolean }
 }) {
   const d = t.dashboard
   const n = (x: number) => formatNumber(locale, x)
@@ -117,6 +117,7 @@ export function AnalyticsView({
           hint: ai.month.ticketing > 0 ? d.ai.sharedBudget : undefined,
         },
         { key: 'admissions', label: d.ai.features.admissions_agent ?? '', spent: ai.month.admissions_agent, budget: ai.budgets.admissions_agent },
+        { key: 'academic', label: d.ai.features.academic_agent ?? '', spent: ai.month.academic_agent ?? 0, budget: ai.budgets.academic_agent ?? null },
       ]
     : []
   const q = data.quality
@@ -264,6 +265,38 @@ export function AnalyticsView({
             </Card>
           ) : null}
 
+          {data.academic ? (
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-base">{d.academic.title}</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-5">
+                <div className="grid grid-cols-2 gap-3">
+                  <StatTile label={d.academic.courses} value={n(data.academic.courses.active)} detail={d.academic.toolsOn(n(data.academic.courses.ai_enabled))} />
+                  <StatTile label={d.academic.students} value={n(data.academic.students)} />
+                  <StatTile label={d.academic.attempts} value={n(data.academic.attempts)} />
+                  <StatTile label={d.academic.people} value={n(data.academic.people)} />
+                </div>
+                <div>
+                  <h3 className="mb-2 text-sm font-medium">{d.academic.generated}</h3>
+                  <BarList
+                    format={n}
+                    emptyLabel={t.dash}
+                    rows={(['quiz', 'flashcards', 'summary', 'study_plan'] as const)
+                      .map((k) => ({ key: k, label: d.academic.kinds[k] ?? k, value: data.academic!.generated[k] }))
+                      .sort((x, y) => y.value - x.value)}
+                  />
+                </div>
+                {links.academic ? (
+                  <Link href={`${base}/academic`} className={buttonClasses({ variant: 'secondary', size: 'sm' })}>
+                    {d.academic.open}
+                    <ArrowRight aria-hidden className="rtl:-scale-x-100" />
+                  </Link>
+                ) : null}
+              </CardContent>
+            </Card>
+          ) : null}
+
           {data.admissions ? (
             <Card>
               <CardHeader>
@@ -321,11 +354,11 @@ export function AnalyticsView({
                       </div>
                     )
                   })}
-                <dl className="grid grid-cols-3 gap-3 text-sm">
-                  {(['student_assistant', 'admissions_agent', 'ticketing'] as const).map((f) => (
+                <dl className="grid grid-cols-2 gap-3 text-sm sm:grid-cols-4">
+                  {(['student_assistant', 'admissions_agent', 'ticketing', 'academic_agent'] as const).map((f) => (
                     <div key={f}>
                       <dt className="text-xs text-muted-foreground">{d.ai.features[f]}</dt>
-                      <dd className="font-semibold">{usd(ai.month[f])}</dd>
+                      <dd className="font-semibold">{usd(ai.month[f] ?? 0)}</dd>
                     </div>
                   ))}
                 </dl>

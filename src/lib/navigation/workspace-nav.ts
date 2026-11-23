@@ -33,6 +33,7 @@ export type NavIconName =
   | 'staff'
   | 'tickets'
   | 'requests'
+  | 'courses'
   | 'knowledge'
   | 'workflows'
   | 'campus'
@@ -54,6 +55,7 @@ export const WORKSPACE_NAV: NavSection[] = [
     items: [
       { key: 'overview', segment: '', icon: 'overview', status: 'available', phase: 1 },
       { key: 'ask', segment: 'ask', icon: 'assistant', status: 'available', phase: 5, permission: 'assistant.use', feature: 'student_assistant' },
+      { key: 'courses', segment: 'courses', icon: 'courses', status: 'available', phase: 9, permission: 'academic.use', feature: 'academic_agent' },
       { key: 'requests', segment: 'requests', icon: 'requests', status: 'available', phase: 7, permission: 'tickets.read_own', feature: 'ticketing' },
     ],
   },
@@ -62,7 +64,7 @@ export const WORKSPACE_NAV: NavSection[] = [
     items: [
       { key: 'assistant', segment: 'assistant', icon: 'ai', status: 'available', phase: 5, permission: 'assistant.configure', feature: 'student_assistant' },
       { key: 'admissions', segment: 'admissions', icon: 'admissions', status: 'available', phase: 6, permission: 'leads.read', feature: 'admissions_agent' },
-      { key: 'academic', segment: 'academic', icon: 'academic', status: 'planned', phase: 9, permission: 'academic.manage', feature: 'academic_agent' },
+      { key: 'academic', segment: 'academic', icon: 'academic', status: 'available', phase: 9, permission: 'academic.manage', feature: 'academic_agent' },
       { key: 'staff-assistant', segment: 'staff-assistant', icon: 'staff', status: 'planned', phase: 10, permission: 'assistant.staff.use', feature: 'staff_assistant' },
     ],
   },

@@ -105,12 +105,23 @@ export const OverviewSchema = z.object({
   ai: z
     .object({
       month_since: z.string(),
-      month: z.object({ student_assistant: num, admissions_agent: num, ticketing: num }),
-      budgets: z.object({ student_assistant: nullableNum, admissions_agent: nullableNum }),
+      month: z.object({ student_assistant: num, admissions_agent: num, ticketing: num, academic_agent: num.optional() }),
+      budgets: z.object({ student_assistant: nullableNum, admissions_agent: nullableNum, academic_agent: nullableNum.optional() }),
       period: z.object({ calls: num, cost_usd: num, input_tokens: num, output_tokens: num }),
     })
     .nullable(),
   quality: QualityCounts.nullable(),
+  // Phase 9 (optional: absent before migration 15).
+  academic: z
+    .object({
+      courses: z.object({ active: num, ai_enabled: num }),
+      students: num,
+      generated: z.object({ summary: num, quiz: num, flashcards: num, study_plan: num }),
+      attempts: num,
+      people: num,
+    })
+    .nullable()
+    .optional(),
   can: z.object({ costs: z.boolean(), gaps: z.boolean(), review: z.boolean(), advanced: z.boolean() }),
 })
 export type Overview = z.infer<typeof OverviewSchema>

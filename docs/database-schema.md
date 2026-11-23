@@ -340,6 +340,41 @@ Functions:
 
 Private helpers: `app.analytics_period` (the university's days), `app.redact_pii`, `app.normalize_question`, `app.can_see_document_content`, `app.can_see_answer`, `app.question_of`, `app.agent_enabled`, `app.quality_counts`.
 
+## 2g. Phase 9 — academic assistant (migration 15 `academic`, **written and tested locally, not applied yet**)
+
+| Table | Contents | Access |
+| --- | --- | --- |
+| `courses` | code (unique per term), titles en/ar, description, department, term, status draft/active/archived, **per-course enablement** (`ai_enabled` + one switch per tool), instructor guidance, join code (8 characters) and `join_open` | read: the course's teachers and academic managers; its students while active (`app.can_view_course`). The join code is **not a readable column** (`academic_course_admin`); audited |
+| `course_members` | course, person, role instructor/student, added by | read: one's own row, or teachers of the course; changes through functions; audited |
+| `knowledge_documents.course_id` | a course material (always `restricted`) | readable by the course's teachers, and by its students once published; never by knowledge-base roles; excluded from `search_knowledge` and from the knowledge base pages |
+| `academic_settings` | monthly AI budget (default 20 USD) and study aids per person per day (default 20) | read: `academic.manage`; audited |
+| `academic_items` | a study aid: kind summary/quiz/flashcards/study_plan, title, language, content, **answer key** (quizzes), progress, sources, model | read: its owner only; `answer_key` is not a readable column; not audited (study data) |
+| `academic_quiz_attempts` | answers, per-question result and material, score | read: its owner only |
+| `app.academic_join_failures` | wrong join codes per person (10 per hour) | private |
+
+Also new: the system role `faculty` (Faculty member), added to existing universities.
+
+Functions:
+
+| Function | Who | Purpose |
+| --- | --- | --- |
+| `academic_create_course` / `academic_update_course` | `academic.manage` | Course details and status (creates the settings row with defaults) |
+| `academic_update_course_ai(course, enabled, summaries, quizzes, flashcards, study_plans, guidance)` | teachers | Per-course enablement and guidance |
+| `academic_set_join(course, open, rotate)` / `academic_course_admin(course)` | teachers | Joining open/closed, new code / the code and counts |
+| `academic_add_instructor(course, email)` | `academic.manage` | An active member with `academic.use`; the same "not found" for anything else |
+| `academic_remove_member(course, user)` | managers anyone; teachers students; students themselves | Remove or leave |
+| `academic_join_course(slug, code)` | `academic.use` | Join an active, open course; wrong codes counted (`{status: 'invalid'}`, 54000 after 10 per hour) |
+| `academic_course_roster(course)` | teachers | Names, roles, since when |
+| `academic_begin_upload(course, document, file…)` / `academic_set_material_published(document, published)` | teachers | Materials through the knowledge pipeline / publish to students |
+| `academic_begin_generation(course, kind, documents[])` | teachers or the course's students | Gate: course active and tools on, tool allowed, 1–10 usable materials, budget (53400), daily limit (54000). Returns the materials (≤ 120,000 characters) |
+| `academic_save_item(…)` / `academic_record_usage(…)` | same | Store a checked study aid and book usage / book usage only |
+| `academic_submit_quiz(item, answers)` / `academic_quiz_review(item)` | the owner | Grade in the database; answers and explanations only after an attempt |
+| `academic_update_progress(item, state)` / `academic_delete_item(item)` | the owner | Flashcards known / plan sessions done; delete |
+| `academic_update_settings(slug, budget, daily_limit)` / `academic_overview(slug, days)` | `academic.manage` | Budget and limit / activity, month cost |
+| `academic_course_insights(course, days)` | teachers | Class figures; accuracy per material only from 5 students |
+
+Changed: `app.can_read_knowledge` / `app.can_manage_knowledge` (course branch), the storage delete rule (teachers remove their materials' files), `search_knowledge` (course materials excluded), `analytics_overview` (course materials excluded from the knowledge figures; academic section, cost and budget).
+
 ## 3. Phase 15 — plans, features, subscriptions (planned)
 
 ```
@@ -367,7 +402,7 @@ Effective features = plan features + enabled overrides − disabled overrides, c
 | 6 Admissions | Implemented, see §2d |
 | 7 Tickets | Implemented, see §2e (migration 13 not applied yet). Not built: `ticket_attachments`, assignment rules beyond categories, SLAs |
 | 8 Analytics | Implemented without rollups, see §2f (migration 14 not applied yet). `daily_tenant_metrics` only if volumes require it |
-| 9 Academic | `courses`, `course_materials`, `quizzes`, `quiz_questions`, `quiz_attempts`, `topic_mastery` |
+| 9 Academic | Implemented, see §2g (migration 15 not applied yet): materials are knowledge documents with `course_id`; study aids in `academic_items`; mastery per material from quiz attempts |
 | 11 Workflows | `workflow_definitions` (versioned JSON schema of steps/fields), `workflow_requests`, `workflow_request_events` |
 | 12 Campus | `campus_locations` (type, coordinates, hours jsonb, accessibility jsonb), `location_aliases` |
 | 13 Voice | `voice_sessions`, usage in `ai_usage_events` with `modality = 'voice'` |

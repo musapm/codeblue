@@ -21,6 +21,10 @@ export const ACTION_ERRORS = [
   'dailyLimit',
   'aiBudget',
   'aiRefused',
+  'studyToolsOff',
+  'studyBudget',
+  'studyRefused',
+  'joinLimit',
   'generic',
 ] as const
 

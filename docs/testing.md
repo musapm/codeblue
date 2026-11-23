@@ -173,3 +173,19 @@ Live runs on 2026-11-22 against project "agent":
 - **Visual check:** the dashboard and the review queue were rendered with fictional data through a temporary local-only route (deleted) and checked in English and Arabic, including keyboard focus on a chart. It found a real defect: a formatting function passed to a client component, which only fails with data. It also found money shown as `$6.8`. Both are fixed.
 - **Not run:** any live test. Migration 14 is not applied.
 
+### Academic assistant (Phase 9)
+
+- **Database:** `supabase/tests/academic.test.ts` (28 tests, migration 15, local only). Covered:
+  - the Faculty member role; who creates and edits courses, and code uniqueness per term;
+  - instructor assignment by e-mail; who sees a course, with the join code hidden;
+  - enrollment: code formats, brute-force limit, closing and rotating, roster, removal;
+  - materials through the real pipeline: teachers only, students published only, never knowledge-base roles or the general search; storage;
+  - per-course and per-tool enablement; drafts for teachers only; the 120,000-character limit; budget and daily limit;
+  - malformed study aids refused; privacy of study aids and answer keys; grading; progress;
+  - class figures with the 5-student threshold; the academic overview and analytics; archiving; other universities; nothing in the audit log.
+  `rls.test.ts` now counts 14 system roles.
+- **Unit:** `src/lib/academic/academic.test.ts` (15 tests): study-plan dates, form input, progress, checks on model output (malformed quiz questions dropped, references mapped or dropped, plan slots), and generation with a fake model and database (no call without a key or when the database gate refuses, materials sent as cached data and escaped, low/medium effort, answer key saved, refusals and unusable output still book usage).
+- **Browser (preview):** My courses and the academic admin without data and without writes; navigation; unknown courses and study aids "not found"; Arabic; accessibility of 2 pages.
+- **Visual check:** the study-tool form, the quiz, flashcards and study plan were rendered with fictional data through a temporary local-only route (deleted), in English and Arabic.
+- **Not run:** any live test (migration 15 not applied; generation needs the API key). The pages with real course data have been checked only through their parts.
+

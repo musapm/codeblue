@@ -143,7 +143,8 @@ function toDocument(d: DocRow, versions: VersionRow[]): KnowledgeDocument {
 
 export async function listKnowledgeDocuments(tenantId: string): Promise<KnowledgeDocument[]> {
   const supabase = await createSupabaseServerClient()
-  const docs = await supabase.from('knowledge_documents').select(DOC_COLUMNS).eq('tenant_id', tenantId).order('updated_at', { ascending: false }).limit(500)
+  // Course materials (Phase 9) belong to their course, not to the university knowledge base.
+  const docs = await supabase.from('knowledge_documents').select(DOC_COLUMNS).eq('tenant_id', tenantId).is('course_id', null).order('updated_at', { ascending: false }).limit(500)
   if (docs.error) fail('knowledge_documents', docs.error)
   const rows = (docs.data ?? []) as DocRow[]
   if (rows.length === 0) return []
@@ -164,7 +165,7 @@ export type KnowledgeDocumentDetail = KnowledgeDocument & {
 export async function getKnowledgeDocument(tenantId: string, documentId: string): Promise<KnowledgeDocumentDetail | null> {
   if (!/^[0-9a-f-]{36}$/.test(documentId)) return null
   const supabase = await createSupabaseServerClient()
-  const doc = await supabase.from('knowledge_documents').select(DOC_COLUMNS).eq('tenant_id', tenantId).eq('id', documentId).maybeSingle()
+  const doc = await supabase.from('knowledge_documents').select(DOC_COLUMNS).eq('tenant_id', tenantId).eq('id', documentId).is('course_id', null).maybeSingle()
   if (doc.error) fail('knowledge_document', doc.error)
   if (!doc.data) return null
   const d = doc.data as DocRow

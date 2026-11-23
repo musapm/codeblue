@@ -145,9 +145,23 @@ Current state: `PROJECT_STATUS.md` · Audit history: `docs/IMPLEMENTATION_AUDIT.
 - [ ] Export (CSV) and scheduled email digests of the figures (needs the email provider)
 - [ ] Platform-wide usage across universities (Phase 15)
 
+## Phase 9: Academic assistant 🟡 built and tested locally; migration 15 not applied
+
+- [x] Migration 15 `academic`: Faculty member role; courses (per-course enablement, join codes), enrollment, course materials in the knowledge pipeline, academic settings (budget, daily limit), private study aids with server-side quiz grading, progress, class figures (ADR-029). 28 DB tests, local only
+- [x] Course materials readable only inside the course; never in the knowledge base or the general assistant; Phase 4 rules unchanged (all knowledge tests still pass)
+- [x] AI study aids (summaries, practice quizzes, flashcards, study plans) with structured output, cached materials, checked references, labelled as AI-generated with their sources
+- [x] Pages: My courses (join with a code), course page (materials, study tools, my study aids), study aid page (quiz, flashcards, study plan), course management (details, tools, materials upload/publish/delete, enrollment and roster, instructors, class figures), academic admin (courses, budget, activity)
+- [x] Analytics: academic card, cost and budget; course materials excluded from the knowledge figures
+- [x] Tests: unit 191, DB 221, browser 115 (6 new); visual check of the study components (en/ar)
+- [ ] **Apply migration 15** (with 12–14), then a live run: create a course, upload and publish a material, join as a student, make each study aid (needs the API key), take a quiz, check the class figures
+- [ ] Eval set for the study tools (accuracy against the materials, Arabic and English)
+- [ ] Instructor-reviewed quizzes shared with the class
+- [ ] Students' own uploads (storage, scanning, quotas)
+- [ ] Enrollment from the student information system (Phase 14)
+
 ## Later phases
 
-See `docs/roadmap.md` (Phases 9–17): academic, staff, workflows, campus, voice, notifications/integrations,
+See `docs/roadmap.md` (Phases 10–17): academic, staff, workflows, campus, voice, notifications/integrations,
 subscriptions, security review, launch.
 
 ## Known follow-ups
