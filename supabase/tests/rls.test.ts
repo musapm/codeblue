@@ -102,9 +102,9 @@ describe('fixtures', () => {
     expect(rows[0]).toEqual({ full_name: 'Student A', locale: 'ar' })
   })
 
-  it('copies the 13 system roles into each tenant', async () => {
+  it('copies the 14 system roles into each tenant (Faculty member added in Phase 9)', async () => {
     const { rows } = await pool.query(`select count(*)::int as n from public.roles where tenant_id = $1 and is_system`, [tenantA])
-    expect(rows[0].n).toBe(13)
+    expect(rows[0].n).toBe(14)
   })
 })
 
@@ -462,6 +462,6 @@ describe('seed scripts', () => {
               (select count(*)::int from public.roles r where r.tenant_id = t.id) as roles
        from public.tenants t join public.tenant_branding b on b.tenant_id = t.id where t.slug = 'northbridge'`,
     )
-    expect(rows).toEqual([{ is_demo: true, ar: 'جامعة نورثبريدج', primary: '#1b4f8f', departments: 7, roles: 13 }])
+    expect(rows).toEqual([{ is_demo: true, ar: 'جامعة نورثبريدج', primary: '#1b4f8f', departments: 7, roles: 14 }])
   })
 })
