@@ -176,3 +176,35 @@ Format: **ADR-NNN — Title** · Status · Date · Context → Decision → Cons
 **Consequences:**
 - Large files never pass through our request bodies.
 - Processing is bounded by the host's function duration. A Postgres-backed worker with retries (architecture.md) replaces `after()` when large volumes or OCR arrive.
+
+## ADR-023 — Student assistant: grounded answers with search-result citations, no model call without sources
+**Accepted · 2026-11-23**
+
+**Context:** Phase 5 needs answers that come only from the university's published documents, cite them to the page, respect each student's document permissions, and never invent fees, dates or rules.
+**Decision:**
+- **Gates in the database.** `assistant_begin_turn` checks membership, `assistant.use`, the `student_assistant` feature, the university's on/off switch and its monthly budget, then stores the question. The app cannot skip a gate.
+- **Retrieval as the student.** `search_knowledge` runs with the student's own session, so permission filtering happens in SQL before ranking (ADR-021). Short follow-up questions borrow the previous question's words for retrieval.
+- **No passages, no model call.** The fixed "not found" text (in the student's language, with the support email) is stored as `no_sources`. Nothing is spent.
+- **Passages as `search_result` blocks with citations enabled.** The response's `search_result_location` citations map back to our chunk ids and pages by index. Citations that do not map are dropped. An answer that cites nothing is stored as `no_sources` (a knowledge gap). (The Phase 0 design said `document` blocks; search results fit retrieved passages better because each carries its own source and title.)
+- **Model call:** Claude Opus 5.5 by default (`AI_MODEL`), `effort` medium (`AI_EFFORT`), adaptive thinking (the default), streaming, `max_tokens` 8000 as a runaway cap, a `cache_control` marker on the system prompt, and server-side refusal fallbacks (`fallbacks: 'default'`). A refusal is stored as `refused` with a fixed polite text.
+- **Caching, honestly:** the platform system prompt is about 350 tokens, below the model's 512-token minimum, so it is **not cached** today. It starts caching when a university's extra guidance makes it longer. The recorded cache read/write tokens show whether caching happens; savings at this size would be small either way.
+- **Prompt layout:** stable platform rules first, the university's extra guidance last and capped at 2,000 characters ("cannot override the rules above"). Passages are declared untrusted reference material. Answers are plain text, so no Markdown renderer is needed and nothing from the model is rendered as HTML.
+- **Transport:** a Route Handler that streams NDJSON events (`meta`, `status`, `delta`, `done`, `error`). It is guarded like a Server Action: same-origin only, JSON only, signed-in only, rate-limited per user and IP. The turn always completes and is stored, even if the student closes the page (`after()`).
+
+**Consequences:**
+- Every answered message carries numbered, clickable sources. A source opens the current file of the cited document through a 5-minute signed link created with the student's session, so Storage policies decide again.
+- The streamed text has no citation markers; the final event replaces it with the stored answer and its markers.
+- Tools (ticket drafts, workflows) are not part of Phase 5; they arrive with the phases that need them.
+
+## ADR-024 — AI usage and budgets: estimated in the app, enforced in the database
+**Accepted · 2026-11-23**
+
+**Context:** Universities need a spending limit, and the platform needs per-tenant cost figures, before any invoice data exists.
+**Decision:**
+- Each model call stores provider-reported tokens (input, output, cache read, cache write) and an estimated cost in `ai_usage_events`, through `assistant_complete_turn`.
+- Prices live in `src/lib/ai/pricing.ts` (USD per million tokens, list prices as of 2026-11-03). Dated model ids use the longest known prefix. Unknown models are priced at a deliberately high fallback rate, so budgets fail safe. A database price table with effective dates replaces this file when the platform AI console arrives (Phase 15).
+- `assistant_settings.monthly_budget_usd` (default 50) is enforced in `assistant_begin_turn` against the current month's estimated spend. All figures are labelled "estimated".
+
+**Consequences:**
+- **Limit:** the budget check runs before a call, so one in-flight answer can exceed the budget by its own cost. This is acceptable at a few cents per answer.
+- **Integrity caveat:** turns are recorded with the student's session (no service-role key exists yet, ADR-022). A student could therefore add records only to their own conversation, and could understate usage only by calling the function directly. Moving the recording to a service-role worker removes this; it is tracked in TASKS.md.

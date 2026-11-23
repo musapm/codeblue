@@ -29,6 +29,7 @@ Migration file versions match the versions recorded in the project
 | `20261122105537_owner_protection.sql` | Phase 3: only owners (or platform owners/admins) change ownership (ADR-018) |
 | `20261123100613_knowledge.sql` | Phase 4: knowledge base (documents, versions, chunks, access lists, search_knowledge, `tenant-documents` bucket) |
 | `20261123121337_knowledge_file_cleanup.sql` | Phase 4: managers may see files of deleted documents so they can be removed (fix found by the live test) |
+| `20261123140000_assistant.sql` | Phase 5: assistant settings, conversations, messages, feedback, `ai_usage_events`, budget helper and the `assistant_*` functions. **Not yet applied to "agent"** (needs the owner's confirmation); its version number will then be replaced by the one Supabase records |
 
 ## Rules for new migrations
 

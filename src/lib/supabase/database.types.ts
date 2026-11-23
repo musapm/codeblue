@@ -3,6 +3,8 @@
 // Knowledge entries (migration 8) were compared with the generated types on 2026-11-23: rows, functions and
 // enums match. Intentional deviations: Insert/Update are `never` (all writes go through the knowledge_*
 // functions) and knowledge_begin_upload.p_document accepts null (new document), which PostgREST passes through.
+// Assistant entries (migration 10) are hand-written from the migration until it is applied and regenerated;
+// nullable p_conversation / p_model / p_usage / p_comment are passed through by PostgREST as SQL null.
 
 export type Json =
   | string
@@ -20,6 +22,83 @@ export type Database = {
   }
   public: {
     Tables: {
+      ai_usage_events: {
+        Row: {
+          cache_read_tokens: number
+          cache_write_tokens: number
+          cost_usd: number
+          created_at: string
+          feature: string
+          id: number
+          input_tokens: number
+          model: string
+          output_tokens: number
+          tenant_id: string
+          user_id: string | null
+        }
+        Insert: never
+        Update: never
+        Relationships: []
+      }
+      assistant_conversations: {
+        Row: {
+          created_at: string
+          id: string
+          tenant_id: string
+          title: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: never
+        Update: never
+        Relationships: []
+      }
+      assistant_feedback: {
+        Row: {
+          comment: string | null
+          created_at: string
+          message_id: string
+          rating: number
+          tenant_id: string
+          user_id: string
+        }
+        Insert: never
+        Update: never
+        Relationships: []
+      }
+      assistant_messages: {
+        Row: {
+          citations: Json
+          content: string
+          conversation_id: string
+          created_at: string
+          id: string
+          input_tokens: number | null
+          latency_ms: number | null
+          model: string | null
+          output_tokens: number | null
+          role: string
+          sources: Json
+          status: string
+          tenant_id: string
+        }
+        Insert: never
+        Update: never
+        Relationships: []
+      }
+      assistant_settings: {
+        Row: {
+          enabled: boolean
+          instructions: string | null
+          monthly_budget_usd: number
+          tenant_id: string
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: never
+        Update: never
+        Relationships: []
+      }
       audit_logs: {
         Row: {
           action: string
@@ -722,6 +801,38 @@ export type Database = {
     }
     Functions: {
       accept_invitation: { Args: { p_token: string }; Returns: string }
+      assistant_begin_turn: {
+        Args: { p_conversation: string | null; p_question: string; p_tenant_slug: string }
+        Returns: Json
+      }
+      assistant_complete_turn: {
+        Args: {
+          p_citations: Json
+          p_content: string
+          p_conversation: string
+          p_latency_ms: number
+          p_model: string | null
+          p_sources: Json
+          p_status: string
+          p_usage: Json | null
+        }
+        Returns: string
+      }
+      assistant_set_feedback: {
+        Args: { p_comment: string | null; p_message: string; p_rating: number }
+        Returns: undefined
+      }
+      assistant_status: { Args: { p_tenant_slug: string }; Returns: Json }
+      assistant_update_settings: {
+        Args: {
+          p_enabled: boolean
+          p_instructions: string | null
+          p_monthly_budget_usd: number
+          p_tenant_slug: string
+        }
+        Returns: undefined
+      }
+      assistant_usage_summary: { Args: { p_tenant_slug: string }; Returns: Json }
       create_invitation: {
         Args: {
           p_email: string

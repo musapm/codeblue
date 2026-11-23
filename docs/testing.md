@@ -10,6 +10,8 @@
 | `npm run check` | typecheck + lint + unit tests |
 | `npm run build` | Production build (also type-checks) |
 | `npm run test:e2e` | Playwright end-to-end tests against a **production build** (run `npm run build` first) |
+| `npm run test:db` | Database tests on local PostgreSQL 16 (`TEST_DATABASE_URL`) |
+| `npm run test:eval` | Live AI evals (`evals/`): skipped unless `RUN_AI_EVALS=1` and `ANTHROPIC_API_KEY` are set. **Costs money** (docs/ai-evals.md) |
 
 ## Unit and component tests (Vitest + Testing Library)
 
@@ -50,7 +52,7 @@ and `playwright-core` is overridden to the same version, so they match that brow
 | --- | --- |
 | 2 | **Tenant isolation / RLS suite** (T1–T15, T18 in `tenant-isolation.md`): SQL-level tests on PostgreSQL 16 with a Supabase-compatible `auth` shim, plus HTTP-level tests against Server Actions. Live auth e2e against a dev Supabase project |
 | 4 | Ingestion (valid, invalid, large, and corrupt files), deletion, storage isolation (T16) |
-| 5 | AI evaluation suite (grounding, citations, Arabic/English/mixed, injection, cross-tenant probes); retrieval isolation (T17) |
+| 5 | ✅ Built (see "Student assistant (Phase 5)" below). The live AI eval has not been run yet: it needs an API key and approval to spend |
 | 16 | Security regression suite, load and abuse tests |
 
 ## Notes on HTTP status codes in authenticated areas
@@ -128,3 +130,11 @@ Live runs on 2026-11-22 against project "agent":
 - **Unit:** `src/lib/knowledge/*.test.ts` covers the chunker, normalization, CSV, file signatures and PDF bidi reconstruction. `extract.test.ts` extracts real fictional fixtures in `src/lib/knowledge/__fixtures__/` (English and Arabic PDFs printed by Chromium, a scanned PDF, DOCX and broken DOCX).
 - **Live:** `e2e/live/live-knowledge.spec.ts` needs `LIVE_KNOWLEDGE_TENANT_SLUG` (a university where `LIVE_NEW_OWNER_*` is owner) and `NEXT_PUBLIC_SUPABASE_*` in the environment for the student API check. Run on 2026-11-23: **6/6**.
   - The in-memory login rate limit (20 per 10 minutes per IP) can stop long local runs; restarting the server resets it.
+
+### Student assistant (Phase 5)
+
+- **Database:** `supabase/tests/assistant.test.ts` (9 tests): every gate (permission, feature, on/off switch, budget, question length), conversation privacy between students, owners and universities, usage accounting and the monthly budget, feedback, settings and the usage summary.
+- **Unit:** `src/lib/ai/ai.test.ts` (prices, system prompt, follow-up retrieval, message layout with `search_result` blocks, citation mapping) and `src/lib/ai/assistant.test.ts` (the whole turn with a fake database and a fake Anthropic SDK: gates, no model call without passages, streamed answer with citations and recorded usage, knowledge gap, refusal, API failure). No network, no cost.
+- **Browser (preview):** the chat and settings pages, disabled composer, Arabic RTL, accessibility, and the answer endpoint refusing cross-site requests (403) and doing nothing in preview mode (503).
+- **Live AI eval:** `evals/assistant` (13 cases), see `docs/ai-evals.md`. Not run yet.
+- **Not yet live-tested:** the chat against the real project "agent" (migration 10 must be applied first, and the API key set).

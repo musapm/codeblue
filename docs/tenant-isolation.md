@@ -129,7 +129,8 @@ Phase 2 is complete only when T1–T15 and T18 pass. T16 is implemented for bran
 | Phase 3 | ✅ `supabase/tests/management.test.ts` (30 tests): invitation escalation, cross-tenant invitations, ownership protection (ADR-018), member listing, platform functions |
 | T11b | ✅ Added: even the platform **owner** cannot read university members, profiles or roles without a grant (ADR-014) |
 | T16 (storage) | ✅ Bucket `tenant-assets`: branding managers write/list only `<their tenant id>/…`; another tenant's folder, students, malformed paths and other buckets are refused. Document storage (Phase 4) must add its own T16 cases |
-| T17 (retrieval) | ⏳ Phase 4/5, when `match_chunks` exists |
+| T17 (retrieval) | ✅ `search_knowledge` filters by permission before ranking (knowledge.test.ts, live 2026-11-23). The assistant retrieves with the student's own session, so it can only cite passages the student may read |
+| Phase 5 | ✅ `supabase/tests/assistant.test.ts`: conversations and messages are visible only to their author (not to other students, the university owner or other universities); another student cannot continue or complete someone else's conversation; usage and settings are visible only with `assistant.configure` |
 | T18 (HTTP / app layer) | ✅ Live suites `e2e/live` against project "agent": foreign and unknown tenant slugs, direct URLs to unauthorized modules, the platform console, students on staff pages, platform staff without a grant, a wrong account using an invitation. All are refused. Server Actions take tenant IDs from forms, but every write is authorized by RLS/definer checks and composite same-tenant FKs, and "0 rows changed" is reported as forbidden |
 
 Live probes of the Data API with the public key (anon): every table → `permission denied`, every

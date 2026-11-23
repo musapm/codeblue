@@ -49,12 +49,15 @@ export type NavIconName =
 export const WORKSPACE_NAV: NavSection[] = [
   {
     key: 'main',
-    items: [{ key: 'overview', segment: '', icon: 'overview', status: 'available', phase: 1 }],
+    items: [
+      { key: 'overview', segment: '', icon: 'overview', status: 'available', phase: 1 },
+      { key: 'ask', segment: 'ask', icon: 'assistant', status: 'available', phase: 5, permission: 'assistant.use', feature: 'student_assistant' },
+    ],
   },
   {
     key: 'assistants',
     items: [
-      { key: 'assistant', segment: 'assistant', icon: 'assistant', status: 'planned', phase: 5, permission: 'assistant.configure', feature: 'student_assistant' },
+      { key: 'assistant', segment: 'assistant', icon: 'ai', status: 'available', phase: 5, permission: 'assistant.configure', feature: 'student_assistant' },
       { key: 'admissions', segment: 'admissions', icon: 'admissions', status: 'planned', phase: 6, permission: 'leads.read', feature: 'admissions_agent' },
       { key: 'academic', segment: 'academic', icon: 'academic', status: 'planned', phase: 9, permission: 'academic.manage', feature: 'academic_agent' },
       { key: 'staff-assistant', segment: 'staff-assistant', icon: 'staff', status: 'planned', phase: 10, permission: 'assistant.staff.use', feature: 'staff_assistant' },

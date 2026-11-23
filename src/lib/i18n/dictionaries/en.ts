@@ -139,6 +139,7 @@ export const en = (brand: PlatformBranding) => ({
     urlInvalid: 'Use a full https:// address.',
     restrictedNeedsAccess: 'Choose at least one department or role that may read this document.',
     searchQueryRequired: 'Type at least 2 characters.',
+    budgetInvalid: 'Enter an amount between 0 and 100,000.',
   },
   contactForm: {
     name: 'Full name',
@@ -176,6 +177,7 @@ export const en = (brand: PlatformBranding) => ({
     } as Record<string, string>,
     items: {
       overview: 'Overview',
+      ask: 'Ask the assistant',
       assistant: 'Student assistant',
       admissions: 'Admissions',
       academic: 'Academic assistant',

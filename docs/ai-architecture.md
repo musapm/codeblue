@@ -1,9 +1,8 @@
 # AI Architecture
 
-> Status: **Phase 0 design**. Implementation starts in Phase 5 (student assistant). Model IDs and
-> prices below were checked on 2026-11-21 against Anthropic's current model list (cached
-> 2026-11-03). They are **configuration data** stored in the database, not constants in code. Verify
-> them before launch.
+> Status: **Phase 0 design; the student assistant is implemented (Phase 5, 2026-11-23).** What was
+> built, and where it differs from this design, is in §11. Model IDs and prices were checked on
+> 2026-11-21 against Anthropic's current model list (cached 2026-11-03). Verify them before launch.
 
 ## 1. Principles
 
@@ -177,3 +176,24 @@ We considered running agents on a hosted agent service. We chose to own the loop
 tool executor) because tools must execute inside our authorization boundary under the user's JWT, the
 product requires provider abstraction, and per-tenant cost accounting and data retention must stay
 under our control. This is recorded as ADR-009 in `ARCHITECTURE_DECISIONS.md`.
+
+## 11. Phase 5 implementation (student assistant)
+
+Built (ADR-023, ADR-024):
+
+| Step | Implementation |
+| --- | --- |
+| Context + guards | `POST /api/assistant/[tenant]` (`src/app/api/assistant/[tenant]/route.ts`): same-origin, JSON, signed-in, rate limit (20 per user / 60 per IP per 5 min, in memory). Gates in `assistant_begin_turn` (membership, `assistant.use`, feature, on/off switch, monthly budget) |
+| Retrieve | `search_knowledge` with the student's session (full-text; vectors when an embedding provider exists, ADR-021), top 6 passages |
+| Generate | `src/lib/ai/assistant.ts`: `client.beta.messages.stream` with Claude Opus 5.5, `effort` medium, adaptive thinking, `fallbacks: 'default'` (refusal fallback), cached system prompt, passages as `search_result` blocks with citations |
+| Validate | `mapCitations` (`src/lib/ai/prompt.ts`): only citations that map to a retrieved passage are kept; an answer without citations is a knowledge gap (`no_sources`) |
+| Respond | NDJSON stream; the chat (`/app/[tenant]/ask`) shows numbered sources with page numbers that open the cited document through a signed link |
+| Record | `assistant_complete_turn`: answer, status, citations, sources, model, tokens, latency, and `ai_usage_events` with the estimated cost |
+
+Differences from the design above, on purpose:
+- No intent router, tools or agent profiles yet: Phase 5 has one agent and no tools.
+- Model and effort come from `AI_MODEL` / `AI_EFFORT`, and prices from `src/lib/ai/pricing.ts`. The `ai_model_routes` and `model_prices` tables arrive with the platform AI console (Phase 15).
+- Knowledge gaps are assistant messages with status `no_sources` instead of a separate `unanswered_questions` table; Phase 8 analytics reads them from there.
+- Conflicting sources are handled by the prompt (mention both, prefer the authoritative or most recent one); there is no automatic conflict detection yet.
+
+Evaluation: `evals/assistant` (docs/ai-evals.md), opt-in because it calls the API and costs money.

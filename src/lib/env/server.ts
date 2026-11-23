@@ -24,6 +24,10 @@ const serverEnvSchema = z.object({
   EMBEDDINGS_PROVIDER: z.enum(['voyage', 'openai']).optional(),
   EMBEDDINGS_MODEL: z.string().regex(/^[a-z0-9][a-z0-9._:-]{1,79}$/).optional(),
   EMBEDDINGS_API_KEY: z.string().min(1).optional(),
+  // Claude API (Phase 5). Unset → the assistant reports "not configured" instead of answering.
+  ANTHROPIC_API_KEY: z.string().min(1).optional(),
+  AI_MODEL: z.string().regex(/^[a-z0-9][a-z0-9._:-]{1,79}$/).optional(),
+  AI_EFFORT: z.enum(['low', 'medium', 'high', 'xhigh', 'max']).optional(),
 })
 
 export type ServerEnv = z.infer<typeof serverEnvSchema>
@@ -46,5 +50,8 @@ export function getServerEnv(): ServerEnv {
     EMBEDDINGS_PROVIDER: process.env.EMBEDDINGS_PROVIDER || undefined,
     EMBEDDINGS_MODEL: process.env.EMBEDDINGS_MODEL || undefined,
     EMBEDDINGS_API_KEY: process.env.EMBEDDINGS_API_KEY || undefined,
+    ANTHROPIC_API_KEY: process.env.ANTHROPIC_API_KEY || undefined,
+    AI_MODEL: process.env.AI_MODEL || undefined,
+    AI_EFFORT: process.env.AI_EFFORT || undefined,
   })
 }

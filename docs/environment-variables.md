@@ -30,7 +30,13 @@ Read at runtime by server code (`src/lib/env/server.ts`, a `server-only` module)
 | `LOG_LEVEL` | No | `info` | `debug`, `info`, `warn`, or `error` |
 | `UNIAGENT_UI_PREVIEW` | No | `false` | Shows the workspace with a fictional identity **only when Supabase is not configured** (ADR-012). Do not set it in production |
 | `SUPABASE_SECRET_KEY` | Phase 4+ | — | Service-role key for background jobs only. **Bypasses RLS.** Never use it in request handlers |
-| `ANTHROPIC_API_KEY` | Phase 5+ | — | Default chat model provider (planned) |
+| `EMBEDDINGS_PROVIDER` | No | — | `voyage` or `openai`. Unset → full-text search only (ADR-021) |
+| `EMBEDDINGS_MODEL` | With a provider | — | Embedding model id |
+| `EMBEDDINGS_API_KEY` | With a provider | — | Embedding provider key. **Secret** |
+| `ANTHROPIC_API_KEY` | For the assistant | — | Claude API key. Unset → the assistant shows "not configured" and makes no calls. **Secret** |
+| `AI_MODEL` | No | `claude-opus-5-5` | Model id for the student assistant. Re-run the evals (docs/ai-evals.md) before changing it |
+| `AI_EFFORT` | No | `medium` | `low`, `medium`, `high`, `xhigh` or `max`. Higher effort costs more output tokens |
+| `RUN_AI_EVALS` | No | — | `1` lets `npm run test:eval` call the Claude API (costs money). Never set it in production |
 
 ## Validation
 

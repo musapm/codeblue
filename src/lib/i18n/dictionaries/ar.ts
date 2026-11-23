@@ -137,6 +137,7 @@ export const ar = (brand: PlatformBranding): Dictionary => ({
     urlInvalid: 'استخدم عنواناً كاملاً يبدأ بـ https://.',
     restrictedNeedsAccess: 'اختر قسماً أو دوراً واحداً على الأقل يُسمح له بقراءة هذه الوثيقة.',
     searchQueryRequired: 'اكتب حرفين على الأقل.',
+    budgetInvalid: 'أدخل مبلغًا بين 0 و100000.',
   },
   contactForm: {
     name: 'الاسم الكامل',
@@ -174,6 +175,7 @@ export const ar = (brand: PlatformBranding): Dictionary => ({
     },
     items: {
       overview: 'نظرة عامة',
+      ask: 'اسأل المساعد',
       assistant: 'مساعد الطلاب',
       admissions: 'القبول',
       academic: 'المساعد الأكاديمي',

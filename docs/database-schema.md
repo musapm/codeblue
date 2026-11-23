@@ -238,6 +238,29 @@ Guards:
 
 Storage: public bucket `tenant-assets` (1 MB, PNG/JPEG/WebP). Insert/update/delete/list require `tenant.branding.manage` for the tenant in the first path segment (`app.try_uuid`). `app.valid_branding` limits `logo_path` to `<uuid>/<safe name>`.
 
+## 2c. Phase 5 — student assistant (migration 10 `assistant`, written and tested locally; **not yet applied** to "agent")
+
+| Table | Columns (main) | RLS (select only; all writes go through functions) |
+| --- | --- | --- |
+| `assistant_settings` | `tenant_id` pk, `enabled` (default false), `instructions` (≤ 2,000), `monthly_budget_usd` (default 50), `updated_by` | `assistant.configure` |
+| `assistant_conversations` | `id`, `tenant_id`, `user_id`, `title` (first question, ≤ 120) | author only, while a member |
+| `assistant_messages` | `role` user/assistant, `content` (≤ 20,000), `status` question/answered/no_sources/refused/error, `citations` jsonb, `sources` jsonb, `model`, `input_tokens`, `output_tokens`, `latency_ms`; composite FK to the conversation | author of the conversation only |
+| `assistant_feedback` | `message_id` pk, `rating` −1/1, `comment` (≤ 1,000) | own feedback |
+| `ai_usage_events` | `feature`, `model`, input/output/cache-read/cache-write tokens, `cost_usd` (estimated) | `assistant.configure` |
+
+Functions (SECURITY DEFINER, `search_path = ''`, `authenticated` only):
+
+| Function | Authorization | Purpose |
+| --- | --- | --- |
+| `assistant_status(slug)` | member | `{can_use, feature, enabled, within_budget}` |
+| `assistant_update_settings(slug, enabled, instructions, budget)` | `assistant.configure` + feature | Upsert settings (audited) |
+| `assistant_begin_turn(slug, conversation, question)` | `assistant.use`, feature, enabled, within budget; own conversation | Stores the question; returns the conversation id, the last 10 question/answer turns, instructions and the support email. Errors: 42501, 55000 (off), 53400 (budget), 22023 (question length), P0002 (not your conversation) |
+| `assistant_complete_turn(conversation, content, status, citations, sources, model, usage, latency)` | author of the conversation | Stores the answer and, when a model was called, an `ai_usage_events` row |
+| `assistant_set_feedback(message, rating, comment)` | author of the conversation | Rate an answer (upsert) |
+| `assistant_usage_summary(slug)` | `assistant.configure` | This month's counts, tokens and estimated cost (aggregates only, no content) |
+
+`app.assistant_month_cost(tenant)` sums the current month's estimated cost for the budget check. Settings changes are audited. Messages and usage are not audited row by row (they are the records themselves). Integrity caveat: ADR-024.
+
 ## 3. Phase 15 — plans, features, subscriptions (planned)
 
 ```
@@ -261,7 +284,7 @@ Effective features = plan features + enabled overrides − disabled overrides, c
 | Phase | Tables |
 | --- | --- |
 | 4 Knowledge | `documents` (tenant, title, department, category, visibility, status, version, effective/expiry dates, authoritative flag, source_url, storage_path, checksum), `document_versions`, `document_access` (role/department grants), `document_chunks` (tenant_id, document_id, ordinal, page, content, tsv tsvector, embedding vector(n), embedding_model, token_count), `jobs` (queue), `knowledge_categories` |
-| 5 Chat | `conversations` (tenant, user, agent, title, channel), `messages` (role, content, model, tokens, latency), `message_citations` (message_id, chunk_id, document_id, page), `message_feedback` (rating enum, comment), `ai_usage_events`, `unanswered_questions` |
+| 5 Chat | Implemented, see §2c. Citations are stored on the message (jsonb with chunk, document and pages); knowledge gaps are messages with status `no_sources` |
 | 6 Admissions | `programs`, `program_requirements`, `leads` (consent fields, source, stage, assigned_to), `lead_notes`, `lead_events` |
 | 7 Tickets | `ticket_categories`, `tickets` (number per tenant, status, priority, department, assignee, conversation_id, ai_summary), `ticket_messages` (public replies), `ticket_internal_notes` (separate table, staff-only RLS), `ticket_attachments`, `ticket_events`, `assignment_rules` |
 | 8 Analytics | `daily_tenant_metrics` (rollups computed from events; no fabricated numbers) |

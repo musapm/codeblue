@@ -178,6 +178,55 @@ test.describe('knowledge base (UI preview mode, read-only)', () => {
   })
 })
 
+test.describe('student assistant (UI preview mode)', () => {
+  test('chat page renders, explains why it cannot answer and keeps the composer disabled', async ({ page }) => {
+    const errors = trackErrors(page)
+    await page.goto('/en/app/northbridge/ask')
+    await expect(page.getByRole('heading', { level: 1 })).toHaveText(/^Ask /)
+    const composer = page.getByRole('textbox', { name: 'Ask a question about the university…' })
+    await expect(composer).toBeDisabled()
+    await expect(composer).toHaveAttribute('placeholder', 'UI preview mode: the assistant does not run without a backend.')
+    await expect(page.getByRole('button', { name: 'Send' })).toBeDisabled()
+    await expect(page.getByText('No conversations yet.')).toBeVisible()
+    await expect(page.getByText(/AI answers can contain mistakes/)).toBeVisible()
+    expect(errors).toEqual([])
+  })
+
+  test('navigation offers the chat and the assistant settings', async ({ page }) => {
+    await page.goto('/en/app/northbridge')
+    const nav = page.getByRole('navigation', { name: 'Workspace navigation' }).first()
+    await expect(nav.getByRole('link', { name: /Ask the assistant/ })).toBeVisible()
+    await nav.getByRole('link', { name: /Student assistant/ }).click()
+    await expect(page).toHaveURL(/\/en\/app\/northbridge\/assistant$/)
+    await expect(page.getByRole('heading', { level: 1 })).toHaveText('Student assistant')
+    await expect(page.getByRole('button', { name: 'Save settings' })).toHaveCount(0)
+  })
+
+  test('Arabic chat page is translated and right-to-left', async ({ page }) => {
+    await page.goto('/ar/app/northbridge/ask')
+    await expect(page.getByRole('heading', { level: 1 })).toHaveText(/^اسأل /)
+    await expect(page.locator('html')).toHaveAttribute('dir', 'rtl')
+  })
+
+  test('the answer endpoint refuses cross-site requests and does nothing in preview mode', async ({ request, baseURL }) => {
+    const body = { question: 'How much is tuition?', locale: 'en' }
+    const crossSite = await request.post('/api/assistant/northbridge', { data: body, headers: { Origin: 'https://evil.example' } })
+    expect(crossSite.status()).toBe(403)
+    const preview = await request.post('/api/assistant/northbridge', { data: body, headers: { Origin: new URL(baseURL!).origin } })
+    expect(preview.status()).toBe(503)
+    expect(await preview.json()).toEqual({ error: 'preview' })
+  })
+
+  for (const path of ['/en/app/northbridge/ask', '/en/app/northbridge/assistant']) {
+    test(`${path} has no serious accessibility violations`, async ({ page }) => {
+      await page.goto(path)
+      const results = await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa']).analyze()
+      const serious = results.violations.filter((v) => v.impact === 'serious' || v.impact === 'critical')
+      expect(serious.map((v) => `${v.id}: ${v.nodes.length} node(s)`)).toEqual([])
+    })
+  }
+})
+
 test.describe('workspace on mobile @mobile', () => {
   test('sidebar is available from the menu button', async ({ page }) => {
     await page.goto('/en/app/northbridge')

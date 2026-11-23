@@ -74,3 +74,11 @@ Chronological log of significant work. For the current snapshot see `PROJECT_STA
 - Migrations 8 and 9 are applied to "agent" and byte-identical. The live knowledge suite passed 6/6 (English/Arabic PDF, DOCX, scanned PDF, disguised file, EN/AR search, T17 live, versioning, deletion).
 - The live run found one real defect: files of deleted documents stayed in storage. Fixed by migration 9 and verified.
 - All temporary test data was removed (0 users; only the demo university remains).
+
+## 2026-11-23: Phase 5 (student assistant), built and tested locally
+
+- **Database:** migration 10 `assistant` (settings, private conversations and messages, feedback, `ai_usage_events`, budget gate, six `assistant_*` functions). 9 DB tests pass locally (108 total). Not yet applied to "agent".
+- **AI pipeline:** retrieval with the student's own permissions; no model call when nothing readable matches; Claude Opus 5.5 with passages as `search_result` blocks, so every cited sentence maps back to a stored passage and page; refusals, knowledge gaps and errors are stored with tokens and estimated cost. Monthly budget per university is enforced in the database.
+- **App:** streaming chat for students (sources open the cited document; feedback; history; Arabic/English) and a settings page for administrators (switch, guidance, budget, usage).
+- **Tests:** 143 unit (incl. the whole turn with a fake database and fake SDK), 108 DB, 82 browser. The live AI eval (13 cases) is built but **not run**: there is no API key in this environment yet.
+- **Found while building:** the prompt is below the model's 512-token caching minimum, so it is not cached yet (documented in ADR-023 instead of claiming savings). The settings page showed a misleading "$0.00" budget in preview mode, and the "New conversation" button overflowed its card; both were fixed.
