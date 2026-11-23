@@ -62,7 +62,7 @@ Current state: `PROJECT_STATUS.md` · Audit history: `docs/IMPLEMENTATION_AUDIT.
 ## Phase 4: Knowledge base & ingestion ✅ core complete (verified live 6/6)
 
 - [x] Migration 8 `knowledge` applied to "agent" (byte-identical)
-- [~] Migration 9 `knowledge_file_cleanup` (files of deleted documents were left in storage, found live): tested locally, **awaiting Supabase confirmation**; then remove the 2 leftover test files
+- [x] Migration 9 `knowledge_file_cleanup` (files of deleted documents were left in storage, found live): applied, verified live; test data cleaned up
 - [x] Tables: knowledge_documents (metadata, visibility, authority, dates, source URL), knowledge_document_versions (upload state machine, hash, page/char/chunk counts, safe error codes), knowledge_chunks (Arabic + English full-text, optional pgvector embedding + model), knowledge_document_access (restricted lists)
 - [x] Visibility: public / members / staff / restricted (departments, roles); drafts hidden until published (knowledge.publish); archived and expired documents excluded; support sessions excluded
 - [x] Atomic version activation (retrieval never mixes versions); deletion removes versions + chunks in one transaction, then files

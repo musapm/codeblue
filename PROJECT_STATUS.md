@@ -18,7 +18,7 @@ UniAgent AI now has a **tested multi-tenant foundation plus real university mana
 | 1: Foundation & design system | ✅ Complete |
 | 2: Auth, tenants & security foundation | ✅ Core complete (isolation gate passed). Auth email settings need your input |
 | 3: Super Admin & university management | ✅ **Core complete, verified live.** Deferred: invitation email, custom roles, sign-up domains (see TASKS.md) |
-| 4: Knowledge base | ✅ **Core complete, verified live (6/6).** Migration 9 (file-cleanup fix) awaiting your confirmation; embeddings need a provider key |
+| 4: Knowledge base | ✅ **Core complete, verified live (6/6).** Embeddings need a provider key (ADR-021) |
 | 5–17 | Not started |
 
 ## Supabase project "agent"
@@ -27,13 +27,13 @@ UniAgent AI now has a **tested multi-tenant foundation plus real university mana
 | --- | --- |
 | Ref / URL | `zijruhuvzxtuudsvnwgy` · `https://zijruhuvzxtuudsvnwgy.supabase.co` |
 | Region / plan | eu-central-1 (Frankfurt) · **Free** (no backups) |
-| Schema | 18 tables + private templates, all with RLS. **7 migrations**, byte-identical to git (`supabase/README.md`). Storage bucket `tenant-assets` (logos, per-tenant write policies) |
+| Schema | 22 tables + private templates, all with RLS. **9 migrations**, byte-identical to git (`supabase/README.md`). pgvector 0.8.2. Buckets `tenant-assets` (public logos) and `tenant-documents` (private originals) |
 | Data | 1 fictional demo university ("Northbridge"). The Phase 3 live run's temporary accounts and test universities: see "Cleanup" below |
 | Advisors | Only documented, intended findings (`supabase/README.md`) |
 | Auth settings | **Not configured yet:** Site URL, redirect URLs, SMTP, email templates (owner action, `docs/authentication.md`) |
 | Other projects | CodeBlue and Terma: not accessed, not modified |
 
-**Cleanup:** the test logo was deleted through the Storage API. Deleting the temporary `e2e-*@uniagent.test` accounts, the temporary platform-admin row, and the universities `e2e-live-university` and `e2e-other-university` is waiting for your confirmation in the Supabase tool. Audit rows from the test run stay; the log is append-only by design and contains only fictional `.test` addresses.
+**Cleanup (2026-11-23):** all temporary live-test data was removed: accounts, the platform-admin row, test universities, knowledge documents and files. The project again holds 0 users and only the demo university. Audit rows from the test runs stay; the log is append-only by design and contains only fictional `.test` addresses.
 
 ## Feature status
 
@@ -106,14 +106,13 @@ Real defects found by the live run and fixed:
 - An owner was offered a button to remove their own owner role. It is now hidden; the database already refused it if they were the last owner.
 
 ## Decisions and actions needed from you
-1. **Confirm migration 9** (Supabase prompt) and the **cleanup** of the temporary live-test data in "agent".
-2. **Enable leaked-password protection** in Supabase Auth (security advisor finding).
-3. **Configure Supabase Auth** (Site URL, redirect URLs incl. `/auth/callback`, SMTP provider, email templates): `docs/authentication.md`.
-4. **Become platform owner:** sign up, confirm your email, run `supabase/seed/bootstrap_platform_owner.sql` with your email.
-5. **Transactional email provider** (e.g. Resend, Postmark, SES) for invitation emails and auth emails.
-6. **Sign-up policy:** invitation-only (current behaviour) or allow approved email domains to self-join?
-7. **Embeddings provider** (Voyage AI, OpenAI or Cohere) for semantic search.
-8. Plan upgrade timing (before the first pilot with real data); Frankfurt region OK?
+1. **Enable leaked-password protection** in Supabase Auth (security advisor finding).
+2. **Configure Supabase Auth** (Site URL, redirect URLs incl. `/auth/callback`, SMTP provider, email templates): `docs/authentication.md`.
+3. **Become platform owner:** sign up, confirm your email, run `supabase/seed/bootstrap_platform_owner.sql` with your email.
+4. **Transactional email provider** (e.g. Resend, Postmark, SES) for invitation emails and auth emails.
+5. **Sign-up policy:** invitation-only (current behaviour) or allow approved email domains to self-join?
+6. **Embeddings provider** (Voyage AI, OpenAI or Cohere) for semantic search.
+7. Plan upgrade timing (before the first pilot with real data); Frankfurt region OK?
 
 ## Phase 4 status (2026-11-23)
 - **Migration 8 `knowledge` applied to "agent"** (byte-identical; pgvector 0.8.2, private bucket, 3 storage policies).
@@ -124,7 +123,7 @@ Real defects found by the live run and fixed:
   - **T17 live:** a student retrieves members documents but never staff-only ones, cannot read chunks directly, and cannot search another university;
   - a new version replacing the old passages, and deletion.
 - **Defects the live run found:**
-  - **Files of deleted documents stayed in storage.** Storage only deletes files the caller can read, and the document row was already gone. Fixed by migration 9 (`knowledge_file_cleanup`, tested locally, 99/99 DB tests), which is **waiting for your confirmation** in the Supabase prompt. 2 leftover test files will be removed after it is applied.
+  - **Files of deleted documents stayed in storage.** Storage only deletes files the caller can read, and the document row was already gone. Fixed by migration 9 (`knowledge_file_cleanup`, applied and byte-identical, 99/99 DB tests). The fix was verified live: the 2 leftover files and all test documents were removed through the normal API path.
   - A race in the test itself (Next.js keeps the previous page mounted but hidden). The test was fixed; the product was not affected.
 - **Other test suites:** 117 unit (incl. real PDF/DOCX fixtures) and 76 browser (preview) tests pass.
 - **Not done:** embeddings (needs a provider key and a benchmark, ADR-021), OCR, a background worker for large files (ADR-022).

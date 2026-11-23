@@ -68,3 +68,9 @@ Chronological log of significant work. For the current snapshot see `PROJECT_STA
 - Ingestion covers PDF, DOCX, TXT and CSV. Real-file tests found that **Arabic PDFs extract in reversed visual order**, so `pdf-bidi.ts` now rebuilds reading order from glyph positions. They also found two normalization bugs, both fixed: misaligned Arabic letter mapping, and harakat detached by NFKC.
 - UI: knowledge list with live status, signed direct upload with metadata, document page with passage preview, versions, publish/archive/delete, and test search.
 - Embeddings are prepared but inactive: they need a provider key and a benchmark (ADR-021).
+
+## 2026-11-23: Phase 4 verified live
+
+- Migrations 8 and 9 are applied to "agent" and byte-identical. The live knowledge suite passed 6/6 (English/Arabic PDF, DOCX, scanned PDF, disguised file, EN/AR search, T17 live, versioning, deletion).
+- The live run found one real defect: files of deleted documents stayed in storage. Fixed by migration 9 and verified.
+- All temporary test data was removed (0 users; only the demo university remains).
