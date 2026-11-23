@@ -35,9 +35,9 @@ describe('normalizeExtractedText', () => {
   it('unifies Arabic presentation forms, removes invisible characters, joins hyphenation', () => {
     const presentation = String.fromCodePoint(0xfee3, 0xfeae, 0xfea3, 0xfe92, 0xfe8e) // "مرحبا" as presentation forms
     expect(normalizeExtractedText(presentation)).toBe('مرحبا')
-    expect(normalizeExtractedText('regis-\ntration  opens­​ today')).toBe('registration opens today')
+    expect(normalizeExtractedText('regis-\ntration  opens\u00AD\u200B today')).toBe('registration opens today')
     expect(normalizeExtractedText('a\r\nb\n\n\n\nc')).toBe('a\nb\n\nc')
-    expect(normalizeExtractedText('﻿text\u0007')).toBe('text')
+    expect(normalizeExtractedText('\uFEFFtext\u0007')).toBe('text')
   })
 })
 
@@ -106,5 +106,43 @@ describe('analyzeExtraction', () => {
     expect(analyzeExtraction('application/pdf', [{ text: 'Page 1' }], 10).verdict).toBe('needs_ocr')
     expect(analyzeExtraction('application/pdf', [{ text: 'x'.repeat(400) }], 2).verdict).toBe('ok')
     expect(analyzeExtraction('text/plain', [{ text: 'hi' }], null).verdict).toBe('no_text')
+  })
+})
+
+describe('pdf bidi reconstruction', async () => {
+  const { itemsToText, orderLine } = await import('./pdf-bidi')
+  const glyphs = (word: string, x0: number, y = 100) => [...word].map((ch, i) => ({ str: ch, dir: 'rtl', x: x0 + i * 10, y, width: 10 }))
+
+  it('reads visually stored Arabic glyphs right to left', () => {
+    // "دليل الطالب" stored left-to-right as reversed glyph sequences.
+    const line = [...glyphs([...'الطالب'].reverse().join(''), 0), { str: ' ', dir: 'ltr', x: 60, y: 100, width: 10 }, ...glyphs([...'دليل'].reverse().join(''), 70)]
+    expect(orderLine(line)).toBe('دليل الطالب')
+  })
+
+  it('keeps numbers and Latin words left to right inside Arabic lines', () => {
+    const line = [
+      ...glyphs([...'فصل'].reverse().join(''), 0),
+      { str: ' ', dir: 'ltr', x: 30, y: 100, width: 10 },
+      { str: '1200', dir: 'ltr', x: 40, y: 100, width: 40 },
+      { str: ' ', dir: 'ltr', x: 80, y: 100, width: 10 },
+      ...glyphs([...'رسوم'].reverse().join(''), 90),
+    ]
+    expect(orderLine(line)).toBe('رسوم 1200 فصل')
+  })
+
+  it('orders lines top to bottom and leaves English pages alone', () => {
+    const text = itemsToText([
+      { str: 'Second line', x: 0, y: 80, width: 50 },
+      { str: 'First line', x: 0, y: 100, width: 50 },
+    ])
+    expect(text).toBe('First line\nSecond line')
+  })
+})
+
+describe('Arabic marks after NFKC', () => {
+  it('keeps isolated harakat presentation forms attached to their letter', () => {
+    for (const form of [0xfe78, 0xfe79]) {
+      expect(normalizeExtractedText('ت' + String.fromCodePoint(form) + 'دفع')).toBe('تُدفع')
+    }
   })
 })

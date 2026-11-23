@@ -23,6 +23,11 @@ type Action<T> = (state: ActionState<T>, formData: FormData) => Promise<ActionSt
 
 const FieldErrorContext = createContext<(name: string) => string | undefined>(() => undefined)
 
+/** Provide field errors to FormField children outside an ActionForm (custom submit flows). */
+export function FieldErrorProvider({ fieldError, children }: { fieldError: (name: string) => string | undefined; children: ReactNode }) {
+  return <FieldErrorContext.Provider value={fieldError}>{children}</FieldErrorContext.Provider>
+}
+
 /** Translated validation error for a field of the surrounding ActionForm. */
 export function useFieldError(name: string): string | undefined {
   return useContext(FieldErrorContext)(name)

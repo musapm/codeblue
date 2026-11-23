@@ -12,6 +12,9 @@
 export function normalizeExtractedText(input: string): string {
   return input
     .normalize('NFKC')
+    // NFKC turns Arabic harakat presentation forms into "space + mark" (isolated) or
+    // "tatweel + mark" (medial); re-attach the mark to its letter.
+    .replace(/[ \t\u0640]+(\p{M})/gu, '$1')
     .replace(/\r\n?/g, '\n')
     .replace(/[\u00AD\u200B\u200D\u2060\uFEFF]/g, '')
     .replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F]/g, '')

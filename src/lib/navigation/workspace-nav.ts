@@ -64,7 +64,7 @@ export const WORKSPACE_NAV: NavSection[] = [
     key: 'operations',
     items: [
       { key: 'tickets', segment: 'tickets', icon: 'tickets', status: 'planned', phase: 7, permission: 'tickets.read_department', feature: 'ticketing' },
-      { key: 'knowledge', segment: 'knowledge', icon: 'knowledge', status: 'planned', phase: 4, permission: 'knowledge.manage', feature: 'knowledge_base' },
+      { key: 'knowledge', segment: 'knowledge', icon: 'knowledge', status: 'available', phase: 4, permission: 'knowledge.manage', feature: 'knowledge_base' },
       { key: 'workflows', segment: 'workflows', icon: 'workflows', status: 'planned', phase: 11, permission: 'tickets.update', feature: 'workflow_agent' },
       { key: 'campus', segment: 'campus', icon: 'campus', status: 'planned', phase: 12, permission: 'campus.manage', feature: 'campus_assistant' },
     ],

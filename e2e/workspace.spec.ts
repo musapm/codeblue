@@ -149,6 +149,35 @@ test.describe('university management pages (UI preview mode, read-only)', () => 
   }
 })
 
+test.describe('knowledge base (UI preview mode, read-only)', () => {
+  test('page renders without data and offers no upload', async ({ page }) => {
+    const errors = trackErrors(page)
+    await page.goto('/en/app/northbridge/knowledge')
+    await expect(page.getByRole('heading', { level: 1 })).toHaveText('Knowledge base')
+    await expect(page.getByText('Preview mode: no documents can be uploaded.')).toBeVisible()
+    await expect(page.getByRole('button', { name: 'Upload and process' })).toHaveCount(0)
+    await expect(page.getByRole('search')).toBeVisible()
+    expect(errors).toEqual([])
+  })
+
+  test('Arabic knowledge page is translated', async ({ page }) => {
+    await page.goto('/ar/app/northbridge/knowledge')
+    await expect(page.getByRole('heading', { level: 1 })).toHaveText('قاعدة المعرفة')
+  })
+
+  test('unknown document ids are not found', async ({ page }) => {
+    await page.goto('/en/app/northbridge/knowledge/00000000-0000-4000-8000-000000000000')
+    await expect(page.getByRole('heading', { name: 'Page not found' })).toBeVisible()
+  })
+
+  test('knowledge page has no serious accessibility violations', async ({ page }) => {
+    await page.goto('/en/app/northbridge/knowledge')
+    const results = await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa']).analyze()
+    const serious = results.violations.filter((v) => v.impact === 'serious' || v.impact === 'critical')
+    expect(serious.map((v) => `${v.id}: ${v.nodes.length} node(s)`)).toEqual([])
+  })
+})
+
 test.describe('workspace on mobile @mobile', () => {
   test('sidebar is available from the menu button', async ({ page }) => {
     await page.goto('/en/app/northbridge')

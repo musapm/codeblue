@@ -1,6 +1,7 @@
 import 'server-only'
 import type { KnowledgeMimeType } from './file-types'
 import { normalizeExtractedText } from './normalize'
+import { hasRtl, itemsToText } from './pdf-bidi'
 import type { PageText } from './chunk'
 
 /**
@@ -19,8 +20,21 @@ export class ExtractionError extends Error {
 
 export type Extracted = { pages: PageText[]; pageCount: number | null; tabular: boolean }
 
+type PdfTextItem = { str?: string; dir?: string; transform?: number[]; width?: number; hasEOL?: boolean }
+
+/** One page of pdf.js text items → text. Pages with right-to-left text are rebuilt in reading order. */
+export function pageItemsToText(items: PdfTextItem[]): string {
+  const textItems = items.filter((i): i is PdfTextItem & { str: string } => typeof i.str === 'string')
+  if (hasRtl(textItems)) {
+    return itemsToText(
+      textItems.map((i) => ({ str: i.str, dir: i.dir, x: i.transform?.[4] ?? 0, y: i.transform?.[5] ?? 0, width: i.width, hasEOL: i.hasEOL })),
+    )
+  }
+  return textItems.map((i) => i.str + (i.hasEOL ? '\n' : '')).join('')
+}
+
 async function extractPdf(bytes: Uint8Array): Promise<Extracted> {
-  const { extractText, getDocumentProxy } = await import('unpdf')
+  const { getDocumentProxy } = await import('unpdf')
   let pdf
   try {
     // A copy: pdf.js may transfer (detach) the buffer it is given.
@@ -30,9 +44,14 @@ async function extractPdf(bytes: Uint8Array): Promise<Extracted> {
     throw new ExtractionError(name === 'PasswordException' ? 'encrypted_file' : 'corrupt_file')
   }
   try {
-    const { totalPages, text } = await extractText(pdf, { mergePages: false })
-    const pages = (text as string[]).map((t, i) => ({ page: i + 1, text: normalizeExtractedText(t) }))
-    return { pages, pageCount: totalPages, tabular: false }
+    const pages: PageText[] = []
+    for (let n = 1; n <= pdf.numPages; n++) {
+      const page = await pdf.getPage(n)
+      const content = await page.getTextContent()
+      pages.push({ page: n, text: normalizeExtractedText(pageItemsToText(content.items as PdfTextItem[])) })
+      page.cleanup()
+    }
+    return { pages, pageCount: pdf.numPages, tabular: false }
   } catch {
     throw new ExtractionError('extraction_failed')
   } finally {
