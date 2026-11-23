@@ -2,6 +2,7 @@ import type { PlatformBranding } from '@/lib/branding/platform'
 import type { Dictionary } from './en'
 import { admissionsAr } from './admissions.ar'
 import { managementAr } from './management.ar'
+import { analyticsAr } from './analytics.ar'
 import { ticketsAr } from './tickets.ar'
 
 /** Arabic UI dictionary (Modern Standard Arabic). Must match the English shape exactly. */
@@ -246,7 +247,7 @@ export const ar = (brand: PlatformBranding): Dictionary => ({
     overview: {
       title: (university: string) => `مساحة عمل ${university}`,
       intro: 'هذه مساحة الإدارة الخاصة بجامعتك. تصبح الوحدات متاحة تدريجياً مع إطلاق المنصة.',
-      noFakeData: 'تظهر أرقام الاستخدام هنا عند وجود نشاط حقيقي (المرحلة 8). لا تُعرض أي أرقام تجريبية.',
+      noFakeData: 'تظهر أرقام الاستخدام هنا لمن يملك صلاحية عرض التحليلات، محسوبة من النشاط الحقيقي فقط. لا تُعرض أي أرقام تجريبية.',
       setupTitle: 'قائمة الإعداد',
       setupSubtitle: 'الترتيب المقترح لإطلاق المساعد في جامعتك.',
       steps: [
@@ -329,4 +330,5 @@ export const ar = (brand: PlatformBranding): Dictionary => ({
   management: managementAr,
   admissions: admissionsAr,
   tickets: ticketsAr,
+  analytics: analyticsAr,
 })

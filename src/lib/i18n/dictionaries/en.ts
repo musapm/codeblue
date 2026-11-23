@@ -1,6 +1,7 @@
 import type { PlatformBranding } from '@/lib/branding/platform'
 import { admissionsEn } from './admissions.en'
 import { managementEn } from './management.en'
+import { analyticsEn } from './analytics.en'
 import { ticketsEn } from './tickets.en'
 
 /**
@@ -248,7 +249,7 @@ export const en = (brand: PlatformBranding) => ({
     overview: {
       title: (university: string) => `${university} workspace`,
       intro: 'This is the administration workspace for your university. Modules become available as the platform is rolled out.',
-      noFakeData: 'Usage figures appear here once real activity exists (Phase 8). No sample numbers are shown.',
+      noFakeData: 'Usage figures appear here for people who can view analytics, computed from real activity only. No sample numbers are shown.',
       setupTitle: 'Setup checklist',
       setupSubtitle: 'Recommended order for launching the assistant at your university.',
       steps: [
@@ -331,6 +332,7 @@ export const en = (brand: PlatformBranding) => ({
   management: managementEn,
   admissions: admissionsEn,
   tickets: ticketsEn,
+  analytics: analyticsEn,
 })
 
 export type Dictionary = ReturnType<typeof en>

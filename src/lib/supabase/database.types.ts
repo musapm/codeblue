@@ -88,6 +88,20 @@ export type Database = {
         Update: never
         Relationships: []
       }
+      ai_quality_reviews: {
+        Row: {
+          message_id: string
+          note: string | null
+          outcome: string
+          reviewed_at: string
+          reviewed_by: string | null
+          reviewer_name: string
+          tenant_id: string
+        }
+        Insert: never
+        Update: never
+        Relationships: []
+      }
       ticket_internal_notes: {
         Row: {
           author_id: string | null
@@ -1270,6 +1284,15 @@ export type Database = {
       my_workspaces: { Args: never; Returns: Json }
       platform_staff: { Args: never; Returns: Json }
       platform_tenants: { Args: never; Returns: Json }
+      analytics_overview: { Args: { p_days: number; p_tenant_slug: string }; Returns: Json }
+      quality_flagged: {
+        Args: { p_agent: string | null; p_days: number; p_kind: string; p_limit: number; p_state: string; p_tenant_slug: string }
+        Returns: Json
+      }
+      quality_gaps: { Args: { p_agent: string | null; p_days: number; p_limit: number; p_state: string; p_tenant_slug: string }; Returns: Json }
+      quality_review_reopen: { Args: { p_messages: string[]; p_tenant_slug: string }; Returns: number }
+      quality_review_save: { Args: { p_messages: string[]; p_note: string | null; p_outcome: string; p_tenant_slug: string }; Returns: number }
+      quality_summary: { Args: { p_days: number; p_tenant_slug: string }; Returns: Json }
       my_notifications: { Args: { p_limit?: number; p_tenant_slug: string }; Returns: Json }
       notifications_mark_read: { Args: { p_ids: number[] | null; p_tenant_slug: string }; Returns: number }
       tickets_add_ai_summary: { Args: { p_model: string; p_summary: string; p_ticket: string }; Returns: string }

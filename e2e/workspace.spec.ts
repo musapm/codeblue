@@ -347,6 +347,73 @@ test.describe('tickets and requests (UI preview mode)', () => {
   }
 })
 
+test.describe('analytics and AI quality (UI preview mode)', () => {
+  test('analytics shows no figures without data, and offers the periods', async ({ page }) => {
+    const errors = trackErrors(page)
+    await page.goto('/en/app/northbridge/analytics')
+    await expect(page.getByRole('heading', { level: 1 })).toHaveText('Analytics')
+    await expect(page.getByText('Preview mode has no data behind it, so no figures are shown.')).toBeVisible()
+    const periods = page.getByRole('navigation', { name: 'Period' })
+    for (const name of ['Last 7 days', 'Last 30 days', 'Last 90 days']) await expect(periods.getByRole('link', { name })).toBeVisible()
+    await periods.getByRole('link', { name: 'Last 7 days' }).click()
+    await expect(page).toHaveURL(/\/analytics\?days=7$/)
+    await expect(periods.getByRole('link', { name: 'Last 7 days' })).toHaveAttribute('aria-current', 'page')
+    expect(errors).toEqual([])
+  })
+
+  test('the overview keeps its honest notice in preview mode', async ({ page }) => {
+    await page.goto('/en/app/northbridge')
+    await expect(page.getByText('No sample numbers are shown.')).toBeVisible()
+    await expect(page.getByRole('heading', { name: 'Last 7 days' })).toHaveCount(0)
+  })
+
+  test('AI quality explains its privacy rules, has its queues and offers no reviews without data', async ({ page }) => {
+    const errors = trackErrors(page)
+    await page.goto('/en/app/northbridge/quality')
+    await expect(page.getByRole('heading', { level: 1 })).toHaveText('AI quality')
+    await expect(page.getByText(/Contact details, links and long numbers are hidden automatically/)).toBeVisible()
+    const tabs = page.getByRole('navigation', { name: 'AI quality' })
+    for (const name of ['Unanswered', 'Rated not helpful', 'Declined']) await expect(tabs.getByRole('link', { name })).toBeVisible()
+    await expect(page.getByText('No unanswered questions here.')).toBeVisible()
+    await tabs.getByRole('link', { name: 'Rated not helpful' }).click()
+    await expect(page).toHaveURL(/tab=negative/)
+    await expect(page.getByText('No answers rated not helpful here.')).toBeVisible()
+    await expect(page.getByRole('button', { name: /Save review/ })).toHaveCount(0)
+    expect(errors).toEqual([])
+  })
+
+  test('navigation lists analytics and AI quality as available', async ({ page }) => {
+    await page.goto('/en/app/northbridge')
+    const nav = page.getByRole('navigation', { name: 'Workspace navigation' }).first()
+    for (const name of [/Analytics/, /AI quality/]) {
+      const link = nav.getByRole('link', { name })
+      await expect(link).toBeVisible()
+      await expect(link).not.toContainText('P8')
+    }
+  })
+
+  test('Arabic analytics pages are translated', async ({ page }) => {
+    await page.goto('/ar/app/northbridge/analytics')
+    await expect(page.getByRole('heading', { level: 1 })).toHaveText('التحليلات')
+    await page.goto('/ar/app/northbridge/quality')
+    await expect(page.getByRole('heading', { level: 1 })).toHaveText('جودة الذكاء الاصطناعي')
+  })
+
+  test('the student chat tells people that unanswered and rated questions may be reviewed', async ({ page }) => {
+    await page.goto('/en/app/northbridge/ask')
+    await expect(page.getByText(/may be reviewed by university staff without your name/)).toBeVisible()
+  })
+
+  for (const path of ['/en/app/northbridge/analytics', '/en/app/northbridge/quality?tab=negative', '/ar/app/northbridge/quality']) {
+    test(`${path} has no serious accessibility violations`, async ({ page }) => {
+      await page.goto(path)
+      const results = await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa']).analyze()
+      const serious = results.violations.filter((v) => v.impact === 'serious' || v.impact === 'critical')
+      expect(serious.map((v) => `${v.id}: ${v.nodes.length} node(s)`)).toEqual([])
+    })
+  }
+})
+
 test.describe('workspace on mobile @mobile', () => {
   test('sidebar is available from the menu button', async ({ page }) => {
     await page.goto('/en/app/northbridge')

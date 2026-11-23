@@ -8,7 +8,7 @@ import { parsePublicEnv } from './env/public'
 import { parseServerEnv } from './env/server'
 import { AppError, toPublicError } from './errors'
 import { FEATURES } from './features/catalog'
-import { filterNav, plannedSegments, WORKSPACE_NAV } from './navigation/workspace-nav'
+import { canSeeNavItem, filterNav, plannedSegments, WORKSPACE_NAV } from './navigation/workspace-nav'
 import { isPermissionKey, PERMISSION_KEYS } from './permissions/catalog'
 import { buildContentSecurityPolicy, buildSecurityHeaders } from './security/headers'
 
@@ -128,7 +128,7 @@ describe('navigation model', () => {
   it('references only catalogued permissions and features', () => {
     for (const item of WORKSPACE_NAV.flatMap((s) => s.items)) {
       if (item.permission) expect(isPermissionKey(item.permission)).toBe(true)
-      if (item.feature) expect(Object.hasOwn(FEATURES, item.feature)).toBe(true)
+      for (const feature of typeof item.feature === 'string' ? [item.feature] : (item.feature ?? [])) expect(Object.hasOwn(FEATURES, feature)).toBe(true)
     }
     expect(new Set(PERMISSION_KEYS).size).toBe(PERMISSION_KEYS.length)
   })
@@ -141,6 +141,14 @@ describe('navigation model', () => {
     })
     const keys = visible.flatMap((s) => s.items.map((i) => i.key))
     expect(keys).toEqual(['overview', 'tickets', 'settings'])
+  })
+
+  it('a list of features means any one of them', () => {
+    const quality = WORKSPACE_NAV.flatMap((s) => s.items).find((i) => i.key === 'quality')!
+    const can = (features: string[]) => canSeeNavItem(quality, { kind: 'scoped', permissions: new Set(['quality.review']), features: new Set(features) })
+    expect(can(['student_assistant'])).toBe(true)
+    expect(can(['admissions_agent'])).toBe(true)
+    expect(can(['analytics_basic'])).toBe(false)
   })
 
   it('exposes planned module segments for placeholder routes', () => {

@@ -151,7 +151,7 @@ Volatile values (timestamps, request IDs) never appear in the cached prefix. The
 
 - **No sources retrieved above threshold** → "I couldn't verify this in {university}'s official
   information." The assistant offers the responsible office's contact details or a ticket draft. The
-  question is logged in `unanswered_questions`, which feeds knowledge-gap analytics.
+  answer is stored with status `no_sources`, which feeds the knowledge-gap report (Phase 8, §14).
 - **Conflicting sources** (same topic, different values, overlapping effective dates) → the assistant
   presents both with citations and refers the user to the department. It does not pick one silently.
 - **Sensitive or high-impact topics** (grades, discipline, finances, mental-health crisis keywords) →
@@ -216,3 +216,12 @@ Two small structured-output calls in `src/lib/tickets/ai.ts` (ADR-027). Neither 
 - **Calls:** `messages.parse` with a zod schema (`output_config.format`), `effort: 'low'`, `max_tokens` 2,000, no tools. The system prompts say that the conversation is data, not instructions.
 - **Gate and usage:** `tickets_ai_begin` before the call (feature, permission, the student assistant's monthly budget, 30 calls per person per day). `tickets_ai_record` books usage as feature `ticketing` after the call, refusals included. A refusal asks the person to write the request themselves.
 - **Not evaluated live:** there is no eval set for these two tasks yet, and no API key is configured.
+
+## 14. Phase 8: the quality loop
+
+No model call is involved. The loop uses what the assistants already store:
+- **Knowledge gaps:** answers with status `no_sources`, grouped by normalized question (`quality_gaps`). They appear in the analytics report for knowledge managers and in the AI quality queue for reviewers. Typical fix: add or update a document, then mark the group "knowledge base updated".
+- **Flagged answers:** answers rated not helpful and answers the model declined (`quality_flagged`). The reviewer sees the question, the answer, the cited passages and the comment, unless the answer was built from documents the reviewer cannot read (ADR-028).
+- **Outcomes** feed the dashboard: how many were correct, fixed in the knowledge base, still need a document, or were assistant mistakes. "Assistant mistake" is the signal to add an eval case (`evals/`) before changing prompts.
+- **Not built:** AI clustering of similar gap questions across wordings (needs the API key), and automatic eval cases from reviewed mistakes.
+

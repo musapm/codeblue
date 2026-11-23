@@ -391,7 +391,7 @@ export const managementEn = {
       feedbackThanks: 'Thanks for your feedback.',
       feedbackComment: 'What was wrong or missing? (optional)',
       sendFeedback: 'Send feedback',
-      disclaimer: 'AI answers can contain mistakes. Check important details (fees, deadlines, grades) with the responsible office.',
+      disclaimer: 'AI answers can contain mistakes. Check important details (fees, deadlines, grades) with the responsible office. Questions the assistant cannot answer, and answers you rate, may be reviewed by university staff without your name, to improve it.',
       handoff: (email: string) => `Need a person? Contact ${email}.`,
       statuses: {
         no_sources: 'Not found in the official documents',

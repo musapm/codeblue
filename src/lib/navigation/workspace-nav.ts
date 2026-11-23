@@ -19,7 +19,8 @@ export type NavItem = {
   status: NavStatus
   phase: number
   permission?: PermissionKey
-  feature?: FeatureKey
+  /** Feature the university must have on; with a list, any one of them is enough. */
+  feature?: FeatureKey | readonly FeatureKey[]
 }
 
 export type NavSection = { key: string; items: NavItem[] }
@@ -77,8 +78,8 @@ export const WORKSPACE_NAV: NavSection[] = [
   {
     key: 'insights',
     items: [
-      { key: 'analytics', segment: 'analytics', icon: 'analytics', status: 'planned', phase: 8, permission: 'analytics.view', feature: 'analytics_basic' },
-      { key: 'quality', segment: 'quality', icon: 'quality', status: 'planned', phase: 8, permission: 'quality.review', feature: 'student_assistant' },
+      { key: 'analytics', segment: 'analytics', icon: 'analytics', status: 'available', phase: 8, permission: 'analytics.view', feature: 'analytics_basic' },
+      { key: 'quality', segment: 'quality', icon: 'quality', status: 'available', phase: 8, permission: 'quality.review', feature: ['student_assistant', 'admissions_agent'] },
     ],
   },
   {
@@ -115,7 +116,10 @@ export type AccessSnapshot =
 export function canSeeNavItem(item: NavItem, access: AccessSnapshot): boolean {
   if (access.kind === 'all') return true
   if (item.permission && !access.permissions.has(item.permission)) return false
-  if (item.feature && !access.features.has(item.feature)) return false
+  if (item.feature) {
+    const needed: readonly FeatureKey[] = typeof item.feature === 'string' ? [item.feature] : item.feature
+    if (!needed.some((f) => access.features.has(f))) return false
+  }
   return true
 }
 

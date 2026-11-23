@@ -265,3 +265,27 @@ Format: **ADR-NNN — Title** · Status · Date · Context → Decision → Cons
 - **Notifications:** in-app only (`notifications` table, header bell, notifications page): new ticket in your queue, assigned to you, new reply, status change. The person who acted is never notified. Email delivery waits for the email provider (Phase 14).
 
 **Consequences:** The privacy rules are enforced in the database and covered by 26 DB tests, including a regression for NULL comparisons in permission checks. AI usage is recorded with the user's own session, with the same caveat as ADR-024. Attachments, SLAs, assignment rules beyond categories, and email notifications are not built yet (TASKS.md).
+
+## ADR-028 — Analytics computed from stored rows on request; AI quality review sees single exchanges, pseudonymized and redacted
+**Accepted · 2026-11-23**
+
+**Context:** Phase 8 adds the admin dashboard, the knowledge-gap report and the AI quality review. The rules are: numbers only from stored events, nothing invented, nothing across universities. Assistant conversations were private to their author (ADR-023, ADR-025). Reviewing what the assistants could not answer, or answered badly, means some staff must see some questions and answers.
+**Decision:**
+- **Computed on request, from the stored rows.** `analytics_overview` reads assistant messages, feedback, AI usage, tickets, admissions leads, knowledge documents and memberships for the period. There are no rollup tables, so there is no scheduled job, and a number cannot drift from its source. Periods without data show zeros; a share with nothing to divide shows a dash, never 0 %. Days are the university's own days (`tenants.timezone`). Rollups (`daily_tenant_metrics`) come later, only if a university's volume makes these queries slow.
+- **Who sees what:**
+  - aggregate numbers: `analytics.view` and feature `analytics_basic`; periods over 30 days need `analytics_advanced`;
+  - AI cost and budgets: `analytics.ai_costs.view`;
+  - the knowledge-gap report (question text): `quality.review` or `knowledge.manage`;
+  - flagged answers (question, answer, sources, comment) and reviews: `quality.review` only.
+  The pages follow the same rules, but the database enforces them.
+- **What a reviewer sees of a conversation:**
+  - one exchange at a time: the flagged answer and the question it answered, never the rest of the conversation;
+  - never who asked: no person, account or conversation id;
+  - contact details, links and digit runs of 8 or more digits (phone numbers, student and national ids, also in Arabic-Indic digits) are replaced by `[email]`, `[link]` and `[number]` before the text leaves the database. Dates are kept. This is best effort: names cannot be detected, so the page tells reviewers not to copy personal details into notes;
+  - **the answer and its citations are withheld** unless the reviewer could read every knowledge document it was built from (whatever its publication state now). The person who asked may have had wider access than the reviewer. A deleted document, or a source that cannot be checked, also hides the answer.
+- **Unanswered questions are grouped** by a normalized form of the question: case, punctuation, spacing, Arabic letter variants, diacritics, tatweel and Arabic-Indic digits are ignored. A group is reviewed at once (up to 200 messages).
+- **Reviews** (`ai_quality_reviews`) record an outcome (answer was correct, knowledge base updated, needs a document, assistant mistake, out of scope) with an optional note, the reviewer and the time. Like tickets and leads, they are not copied into the append-only audit log, because a note may quote a question. Saving again changes the outcome; reopening deletes the review.
+- **People are told.** The student chat and the public admissions assistant now say that unanswered questions and rated answers may be reviewed by university staff without the person's identity, to improve the assistant.
+- The tables themselves keep their row-level security: reviewers still cannot select assistant messages or feedback. Only the review functions expose single, redacted exchanges.
+
+**Consequences:** Conversations are no longer seen only by their author. The knowledge-gap and flagged-answer exceptions are narrow, pseudonymized, redacted and disclosed to the people asking. The rules are covered by 25 DB tests. Re-identification from what someone wrote remains possible in small groups; universities should say so in their privacy notice. AI clustering of gap questions (which would need the API key) and email digests are not built.

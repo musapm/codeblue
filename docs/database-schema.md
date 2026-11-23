@@ -320,6 +320,26 @@ Functions:
 
 Also changed: `app.assistant_month_cost` adds ticketing usage to the student assistant's budget; `assistant_usage_summary` includes it.
 
+## 2f. Phase 8 — analytics and AI quality (migration 14 `analytics`, **written and tested locally, not applied yet**)
+
+No rollup tables: every figure is computed from the rows above when it is requested (ADR-028). New indexes: `assistant_messages (tenant_id, created_at)`, `assistant_feedback (tenant_id, created_at)`, `tickets (tenant_id, created_at)`.
+
+| Table | Contents | Access |
+| --- | --- | --- |
+| `ai_quality_reviews` | one row per reviewed assistant message: outcome (correct, knowledge_added, knowledge_needed, assistant_error, out_of_scope), note, reviewer + name snapshot, time | read: `quality.review`; writes through functions only; **not** in the generic audit log |
+
+Functions:
+
+| Function | Who | Purpose |
+| --- | --- | --- |
+| `analytics_overview(slug, days)` | `analytics.view` + `analytics_basic` (90 days: `analytics_advanced`) | Per assistant: questions, outcomes, people, feedback, median answer time and a daily (weekly for 90 days) series. Tickets: volume, from the assistant, resolved, backlog by status, unassigned, waiting for a first reply, median first-reply and resolution times, open by department, new by category, series. Admissions inquiries by source. Knowledge: published, expired, unpublished, the 10 most cited documents the caller may read. AI cost this month per feature vs budgets, and the period's calls, cost and tokens (`analytics.ai_costs.view`). Quality queue counts (`quality.review`). Sections are null when the feature is off |
+| `quality_gaps(slug, days, agent, state, limit)` | `quality.review` or `knowledge.manage` | Questions without a source, grouped by normalized wording, most asked first: redacted latest wording, count, open count, first/last asked, assistants, message ids to review |
+| `quality_flagged(slug, kind, days, agent, state, limit)` | `quality.review` | Answers rated not helpful (`negative`) or declined (`refused`): redacted question and comment; the answer and citations only when the reviewer can read every source document (`visible`) |
+| `quality_summary(slug, days)` | `quality.review` | Open counts per queue, reviews in the period and their outcomes |
+| `quality_review_save(slug, messages[], outcome, note)` / `quality_review_reopen(slug, messages[])` | `quality.review` | Review 1–200 flagged answers of this university at once (only gaps, declined or rated not helpful) / put them back in the queue |
+
+Private helpers: `app.analytics_period` (the university's days), `app.redact_pii`, `app.normalize_question`, `app.can_see_document_content`, `app.can_see_answer`, `app.question_of`, `app.agent_enabled`, `app.quality_counts`.
+
 ## 3. Phase 15 — plans, features, subscriptions (planned)
 
 ```
@@ -346,7 +366,7 @@ Effective features = plan features + enabled overrides − disabled overrides, c
 | 5 Chat | Implemented, see §2c. Citations are stored on the message (jsonb with chunk, document and pages); knowledge gaps are messages with status `no_sources` |
 | 6 Admissions | Implemented, see §2d |
 | 7 Tickets | Implemented, see §2e (migration 13 not applied yet). Not built: `ticket_attachments`, assignment rules beyond categories, SLAs |
-| 8 Analytics | `daily_tenant_metrics` (rollups computed from events; no fabricated numbers) |
+| 8 Analytics | Implemented without rollups, see §2f (migration 14 not applied yet). `daily_tenant_metrics` only if volumes require it |
 | 9 Academic | `courses`, `course_materials`, `quizzes`, `quiz_questions`, `quiz_attempts`, `topic_mastery` |
 | 11 Workflows | `workflow_definitions` (versioned JSON schema of steps/fields), `workflow_requests`, `workflow_request_events` |
 | 12 Campus | `campus_locations` (type, coordinates, hours jsonb, accessibility jsonb), `location_aliases` |

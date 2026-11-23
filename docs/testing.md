@@ -161,3 +161,15 @@ Live runs on 2026-11-22 against project "agent":
 - **Browser (preview):** the queue, categories, my requests, new request and notifications pages render honestly without data and offer no writes; the header bell opens notifications; navigation shows "My requests" and "Tickets" as available; unknown or malformed ticket ids are "not found"; Arabic; accessibility of 4 pages.
 - **Visual check:** the ticket thread, the ticket form and the new-request form (with the AI draft button and the share checkbox) were rendered with fictional data through a temporary local-only route (deleted) and checked in English and Arabic. The full staff ticket page with real data has **not** been seen yet; that needs migration 13 on a real project.
 - **Not run:** any live test. Migration 13 is not applied.
+
+### Analytics and AI quality (Phase 8)
+
+- **Database:** `supabase/tests/analytics.test.ts` (25 tests, migration 14, local only).
+  - Fixtures with known times and outcomes: two assistants, tickets, inquiries, documents, AI usage, a second university, and a university in UTC+14.
+  - Permissions per section; the period boundary at the university's midnight; counts and medians; tickets per queue and category; the most cited documents the viewer may read; sections of features that are off.
+  - Grouping and redaction of gaps. Answers withheld for restricted and deleted sources. Reviews (group, change, reopen, validation, visibility, kept out of the audit log). The helpers.
+- **Unit:** `src/lib/analytics/analytics.test.ts` (7 tests): periods, honest shares, budget levels, number and duration formats, payload validation, review input. `core.test.ts`: a list of features means "any of them".
+- **Browser (preview):** analytics and AI quality pages without data (no figures, periods, queues, no review buttons); the overview's notice; navigation; Arabic; the chat's review notice; accessibility of 3 pages.
+- **Visual check:** the dashboard and the review queue were rendered with fictional data through a temporary local-only route (deleted) and checked in English and Arabic, including keyboard focus on a chart. It found a real defect: a formatting function passed to a client component, which only fails with data. It also found money shown as `$6.8`. Both are fixed.
+- **Not run:** any live test. Migration 14 is not applied.
+

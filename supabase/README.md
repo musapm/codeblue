@@ -33,6 +33,7 @@ Migration file versions match the versions recorded in the project
 | `20261123151820_admissions.sql` | Phase 6: admissions settings, programs, consented leads with notes and history, public page function, visitor inquiries and admissions assistant turns (anonymous sessions), per-agent AI budgets, analytics; assistant conversations gain an `agent` column. Applied 2026-11-23, byte-identical (MD5 `46d73168…`, 54,907 bytes) |
 | `20261124100000_admissions_maintenance.sql` | Phase 6: `admissions_export_lead` (audited export of one inquiry for access requests) and `app.cleanup_anonymous_visitors(days)`. **Written and tested locally; not applied yet** (its version number will change to the one Supabase records) |
 | `20261124120000_tickets.sql` | Phase 7: ticket categories (routing), tickets, public thread, internal notes (requester never reads them), history, in-app notifications, ticket AI gate and usage, the `tickets_*`, `my_notifications` and `notifications_mark_read` functions (ADR-027). **Written and tested locally (26 DB tests); not applied yet** (its version number will change to the one Supabase records) |
+| `20261124140000_analytics.sql` | Phase 8: `analytics_overview`, the AI quality functions (`quality_gaps`, `quality_flagged`, `quality_summary`, `quality_review_save`, `quality_review_reopen`), `ai_quality_reviews`, redaction and visibility helpers, period indexes (ADR-028). **Written and tested locally (25 DB tests); not applied yet** |
 
 ## Rules for new migrations
 

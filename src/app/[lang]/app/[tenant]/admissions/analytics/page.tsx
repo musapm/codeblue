@@ -1,4 +1,5 @@
-import { BarList, ColumnChart } from '@/components/admissions/charts'
+import { BarList } from '@/components/charts/bar-list'
+import { ColumnChart } from '@/components/charts/charts'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { getAdmissionsAnalytics } from '@/lib/admissions/queries'
 import { LEAD_STAGES } from '@/lib/admissions/schemas'

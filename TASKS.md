@@ -93,7 +93,7 @@ Current state: `PROJECT_STATUS.md` · Audit history: `docs/IMPLEMENTATION_AUDIT.
 - [ ] Record turns with a service-role worker instead of the student's session (integrity caveat, ADR-024)
 - [ ] Shared (not in-memory) rate limiting for the endpoint (same item as Operations)
 - [x] Ticket drafts from the chat (Phase 7: "Ask a person" link and AI draft)
-- [ ] Admin review of negative feedback / knowledge gaps (Phase 8 "AI quality")
+- [x] Admin review of negative feedback / knowledge gaps (Phase 8 "AI quality")
 
 ## Phase 6: Admissions agent & leads 🟡 built and tested; database live; visitor flows wait for anonymous sign-ins
 
@@ -129,9 +129,25 @@ Current state: `PROJECT_STATUS.md` · Audit history: `docs/IMPLEMENTATION_AUDIT.
 - [ ] Eval cases for the ticket draft and summary
 - [ ] Retention periods for closed tickets (policy decision)
 
+## Phase 8: Admin dashboard & analytics 🟡 built and tested locally; migration 14 not applied
+
+- [x] Migration 14 `analytics`: `analytics_overview` (assistants, tickets, admissions, knowledge, AI cost, quality counts) computed from stored rows in the university's own days; knowledge gaps grouped by question; flagged answers; reviews (ADR-028). 25 DB tests, local only
+- [x] Privacy in the database: aggregate numbers only for `analytics.view`; costs for `analytics.ai_costs.view`; gap questions for `quality.review`/`knowledge.manage`; flagged answers for `quality.review`; never who asked; contact details, links and long numbers redacted; answers withheld when the reviewer cannot read the documents behind them
+- [x] Analytics page (`/app/[tenant]/analytics`): periods 7/30 (90 with advanced analytics), headline figures, each assistant (questions per day, outcomes, ratings, answer time), knowledge gaps, requests & tickets (volume, backlog, first reply, resolution, queues, categories), knowledge base (published, expired, most cited), admissions inquiries, AI cost vs budgets, AI quality
+- [x] AI quality page (`/app/[tenant]/quality`): unanswered (grouped), rated not helpful, declined; open/reviewed, period and assistant filters; review with outcome and note, change, reopen
+- [x] Overview: the last 7 days for people who can view analytics (real data only)
+- [x] People are told in both assistants that unanswered and rated questions may be reviewed without their identity
+- [x] Shared chart components (column chart with table view and keyboard tooltips, ranked bars, stat tiles, budget meters); two accessibility issues in the old charts fixed
+- [x] Tests: unit 176, DB 193, browser 109 (9 new); visual check with fictional data (en/ar)
+- [ ] **Apply migration 14** to "agent" (with migrations 12 and 13), then a live look at real figures
+- [ ] Rollup tables if a university's volume makes the dashboard slow
+- [ ] AI clustering of similar gap questions (needs the API key)
+- [ ] Export (CSV) and scheduled email digests of the figures (needs the email provider)
+- [ ] Platform-wide usage across universities (Phase 15)
+
 ## Later phases
 
-See `docs/roadmap.md` (Phases 8–17): analytics, academic, staff, workflows, campus, voice, notifications/integrations,
+See `docs/roadmap.md` (Phases 9–17): academic, staff, workflows, campus, voice, notifications/integrations,
 subscriptions, security review, launch.
 
 ## Known follow-ups

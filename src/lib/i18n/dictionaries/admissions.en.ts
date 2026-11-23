@@ -239,7 +239,7 @@ export const admissionsEn = {
       start: 'Start chatting',
       starting: 'Starting…',
       placeholder: 'Ask about programs, requirements, fees or deadlines…',
-      disclaimer: 'The assistant cannot see or decide on applications. Please confirm important details with the admissions office.',
+      disclaimer: 'The assistant cannot see or decide on applications. Please confirm important details with the admissions office. Questions it cannot answer, and answers you rate, may be reviewed by university staff without your identity, to improve it.',
       leaveDetails: 'Would you like the admissions office to contact you?',
       leaveDetailsCta: 'Send an inquiry',
       programSource: 'Program details',

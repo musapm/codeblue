@@ -123,3 +123,17 @@ Chronological log of significant work. For the current snapshot see `PROJECT_STA
 - **Found while building:** permission helpers could return NULL, and `if not NULL` lets the action through in PL/pgSQL. Staff without the permission could add notes in other departments or unassign colleagues. Fixed, with a regression test.
 - **Not live yet:** migration 13 waits for the owner's Supabase session; the AI features need the API key.
 
+## 2026-11-23: Phase 8 (admin dashboard & analytics), nothing applied to Supabase
+
+- **Database:** migration 14 `analytics` (local, 25 DB tests, 193 total). It holds the dashboard function, the knowledge-gap and flagged-answer queues, reviews, and the redaction and visibility helpers. There are no rollup tables: every number is computed from stored rows when requested.
+- **Design decision (ADR-028):** reviewers see one exchange at a time, never who asked, with contact details redacted. They do not see an answer built from documents they cannot read. Both assistants now say that this review may happen.
+- **App:**
+  - the analytics page and the AI quality page;
+  - the last 7 days on the overview;
+  - shared chart components following the dataviz rules (single hue, table views, keyboard tooltips, meters for budgets).
+- **Found while building:**
+  - a formatting function was passed to a client component, which only fails once there is data. The preview tests could not see it; the visual check with fictional data did;
+  - money showed `$6.8`;
+  - the old charts had two accessibility issues (unnamed focusable columns; `aria-label` on plain text). All fixed.
+- **Not live yet:** migration 14 waits for the owner's Supabase session, together with 12 and 13.
+

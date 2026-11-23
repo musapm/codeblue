@@ -47,6 +47,7 @@ no secrets in code · fail closed.
 - A student asking about another student's data is refused by the tools and by RLS.
 - Consequential actions require explicit user confirmation. Official decisions are never made by the AI.
 - Leads are captured only with explicit consent, which is stored with timestamp and wording version.
+- AI quality review (ADR-028): reviewers see single flagged exchanges, never who asked. Contact details, links and long numbers are redacted in the database. Answers built from documents the reviewer cannot read are withheld. People using the assistants are told that this review may happen.
 
 ## 5. Audited actions
 

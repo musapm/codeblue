@@ -1,29 +1,71 @@
 import Link from 'next/link'
 import { ArrowRight, MessageSquareText } from 'lucide-react'
+import { StatTile } from '@/components/charts/figures'
 import { PageHeader } from '@/components/app-shell/page-header'
 import { Alert } from '@/components/ui/alert'
 import { Badge } from '@/components/ui/badge'
 import { buttonClasses } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { formatNumber, formatShare } from '@/lib/analytics/format'
+import { getOverviewTiles } from '@/lib/analytics/queries'
+import { ratio } from '@/lib/analytics/schemas'
 import { localizedPath } from '@/lib/i18n/config'
 import { getI18n } from '@/lib/i18n/server'
 import { findNavItem, WORKSPACE_NAV } from '@/lib/navigation/workspace-nav'
-import { getWorkspaceContext } from '@/lib/tenancy/context'
+import { getWorkspaceContext, hasWorkspaceFeature, hasWorkspacePermission } from '@/lib/tenancy/context'
 
 export default async function WorkspaceOverviewPage({ params }: PageProps<'/[lang]/app/[tenant]'>) {
   const { tenant: slug } = await params
   const { locale, dict } = await getI18n()
-  const { tenant } = await getWorkspaceContext(locale, slug)
+  const ctx = await getWorkspaceContext(locale, slug)
+  const { tenant } = ctx
   const t = dict.workspace.overview
   const base = localizedPath(locale, `/app/${tenant.slug}`)
+  // Phase 8: the last 7 days for people who can view analytics (real data only; never in preview).
+  const showFigures = Boolean(ctx.tenantId) && !ctx.user.isPreview && hasWorkspacePermission(ctx, 'analytics.view') && hasWorkspaceFeature(ctx, 'analytics_basic')
+  const figures = showFigures ? await getOverviewTiles(tenant.slug) : null
+  const a = dict.analytics
+  const n = (x: number) => formatNumber(locale, x)
+  const assistants = figures?.assistant ? [figures.assistant.student, figures.assistant.admissions].filter((s) => s !== undefined) : []
+  const questions = assistants.reduce((sum, s) => sum + s.questions, 0)
+  const answered = assistants.reduce((sum, s) => sum + s.answered, 0)
+  const unanswered = assistants.reduce((sum, s) => sum + s.no_sources, 0)
+  const waiting = figures?.quality ? figures.quality.gaps_open + figures.quality.negative_open + figures.quality.refused_open : null
 
   return (
     <>
       <PageHeader title={t.title(tenant.name)} description={t.intro} />
 
-      <Alert variant="info" className="mb-6">
-        {t.noFakeData}
-      </Alert>
+      {figures ? (
+        <section aria-labelledby="overview-figures" className="mb-6 space-y-3">
+          <div className="flex flex-wrap items-baseline justify-between gap-2">
+            <h2 id="overview-figures" className="text-sm font-semibold">
+              {a.overview.title}
+            </h2>
+            <Link href={`${base}/analytics?days=7`} className="inline-flex items-center gap-1 text-sm font-medium text-primary hover:underline">
+              {a.overview.open}
+              <ArrowRight aria-hidden className="size-4 rtl:-scale-x-100" />
+            </Link>
+          </div>
+          <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+            {assistants.length ? (
+              <>
+                <StatTile label={a.overview.questions} value={n(questions)} />
+                <StatTile label={a.overview.answered} value={formatShare(locale, ratio(answered, questions), a.dash)} detail={`${n(answered)} / ${n(questions)}`} />
+                <StatTile label={a.overview.gaps} value={n(unanswered)} />
+              </>
+            ) : null}
+            {figures.tickets ? <StatTile label={a.overview.openRequests} value={n(figures.tickets.open_now)} /> : null}
+            {waiting !== null ? <StatTile label={a.overview.waiting} value={n(waiting)} href={`${base}/quality`} /> : null}
+          </div>
+        </section>
+      ) : showFigures ? (
+        <p className="mb-6 text-sm text-muted-foreground">{a.overview.unavailable}</p>
+      ) : (
+        <Alert variant="info" className="mb-6">
+          {t.noFakeData}
+        </Alert>
+      )}
 
       <div className="grid gap-6 lg:grid-cols-[1fr_20rem]">
         <Card>

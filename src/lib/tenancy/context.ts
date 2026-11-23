@@ -150,8 +150,13 @@ export function hasWorkspacePermission(ctx: WorkspaceContext, permission: Permis
   return ctx.access.kind === 'all' || ctx.access.permissions.has(permission)
 }
 
+/** Does the university have this feature on (UI preview: every feature)? */
+export function hasWorkspaceFeature(ctx: WorkspaceContext, feature: FeatureKey): boolean {
+  return ctx.access.kind === 'all' || ctx.access.features.has(feature)
+}
+
 /** Server-side gate for a page or action inside a workspace. Unauthorized → not found. */
-export function requireWorkspaceAccess(ctx: WorkspaceContext, need: { permission?: PermissionKey; feature?: FeatureKey }): void {
+export function requireWorkspaceAccess(ctx: WorkspaceContext, need: { permission?: PermissionKey; feature?: FeatureKey | readonly FeatureKey[] }): void {
   const allowed = canSeeNavItem({ key: '', segment: '', icon: 'overview', status: 'available', phase: 0, ...need }, ctx.access)
   if (!allowed) notFound()
 }
