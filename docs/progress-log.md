@@ -109,3 +109,17 @@ Chronological log of significant work. For the current snapshot see `PROJECT_STA
 - **Admissions eval:** 10 cases; needs the API key.
 - **Live admissions spec:** written, not run.
 - **Other:** `robots.txt` and `sitemap.xml`; the Inquiries tab stays active on inquiry pages.
+
+## 2026-11-23: Phase 7 (tickets & human handoff), nothing applied to Supabase
+
+- **Database:** migration 13 `tickets` (local, 26 DB tests, 168 total): categories with routing, tickets, a public thread, internal notes in their own table, history, in-app notifications, and the AI gate and usage.
+- **Design decision:** one queue model; notes the requester can never read; AI only as an editable draft or a labelled internal note; conversations shared only when the student ticks the box, and only up to the request (ADR-027).
+- **App:**
+  - "My requests" for students and staff;
+  - staff queues, the ticket page and categories & routing;
+  - "Ask a person" in the student chat;
+  - the header bell and the notifications page.
+  All in English and Arabic.
+- **Found while building:** permission helpers could return NULL, and `if not NULL` lets the action through in PL/pgSQL. Staff without the permission could add notes in other departments or unassign colleagues. Fixed, with a regression test.
+- **Not live yet:** migration 13 waits for the owner's Supabase session; the AI features need the API key.
+

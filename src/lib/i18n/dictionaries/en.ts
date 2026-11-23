@@ -1,6 +1,7 @@
 import type { PlatformBranding } from '@/lib/branding/platform'
 import { admissionsEn } from './admissions.en'
 import { managementEn } from './management.en'
+import { ticketsEn } from './tickets.en'
 
 /**
  * English UI dictionary (canonical shape). The Arabic dictionary must match this shape
@@ -149,6 +150,8 @@ export const en = (brand: PlatformBranding) => ({
     currencyInvalid: 'Use a three-letter currency code such as USD.',
     tuitionIncomplete: 'Give the amount, the currency and the period together.',
     numberInvalid: 'Enter a valid number.',
+    subjectRequired: 'Write a subject of at least 3 characters.',
+    messageRequired: 'Write a message.',
   },
   contactForm: {
     name: 'Full name',
@@ -187,6 +190,8 @@ export const en = (brand: PlatformBranding) => ({
     items: {
       overview: 'Overview',
       ask: 'Ask the assistant',
+      requests: 'My requests',
+      notifications: 'Notifications',
       assistant: 'Student assistant',
       admissions: 'Admissions',
       academic: 'Academic assistant',
@@ -325,6 +330,7 @@ export const en = (brand: PlatformBranding) => ({
   },
   management: managementEn,
   admissions: admissionsEn,
+  tickets: ticketsEn,
 })
 
 export type Dictionary = ReturnType<typeof en>

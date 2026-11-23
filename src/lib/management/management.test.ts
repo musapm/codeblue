@@ -15,6 +15,9 @@ import {
 describe('mapDbError', () => {
   it('maps database error codes to user-facing keys', () => {
     expect(mapDbError({ code: '42501', message: 'not authorized' })).toBe('forbidden')
+    expect(mapDbError({ code: '55000', message: 'ticket is closed' })).toBe('closed')
+    expect(mapDbError({ code: '54000', message: 'too many requests today' })).toBe('dailyLimit')
+    expect(mapDbError({ code: '53400', message: 'monthly AI budget reached' })).toBe('aiBudget')
     expect(mapDbError({ code: '42501', message: 'only university owners can change ownership' })).toBe('ownerOnly')
     expect(mapDbError({ code: '23514', message: 'a university must keep at least one active owner' })).toBe('lastOwner')
     expect(mapDbError({ code: '23514', message: 'violates check constraint' })).toBe('invalid')

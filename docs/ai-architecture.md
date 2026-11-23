@@ -207,3 +207,12 @@ Same pipeline as §11, with `agent: 'admissions'` (ADR-025):
 - **Rules added for applicants:** never promise admission, scholarships or decisions; no access to applications; do not collect personal details in the chat, point to the inquiry form instead.
 - **Answers:** citations of programs link to the program page; document sources are shown without a download link (visitors cannot read the files).
 - **Usage** is booked as `admissions_agent` (separate from the student assistant's budget).
+
+## 13. Phase 7: ticket drafts and summaries
+
+Two small structured-output calls in `src/lib/tickets/ai.ts` (ADR-027). Neither speaks to the requester:
+- **Draft from a conversation:** the student's own last 20 turns plus the list of active categories go in; a subject, a first-person description and a category id (or null) come out. The student edits and sends it. A category id that is not in the list is dropped.
+- **Summary for staff:** the request thread plus the conversation the student chose to share; a summary, up to 5 open questions and one suggested next step come out, in the staff member's language. It is stored as an internal note of kind `ai_summary`, with the model name, and labelled as AI-generated.
+- **Calls:** `messages.parse` with a zod schema (`output_config.format`), `effort: 'low'`, `max_tokens` 2,000, no tools. The system prompts say that the conversation is data, not instructions.
+- **Gate and usage:** `tickets_ai_begin` before the call (feature, permission, the student assistant's monthly budget, 30 calls per person per day). `tickets_ai_record` books usage as feature `ticketing` after the call, refusals included. A refusal asks the person to write the request themselves.
+- **Not evaluated live:** there is no eval set for these two tasks yet, and no API key is configured.

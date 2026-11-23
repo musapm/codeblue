@@ -292,6 +292,34 @@ Migration 12 `admissions_maintenance` (**written and tested locally, not applied
 
 Also changed: `assistant_complete_turn` and `assistant_set_feedback` accept admissions conversations without membership; usage is booked per agent (`app.ai_month_cost(tenant, feature)`), so each agent has its own budget; `assistant_usage_summary` counts student conversations only.
 
+## 2e. Phase 7 — tickets and handoff (migration 13 `tickets`, **written and tested locally, not applied yet**)
+
+| Table | Contents | Access |
+| --- | --- | --- |
+| `ticket_categories` | names (en/ar), department to route to, default priority, active, sort order | read: members (feature `ticketing`); **direct writes** with `departments.manage` (RLS); audited |
+| `tickets` | reference (`T-00001` per university), subject, category, department (queue), priority low/normal/high/urgent, status open/in_progress/waiting/resolved/closed, source portal/assistant, requester + name snapshot, assignee, shared conversation, `first_response_at`, `resolved_at`, `closed_at`, `last_activity_at` | read: requester, department staff (`tickets.read_department`), `tickets.read_all`, assignee (`app.can_read_ticket`); changes through functions only; **not** in the generic audit log (ADR-027) |
+| `ticket_messages` | public thread: author, name snapshot, `from_staff`, body | same as the ticket |
+| `ticket_internal_notes` | staff notes and AI summaries (`kind` note/ai_summary, `model`) | staff who work the ticket with `tickets.notes.read`, **never the requester** (`app.can_read_ticket_notes`) |
+| `ticket_events` | history: created, status, priority, department, category, assigned | staff only (`app.is_ticket_staff`) |
+| `notifications` | per person: kind (ticket_new, ticket_assigned, ticket_reply, ticket_status), ticket, `read_at` | only the person it is for |
+| `app.ticket_counters` | per-university ticket numbers | private |
+
+Functions:
+
+| Function | Who | Purpose |
+| --- | --- | --- |
+| `tickets_create(slug, subject, body, category, conversation)` | `tickets.create` | New request routed by category; 10 per person per day; only the requester's own conversation can be shared; notifies the queue |
+| `tickets_reply(ticket, body)` | requester or staff who work it | Reply. A staff reply sets "in progress" and the first response time; a requester reply reopens "waiting"/"resolved". Closed tickets refuse replies (`55000`) |
+| `tickets_close(ticket)` | requester | Close one's own request |
+| `tickets_update(ticket, status, priority, category, department, assignee)` | `tickets.update` | Status, priority, category; self-assignment; transfers and assigning others need `tickets.assign`; every change is logged and notified |
+| `tickets_add_note(ticket, body)` / `tickets_add_ai_summary(ticket, summary, model)` | `tickets.notes.write` | Internal note / AI summary note |
+| `tickets_shared_conversation(ticket)` | staff who work it | The shared conversation, only messages up to the ticket's creation |
+| `tickets_assignees(slug, department)` | staff | People who can work tickets in that queue |
+| `tickets_ai_begin(slug)` / `tickets_ai_record(slug, model, usage)` | `tickets.create` or `tickets.update` | AI gate (monthly budget `53400`, 30 calls per person per day `54000`) and usage booking as feature `ticketing` |
+| `my_notifications(slug, limit)` / `notifications_mark_read(slug, ids)` | any member | The person's notifications / mark some or all read |
+
+Also changed: `app.assistant_month_cost` adds ticketing usage to the student assistant's budget; `assistant_usage_summary` includes it.
+
 ## 3. Phase 15 — plans, features, subscriptions (planned)
 
 ```
@@ -317,7 +345,7 @@ Effective features = plan features + enabled overrides − disabled overrides, c
 | 4 Knowledge | `documents` (tenant, title, department, category, visibility, status, version, effective/expiry dates, authoritative flag, source_url, storage_path, checksum), `document_versions`, `document_access` (role/department grants), `document_chunks` (tenant_id, document_id, ordinal, page, content, tsv tsvector, embedding vector(n), embedding_model, token_count), `jobs` (queue), `knowledge_categories` |
 | 5 Chat | Implemented, see §2c. Citations are stored on the message (jsonb with chunk, document and pages); knowledge gaps are messages with status `no_sources` |
 | 6 Admissions | Implemented, see §2d |
-| 7 Tickets | `ticket_categories`, `tickets` (number per tenant, status, priority, department, assignee, conversation_id, ai_summary), `ticket_messages` (public replies), `ticket_internal_notes` (separate table, staff-only RLS), `ticket_attachments`, `ticket_events`, `assignment_rules` |
+| 7 Tickets | Implemented, see §2e (migration 13 not applied yet). Not built: `ticket_attachments`, assignment rules beyond categories, SLAs |
 | 8 Analytics | `daily_tenant_metrics` (rollups computed from events; no fabricated numbers) |
 | 9 Academic | `courses`, `course_materials`, `quizzes`, `quiz_questions`, `quiz_attempts`, `topic_mastery` |
 | 11 Workflows | `workflow_definitions` (versioned JSON schema of steps/fields), `workflow_requests`, `workflow_request_events` |

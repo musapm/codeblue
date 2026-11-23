@@ -17,6 +17,10 @@ export const ACTION_ERRORS = [
   'notConfigured',
   'rateLimited',
   'inUse',
+  'closed',
+  'dailyLimit',
+  'aiBudget',
+  'aiRefused',
   'generic',
 ] as const
 
@@ -49,6 +53,12 @@ export function mapDbError(error: DbError): ActionErrorKey {
     case 'P0002':
     case 'PGRST116':
       return 'notFound'
+    case '55000':
+      return 'closed'
+    case '54000':
+      return 'dailyLimit'
+    case '53400':
+      return 'aiBudget'
     default:
       // Storage errors carry HTTP-like codes in `statusCode`/`message`.
       if (/row-level security|unauthorized|not authorized/i.test(message)) return 'forbidden'

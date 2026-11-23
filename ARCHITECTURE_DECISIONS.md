@@ -242,3 +242,26 @@ Format: **ADR-NNN — Title** · Status · Date · Context → Decision → Cons
   - Visitors cannot read their own lead back, and staff cannot read visitors' assistant conversations. A lead created after chatting only records that link (source "assistant").
 
 **Consequences:** Erasure is complete for leads. The audited export for access requests (`admissions_export_lead`) and the anonymous-visitor cleanup are written and tested in migration 12, which is not applied yet. Retention periods remain a policy decision (TASKS.md).
+
+## ADR-027 — Tickets: one queue model, internal notes in their own table, AI only as a draft or a labelled note
+**Accepted · 2026-11-23**
+
+**Context:** Phase 7 adds requests from students and staff to university offices, and handoff from the assistant to a person. Requesters must never see internal notes. Staff must see only the tickets of their departments unless they may see all. The AI may help but must not decide or speak to the requester on its own.
+**Decision:**
+- **One table for all requests** (`tickets`), with a requester, an optional category, a department (the queue), an optional assignee and a status: open → in progress → waiting → resolved → closed.
+  - **Routing:** a category names a department and a default priority. Without a category, a ticket goes to the general queue (people with `tickets.read_all`).
+  - **Who reads a ticket:** its requester; staff with `tickets.read_department` in that department; staff with `tickets.read_all`; and its assignee.
+  - **Who works a ticket** (`tickets.update`): staff who can read it. Taking a ticket yourself is allowed. Assigning someone else or moving it to another department needs `tickets.assign`, and the assignee must be able to work tickets in the target queue.
+  - A person who is both requester and staff acts as the requester on their own ticket: no internal notes, no staff actions.
+- **Internal notes live in a separate table** (`ticket_internal_notes`) with its own RLS rule, which excludes the requester. Public replies (`ticket_messages`) and notes never share a table, so a query mistake cannot leak a note into the thread. Status and assignment history (`ticket_events`) is staff-only.
+- **Writes go through API functions** (`tickets_*`, SECURITY DEFINER). They check the permission, the feature and the ticket's state, write the history and create the notifications. Only categories are written directly (RLS, `departments.manage`).
+- **No generic audit trigger on ticket content**, as with leads (ADR-026): requests contain personal details, and the append-only log would keep them forever. `ticket_events` is the history.
+- **Handoff from the assistant:** the student starts a request from the chat ("Ask a person"). Sharing the conversation is a checkbox that is **off by default**. When ticked, staff see only the messages up to the moment the request was created (`tickets_shared_conversation`), never later ones, and never a conversation that is not the requester's own.
+- **AI:**
+  - **Draft:** the student asks for a draft from their own conversation; the subject, description and suggested category fill the form, and the student edits and sends it. Nothing is sent by the AI.
+  - **Summary:** staff ask for a summary of the thread and the shared conversation. It is stored as an internal note of kind `ai_summary` with the model name, shown with an "AI-generated, check it" label, and never shown to the requester.
+  - Both use structured output at low effort, treat the conversation as data (not instructions), and drop a category the model invented.
+  - **Budget:** usage is booked as feature `ticketing` and counts against the student assistant's monthly budget. Each person may make 30 AI calls per day. Over budget or over the limit, the app explains and the form still works without AI.
+- **Notifications:** in-app only (`notifications` table, header bell, notifications page): new ticket in your queue, assigned to you, new reply, status change. The person who acted is never notified. Email delivery waits for the email provider (Phase 14).
+
+**Consequences:** The privacy rules are enforced in the database and covered by 26 DB tests, including a regression for NULL comparisons in permission checks. AI usage is recorded with the user's own session, with the same caveat as ADR-024. Attachments, SLAs, assignment rules beyond categories, and email notifications are not built yet (TASKS.md).

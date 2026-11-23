@@ -8,6 +8,8 @@
 // p_instructions accept null (PostgREST passes SQL null).
 // Admissions entries (migration 11): row columns and nullability were checked against the live project on 2026-11-23;
 // admission_programs keeps Insert/Update because staff write it directly (RLS: programs.manage).
+// Ticket entries (migration 13) are hand-written from the migration (not applied yet); ticket_categories keeps
+// Insert/Update because it is written directly (RLS: departments.manage).
 
 export type Json =
   | string
@@ -25,6 +27,124 @@ export type Database = {
   }
   public: {
     Tables: {
+      notifications: {
+        Row: {
+          created_at: string
+          id: number
+          kind: string
+          read_at: string | null
+          tenant_id: string
+          ticket_id: string | null
+          user_id: string
+        }
+        Insert: never
+        Update: never
+        Relationships: []
+      }
+      ticket_categories: {
+        Row: {
+          active: boolean
+          created_at: string
+          default_priority: string
+          department_id: string | null
+          id: string
+          name: string
+          name_ar: string | null
+          sort_order: number
+          tenant_id: string
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          default_priority?: string
+          department_id?: string | null
+          name: string
+          name_ar?: string | null
+          sort_order?: number
+          tenant_id: string
+        }
+        Update: {
+          active?: boolean
+          default_priority?: string
+          department_id?: string | null
+          name?: string
+          name_ar?: string | null
+          sort_order?: number
+        }
+        Relationships: []
+      }
+      ticket_events: {
+        Row: {
+          actor_id: string | null
+          created_at: string
+          from_value: string | null
+          id: number
+          kind: string
+          tenant_id: string
+          ticket_id: string
+          to_value: string | null
+        }
+        Insert: never
+        Update: never
+        Relationships: []
+      }
+      ticket_internal_notes: {
+        Row: {
+          author_id: string | null
+          author_name: string
+          body: string
+          created_at: string
+          id: string
+          kind: string
+          model: string | null
+          tenant_id: string
+          ticket_id: string
+        }
+        Insert: never
+        Update: never
+        Relationships: []
+      }
+      ticket_messages: {
+        Row: {
+          author_id: string | null
+          author_name: string
+          body: string
+          created_at: string
+          from_staff: boolean
+          id: string
+          tenant_id: string
+          ticket_id: string
+        }
+        Insert: never
+        Update: never
+        Relationships: []
+      }
+      tickets: {
+        Row: {
+          assignee_id: string | null
+          category_id: string | null
+          closed_at: string | null
+          conversation_id: string | null
+          created_at: string
+          department_id: string | null
+          first_response_at: string | null
+          id: string
+          last_activity_at: string
+          priority: string
+          reference: string
+          requester_id: string
+          requester_name: string
+          resolved_at: string | null
+          source: string
+          status: string
+          subject: string
+          tenant_id: string
+          updated_at: string
+        }
+        Insert: never
+        Update: never
+        Relationships: []
+      }
       admission_lead_events: {
         Row: {
           actor_id: string | null
@@ -1150,6 +1270,31 @@ export type Database = {
       my_workspaces: { Args: never; Returns: Json }
       platform_staff: { Args: never; Returns: Json }
       platform_tenants: { Args: never; Returns: Json }
+      my_notifications: { Args: { p_limit?: number; p_tenant_slug: string }; Returns: Json }
+      notifications_mark_read: { Args: { p_ids: number[] | null; p_tenant_slug: string }; Returns: number }
+      tickets_add_ai_summary: { Args: { p_model: string; p_summary: string; p_ticket: string }; Returns: string }
+      tickets_add_note: { Args: { p_body: string; p_ticket: string }; Returns: string }
+      tickets_ai_begin: { Args: { p_tenant_slug: string }; Returns: undefined }
+      tickets_ai_record: { Args: { p_model: string; p_tenant_slug: string; p_usage: Json }; Returns: undefined }
+      tickets_assignees: { Args: { p_department: string | null; p_tenant_slug: string }; Returns: Json }
+      tickets_close: { Args: { p_ticket: string }; Returns: undefined }
+      tickets_create: {
+        Args: { p_body: string; p_category: string | null; p_conversation: string | null; p_subject: string; p_tenant_slug: string }
+        Returns: Json
+      }
+      tickets_reply: { Args: { p_body: string; p_ticket: string }; Returns: string }
+      tickets_shared_conversation: { Args: { p_ticket: string }; Returns: Json }
+      tickets_update: {
+        Args: {
+          p_assignee: string | null
+          p_category: string | null
+          p_department: string | null
+          p_priority: string
+          p_status: string
+          p_ticket: string
+        }
+        Returns: undefined
+      }
       public_admissions: { Args: { p_tenant_slug: string }; Returns: Json }
       publish_branding: { Args: { p_tenant_slug: string }; Returns: undefined }
       search_knowledge: {

@@ -36,6 +36,8 @@ export type AppShellProps = {
   secondaryLink?: { href: string; label: string; kind: 'console' | 'back' }
   user: { displayName: string; email: string | null }
   previewBanner?: string
+  /** Extra header controls rendered before the language switcher (e.g. the notification bell). */
+  headerExtra?: ReactNode
   themeStyle?: CSSProperties
   labels: {
     navigation: string
@@ -194,6 +196,7 @@ export function AppShell(props: AppShellProps) {
             <span className="truncate text-sm font-semibold lg:hidden">{props.identity.title}</span>
 
             <div className="ms-auto flex items-center gap-1">
+              {props.headerExtra}
               <LanguageSwitcher locale={locale} label={labels.language} />
               <DropdownMenu>
                 <DropdownMenuTrigger className="inline-flex items-center gap-2 rounded-full p-1 hover:bg-muted" aria-label={labels.account}>

@@ -10,6 +10,7 @@ import { localizedPath } from '@/lib/i18n/config'
 import { getI18n } from '@/lib/i18n/server'
 import { formatDate } from '@/lib/management/view'
 import { createSupabaseServerClient } from '@/lib/supabase/server'
+import { canSeeNavItem } from '@/lib/navigation/workspace-nav'
 import { getWorkspaceContext, requireWorkspaceAccess } from '@/lib/tenancy/context'
 import { cn } from '@/lib/utils'
 
@@ -69,6 +70,16 @@ export default async function AskPage({ params, searchParams }: PageProps<'/[lan
     errors: a.unavailable,
   }
 
+  // Human handoff (Phase 7): a request to staff, prefilled from this conversation.
+  // The link appears in the chat after an answer; it works even when the assistant is paused.
+  const canAskPerson =
+    !ctx.user.isPreview &&
+    ctx.accessVia !== 'support' &&
+    canSeeNavItem({ key: '', segment: '', icon: 'tickets', status: 'available', phase: 7, permission: 'tickets.create', feature: 'ticketing' }, ctx.access)
+  const handoff = canAskPerson
+    ? { href: localizedPath(locale, `/app/${slug}/requests/new`), label: dict.tickets.handoff.askPerson, hint: dict.tickets.handoff.askPersonHint }
+    : undefined
+
   return (
     <>
       <PageHeader title={a.title(ctx.tenant.assistantName)} description={a.subtitle} />
@@ -85,6 +96,7 @@ export default async function AskPage({ params, searchParams }: PageProps<'/[lan
             initialMessages={conversation?.messages ?? []}
             unavailable={unavailable}
             labels={labels}
+            handoff={handoff}
           />
           <p className="text-xs text-muted-foreground">{a.disclaimer}</p>
           {supportEmail ? <HandoffNote text={a.handoff(supportEmail)} /> : null}

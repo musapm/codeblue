@@ -2,6 +2,7 @@ import type { PlatformBranding } from '@/lib/branding/platform'
 import type { Dictionary } from './en'
 import { admissionsAr } from './admissions.ar'
 import { managementAr } from './management.ar'
+import { ticketsAr } from './tickets.ar'
 
 /** Arabic UI dictionary (Modern Standard Arabic). Must match the English shape exactly. */
 export const ar = (brand: PlatformBranding): Dictionary => ({
@@ -147,6 +148,8 @@ export const ar = (brand: PlatformBranding): Dictionary => ({
     currencyInvalid: 'استخدم رمز عملة من ثلاثة أحرف مثل USD.',
     tuitionIncomplete: 'أدخل المبلغ والعملة والفترة معًا.',
     numberInvalid: 'أدخل رقمًا صحيحًا.',
+    subjectRequired: 'اكتب موضوعًا من 3 أحرف على الأقل.',
+    messageRequired: 'اكتب رسالة.',
   },
   contactForm: {
     name: 'الاسم الكامل',
@@ -185,6 +188,8 @@ export const ar = (brand: PlatformBranding): Dictionary => ({
     items: {
       overview: 'نظرة عامة',
       ask: 'اسأل المساعد',
+      requests: 'طلباتي',
+      notifications: 'الإشعارات',
       assistant: 'مساعد الطلاب',
       admissions: 'القبول',
       academic: 'المساعد الأكاديمي',
@@ -323,4 +328,5 @@ export const ar = (brand: PlatformBranding): Dictionary => ({
   },
   management: managementAr,
   admissions: admissionsAr,
+  tickets: ticketsAr,
 })

@@ -24,9 +24,9 @@ test.describe('workspace shell (UI preview mode)', () => {
   })
 
   test('planned modules are labelled honestly', async ({ page }) => {
-    await page.goto('/en/app/northbridge/tickets')
-    await expect(page.getByRole('heading', { level: 1 })).toHaveText('Tickets')
-    await expect(page.getByText('Planned · Phase 7').first()).toBeVisible()
+    await page.goto('/en/app/northbridge/workflows')
+    await expect(page.getByRole('heading', { level: 1 })).toHaveText('Requests & workflows')
+    await expect(page.getByText('Planned · Phase 11').first()).toBeVisible()
     await expect(page.getByText('Not built yet')).toBeVisible()
   })
 
@@ -275,6 +275,69 @@ test.describe('admissions (UI preview mode)', () => {
   })
 
   for (const path of ['/en/app/northbridge/admissions', '/en/app/northbridge/admissions/programs', '/ar/app/northbridge/admissions/settings']) {
+    test(`${path} has no serious accessibility violations`, async ({ page }) => {
+      await page.goto(path)
+      const results = await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa']).analyze()
+      const serious = results.violations.filter((v) => v.impact === 'serious' || v.impact === 'critical')
+      expect(serious.map((v) => `${v.id}: ${v.nodes.length} node(s)`)).toEqual([])
+    })
+  }
+})
+
+test.describe('tickets and requests (UI preview mode)', () => {
+  test('staff queue, requests, categories and notifications render honestly without data and offer no writes', async ({ page }) => {
+    const errors = trackErrors(page)
+    await page.goto('/en/app/northbridge/tickets')
+    await expect(page.getByRole('heading', { level: 1 })).toHaveText('Tickets')
+    const queues = page.getByRole('navigation', { name: 'Tickets' })
+    for (const name of ['Assigned to me', 'My departments', 'Unassigned', 'All']) await expect(queues.getByRole('link', { name })).toBeVisible()
+    await expect(page.getByText('No tickets here.')).toBeVisible()
+
+    await page.getByRole('link', { name: 'Categories & routing' }).click()
+    await expect(page.getByRole('heading', { level: 1 })).toHaveText('Categories & routing')
+    await expect(page.getByText(/No categories yet/)).toBeVisible()
+    await expect(page.getByRole('button', { name: 'Add category' })).toHaveCount(0)
+
+    await page.goto('/en/app/northbridge/requests')
+    await expect(page.getByRole('heading', { level: 1 })).toHaveText('My requests')
+    await expect(page.getByText('You have no requests yet.')).toBeVisible()
+    await expect(page.getByRole('link', { name: 'New request' })).toHaveCount(0)
+    await page.goto('/en/app/northbridge/requests/new')
+    await expect(page.getByRole('heading', { level: 1 })).toHaveText('New request')
+    await expect(page.getByRole('button', { name: 'Send request' })).toHaveCount(0)
+
+    await page.getByRole('link', { name: 'Notifications' }).click()
+    await expect(page).toHaveURL(/\/en\/app\/northbridge\/notifications$/)
+    await expect(page.getByText('No notifications.')).toBeVisible()
+    await expect(page.getByRole('button', { name: 'Mark all as read' })).toHaveCount(0)
+    expect(errors).toEqual([])
+  })
+
+  test('navigation lists requests and tickets as available', async ({ page }) => {
+    await page.goto('/en/app/northbridge')
+    const nav = page.getByRole('navigation', { name: 'Workspace navigation' }).first()
+    for (const name of [/My requests/, /Tickets/]) {
+      const link = nav.getByRole('link', { name })
+      await expect(link).toBeVisible()
+      await expect(link).not.toContainText('P7')
+    }
+  })
+
+  test('unknown tickets and requests are not found', async ({ page }) => {
+    for (const path of ['/en/app/northbridge/tickets/00000000-0000-4000-8000-000000000000', '/en/app/northbridge/requests/00000000-0000-4000-8000-000000000000', '/en/app/northbridge/tickets/not-a-uuid']) {
+      await page.goto(path)
+      await expect(page.getByRole('heading', { name: 'Page not found' })).toBeVisible()
+    }
+  })
+
+  test('Arabic ticket pages are translated', async ({ page }) => {
+    await page.goto('/ar/app/northbridge/tickets')
+    await expect(page.getByRole('heading', { level: 1 })).toHaveText('التذاكر')
+    await page.goto('/ar/app/northbridge/requests')
+    await expect(page.getByRole('heading', { level: 1 })).toHaveText('طلباتي')
+  })
+
+  for (const path of ['/en/app/northbridge/tickets', '/en/app/northbridge/requests/new', '/ar/app/northbridge/tickets/categories', '/ar/app/northbridge/notifications']) {
     test(`${path} has no serious accessibility violations`, async ({ page }) => {
       await page.goto(path)
       const results = await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa']).analyze()

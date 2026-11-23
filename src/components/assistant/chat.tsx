@@ -66,6 +66,7 @@ export function AssistantChat({
   documentLinks = true,
   programHref,
   onConversation,
+  handoff,
 }: {
   tenant: string
   locale: 'en' | 'ar'
@@ -83,6 +84,8 @@ export function AssistantChat({
   documentLinks?: boolean
   programHref?: (code: string) => string
   onConversation?: (id: string) => void
+  /** "Ask a person" (Phase 7): link to a new request; `?c=<conversation>` is added once there is one. */
+  handoff?: { href: string; label: string; hint: string }
 }) {
   const router = useRouter()
   const sourceOptions: SourceOptions = { documentLinks, programHref }
@@ -231,6 +234,16 @@ export function AssistantChat({
           <Alert variant="danger" role="alert">
             {error}
           </Alert>
+        </div>
+      ) : null}
+
+      {handoff && !busy && messages.some((m) => m.role === 'assistant' && !m.pending) ? (
+        <div className="flex flex-wrap items-center gap-x-2 gap-y-1 border-t border-border px-4 py-2 text-xs">
+          <LifeBuoy aria-hidden className="size-3.5 text-muted-foreground" />
+          <a href={conversationId ? `${handoff.href}?c=${encodeURIComponent(conversationId)}` : handoff.href} className="font-medium text-primary hover:underline">
+            {handoff.label}
+          </a>
+          <span className="text-muted-foreground">{handoff.hint}</span>
         </div>
       ) : null}
 

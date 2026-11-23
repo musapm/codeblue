@@ -92,7 +92,8 @@ Current state: `PROJECT_STATUS.md` · Audit history: `docs/IMPLEMENTATION_AUDIT.
 - [ ] Live test of the chat against "agent" (needs the API key)
 - [ ] Record turns with a service-role worker instead of the student's session (integrity caveat, ADR-024)
 - [ ] Shared (not in-memory) rate limiting for the endpoint (same item as Operations)
-- [ ] Ticket drafts from the chat (Phase 7) and admin review of negative feedback / knowledge gaps (Phase 8 "AI quality")
+- [x] Ticket drafts from the chat (Phase 7: "Ask a person" link and AI draft)
+- [ ] Admin review of negative feedback / knowledge gaps (Phase 8 "AI quality")
 
 ## Phase 6: Admissions agent & leads 🟡 built and tested; database live; visitor flows wait for anonymous sign-ins
 
@@ -110,9 +111,27 @@ Current state: `PROJECT_STATUS.md` · Audit history: `docs/IMPLEMENTATION_AUDIT.
 - [ ] Retention periods for inquiries (policy decision)
 - [ ] Email notification to the admissions office on new inquiries (needs the email provider, Phase 14)
 
+## Phase 7: Tickets & human handoff 🟡 built and tested locally; migration 13 not applied
+
+- [x] Migration 13 `tickets`: categories with routing, tickets, public thread, internal notes in their own table, history, in-app notifications, AI gate and usage (ADR-027). 26 DB tests, local only
+- [x] Privacy in the database: requesters never read internal notes or history (even if they are staff); department staff see only their queues; general queue for `tickets.read_all`; transfers and assigning others need `tickets.assign`
+- [x] Found and fixed by the tests: NULL comparisons in the permission checks let staff without the permission add notes in other departments or unassign colleagues (helpers now never return NULL; regression test added)
+- [x] My requests (`/app/[tenant]/requests`): list, new request, thread, reply, close
+- [x] Staff (`/app/[tenant]/tickets`): queues (assigned to me, my departments, unassigned, all) with open/done and search; ticket page with the thread, reply, status/priority/category/department/assignee, internal notes, the shared conversation and history; categories & routing page
+- [x] Handoff from the student chat: "Ask a person" after an answer opens a new request linked to the conversation; sharing the conversation is opt-in and shares only messages up to the request
+- [x] AI: draft a request from the student's own conversation (editable, never sent by the AI); staff summary stored as a labelled internal note; low effort, structured output, budget and 30 calls per person per day
+- [x] Notifications: header bell with the unread count, notifications page, mark all read (in-app only)
+- [x] Tests: unit 168, DB 168, browser 100 (8 new); visual check of the thread and forms (en/ar)
+- [ ] **Apply migration 13** to "agent" (with your Supabase session), then a live run: a student request, staff reply, note, transfer, notifications, AI draft/summary (needs the API key)
+- [ ] Attachments on tickets (storage bucket + scanning)
+- [ ] SLAs and reminders; assignment rules beyond categories (round robin, workload)
+- [ ] Email notifications (needs the email provider, Phase 14)
+- [ ] Eval cases for the ticket draft and summary
+- [ ] Retention periods for closed tickets (policy decision)
+
 ## Later phases
 
-See `docs/roadmap.md` (Phases 7–17): tickets, analytics, academic, staff, workflows, campus, voice, notifications/integrations,
+See `docs/roadmap.md` (Phases 8–17): analytics, academic, staff, workflows, campus, voice, notifications/integrations,
 subscriptions, security review, launch.
 
 ## Known follow-ups
