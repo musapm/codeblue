@@ -20,6 +20,10 @@ const serverEnvSchema = z.object({
   UNIAGENT_UI_PREVIEW: flag,
   // Supabase secret (service-role) key: reserved for background jobs (Phase 2+).
   SUPABASE_SECRET_KEY: z.string().min(1).optional(),
+  // Embeddings for knowledge retrieval (Phase 4). Unset → full-text search only.
+  EMBEDDINGS_PROVIDER: z.enum(['voyage', 'openai']).optional(),
+  EMBEDDINGS_MODEL: z.string().regex(/^[a-z0-9][a-z0-9._:-]{1,79}$/).optional(),
+  EMBEDDINGS_API_KEY: z.string().min(1).optional(),
 })
 
 export type ServerEnv = z.infer<typeof serverEnvSchema>
@@ -39,5 +43,8 @@ export function getServerEnv(): ServerEnv {
     LOG_LEVEL: process.env.LOG_LEVEL,
     UNIAGENT_UI_PREVIEW: process.env.UNIAGENT_UI_PREVIEW,
     SUPABASE_SECRET_KEY: process.env.SUPABASE_SECRET_KEY,
+    EMBEDDINGS_PROVIDER: process.env.EMBEDDINGS_PROVIDER || undefined,
+    EMBEDDINGS_MODEL: process.env.EMBEDDINGS_MODEL || undefined,
+    EMBEDDINGS_API_KEY: process.env.EMBEDDINGS_API_KEY || undefined,
   })
 }

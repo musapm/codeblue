@@ -1,5 +1,6 @@
 // Generated from the Supabase project "agent" (zijruhuvzxtuudsvnwgy) after migration 6
 // (management) (MCP generate_typescript_types; unused helper types trimmed). Regenerate after every migration.
+// Knowledge entries (migration 8) are hand-written until the migration is applied and types regenerated.
 
 export type Json =
   | string
@@ -165,6 +166,91 @@ export type Database = {
             referencedColumns: ["tenant_id", "id"]
           },
         ]
+      }
+      knowledge_chunks: {
+        Row: {
+          content: string
+          created_at: string
+          document_id: string
+          embedding: string | null
+          embedding_model: string | null
+          heading: string | null
+          id: number
+          page_from: number | null
+          page_to: number | null
+          search_tsv: unknown
+          tenant_id: string
+          version_id: string
+          chunk_index: number
+        }
+        Insert: never
+        Update: never
+        Relationships: []
+      }
+      knowledge_document_access: {
+        Row: {
+          department_id: string | null
+          document_id: string
+          id: string
+          role_id: string | null
+          tenant_id: string
+        }
+        Insert: never
+        Update: never
+        Relationships: []
+      }
+      knowledge_document_versions: {
+        Row: {
+          activated_at: string | null
+          char_count: number | null
+          chunk_count: number | null
+          created_at: string
+          document_id: string
+          error_code: string | null
+          file_name: string
+          id: string
+          mime_type: string
+          page_count: number | null
+          processed_at: string | null
+          sha256: string | null
+          size_bytes: number
+          status: Database["public"]["Enums"]["knowledge_version_status"]
+          storage_path: string
+          tenant_id: string
+          uploaded_by: string | null
+          version_no: number
+        }
+        Insert: never
+        Update: never
+        Relationships: []
+      }
+      knowledge_documents: {
+        Row: {
+          archived_at: string | null
+          category: string | null
+          created_at: string
+          created_by: string | null
+          current_version_id: string | null
+          department_id: string | null
+          description: string | null
+          effective_date: string | null
+          expiry_date: string | null
+          id: string
+          is_authoritative: boolean
+          language: string
+          published_at: string | null
+          published_by: string | null
+          source_priority: number
+          source_url: string | null
+          tenant_id: string
+          title: string
+          title_ar: string | null
+          updated_at: string
+          visibility: Database["public"]["Enums"]["knowledge_visibility"]
+        }
+        Insert: never
+        Update: never
+        Relationships: []
       }
       membership_departments: {
         Row: {
@@ -655,6 +741,47 @@ export type Database = {
         Returns: string
       }
       invitation_preview: { Args: { p_token: string }; Returns: Json }
+      knowledge_begin_upload: {
+        Args: {
+          p_document: string | null
+          p_file_name: string
+          p_meta?: Json
+          p_mime_type: string
+          p_size_bytes: number
+          p_tenant_slug: string
+        }
+        Returns: Json
+      }
+      knowledge_complete_version: {
+        Args: { p_chunks: Json; p_stats: Json; p_version: string }
+        Returns: undefined
+      }
+      knowledge_delete_document: { Args: { p_document: string }; Returns: string[] }
+      knowledge_set_archived: {
+        Args: { p_archived: boolean; p_document: string }
+        Returns: undefined
+      }
+      knowledge_set_embeddings: {
+        Args: { p_items: Json; p_model: string; p_version: string }
+        Returns: number
+      }
+      knowledge_set_published: {
+        Args: { p_document: string; p_published: boolean }
+        Returns: undefined
+      }
+      knowledge_set_version_status: {
+        Args: {
+          p_error_code?: string
+          p_sha256?: string
+          p_status: Database["public"]["Enums"]["knowledge_version_status"]
+          p_version: string
+        }
+        Returns: Json
+      }
+      knowledge_update_document: {
+        Args: { p_document: string; p_meta: Json }
+        Returns: undefined
+      }
       my_platform_role: {
         Args: never
         Returns: Database["public"]["Enums"]["platform_role"]
@@ -664,6 +791,16 @@ export type Database = {
       platform_staff: { Args: never; Returns: Json }
       platform_tenants: { Args: never; Returns: Json }
       publish_branding: { Args: { p_tenant_slug: string }; Returns: undefined }
+      search_knowledge: {
+        Args: {
+          p_embedding?: string
+          p_embedding_model?: string
+          p_limit?: number
+          p_query: string
+          p_tenant_slug: string
+        }
+        Returns: Json
+      }
       revoke_invitation: { Args: { p_invitation: string }; Returns: undefined }
       tenant_invitations: { Args: { p_tenant_slug: string }; Returns: Json }
       tenant_members: { Args: { p_tenant_slug: string }; Returns: Json }
@@ -678,6 +815,8 @@ export type Database = {
       }
     }
     Enums: {
+      knowledge_version_status: "uploading" | "queued" | "processing" | "ready" | "failed" | "needs_ocr"
+      knowledge_visibility: "public" | "members" | "staff" | "restricted"
       membership_status: "invited" | "active" | "suspended"
       platform_role: "owner" | "admin" | "support" | "billing"
       tenant_status: "trial" | "active" | "suspended" | "archived"
@@ -741,6 +880,8 @@ export type Enums<
 export const Constants = {
   public: {
     Enums: {
+      knowledge_version_status: ["uploading", "queued", "processing", "ready", "failed", "needs_ocr"],
+      knowledge_visibility: ["public", "members", "staff", "restricted"],
       membership_status: ["invited", "active", "suspended"],
       platform_role: ["owner", "admin", "support", "billing"],
       tenant_status: ["trial", "active", "suspended", "archived"],
