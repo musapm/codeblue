@@ -17,7 +17,7 @@ const U = {
   visitor1: '40000000-0000-4000-8000-0000000000f1',
   visitor2: '40000000-0000-4000-8000-0000000000f2',
 }
-const CONSENT = 'I agree that the admissions office may contact me about my inquiry.'
+const CONSENT = 'You agree that University A may contact you about admissions.'
 
 let db: Awaited<ReturnType<typeof createTestDatabase>>
 let pool: pg.Pool
@@ -38,8 +38,12 @@ async function addMember(tenant: string, userId: string, roleKey: string) {
 const one = async (actor: Actor, sql: string, params: unknown[] = []) => (await query(pool, actor, sql, params)).rows[0]
 const committed = (actor: Actor, sql: string, params: unknown[] = []) => asCommitted(pool, actor, (c) => c.query(sql, params)).then((r) => r.rows[0])
 
-const submit = (actor: Actor, slug: string, over: Partial<{ name: string; email: string | null; phone: string | null; program: string | null; consent: string; conversation: string | null }> = {}) =>
-  committed(actor, `select public.admissions_submit_lead($1, $2, $3, $4, 'Sudan', $5, 'September 2027', 'Tell me more', 'en', '1', $6, $7) as r`, [
+const submit = (
+  actor: Actor,
+  slug: string,
+  over: Partial<{ name: string; email: string | null; phone: string | null; program: string | null; consent: string; version: string; conversation: string | null }> = {},
+) =>
+  committed(actor, `select public.admissions_submit_lead($1, $2, $3, $4, 'Sudan', $5, 'September 2027', 'Tell me more', 'en', $8, $6, $7) as r`, [
     slug,
     over.name ?? 'Amal Hassan',
     over.email === undefined ? 'amal@example.test' : over.email,
@@ -47,6 +51,7 @@ const submit = (actor: Actor, slug: string, over: Partial<{ name: string; email:
     over.program === undefined ? programA : over.program,
     over.consent ?? CONSENT,
     over.conversation ?? null,
+    over.version ?? '2', // uni-a's own wording is version 2 once the settings tests have run
   ]).then((r) => r.r as { reference: string })
 
 beforeAll(async () => {
@@ -159,17 +164,37 @@ describe('inquiries (leads) from visitors', () => {
     const r = await submit(visitor(U.visitor1), 'uni-a')
     expect(r.reference).toBe('L-00001')
     const lead = (await pool.query(`select * from public.admission_leads where reference = 'L-00001' and tenant_id = $1`, [tenantA])).rows[0]
-    expect(lead).toMatchObject({ source: 'form', stage: 'new', consent_version: '1', consent_text: CONSENT, submitted_by: U.visitor1, program_id: programA })
+    expect(lead).toMatchObject({ source: 'form', stage: 'new', consent_version: '2', consent_text: CONSENT, submitted_by: U.visitor1, program_id: programA })
     expect(lead.consent_at).not.toBeNull()
   })
 
   it('refuses without a session, without consent text or contact, and with foreign or draft programs', async () => {
-    await expect(query(pool, anon, `select public.admissions_submit_lead('uni-a', 'A B', 'a@b.test', null, null, null, null, null, 'en', '1', $1, null)`, [CONSENT])).rejects.toMatchObject({ code: '42501' })
-    await expect(submit(visitor(U.visitor2), 'uni-a', { consent: 'ok' })).rejects.toMatchObject({ code: '23514' })
+    await expect(query(pool, anon, `select public.admissions_submit_lead('uni-a', 'A B', 'a@b.test', null, null, null, null, null, 'en', '2', $1, null)`, [CONSENT])).rejects.toMatchObject({ code: '42501' })
     await expect(submit(visitor(U.visitor2), 'uni-a', { email: null, phone: null })).rejects.toMatchObject({ code: '23514' })
     await expect(submit(visitor(U.visitor2), 'uni-a', { program: programB })).rejects.toMatchObject({ code: '22023' })
     await expect(submit(visitor(U.visitor2), 'uni-a', { program: draftProgramA })).rejects.toMatchObject({ code: '22023' })
     await expect(submit(visitor(U.visitor2), 'uni-b')).rejects.toMatchObject({ code: '42501' }) // uni-b has not opened its page
+  })
+
+  it('the consent record must be the wording the university shows', async () => {
+    await expect(submit(visitor(U.visitor2), 'uni-a', { consent: 'I agree to anything at all, really.' })).rejects.toMatchObject({ code: '22023' })
+    await expect(submit(visitor(U.visitor2), 'uni-a', { version: '1' })).rejects.toMatchObject({ code: '22023' }) // outdated version
+    await expect(submit(visitor(U.visitor2), 'uni-a', { version: 'default-1', consent: 'Platform default wording shown elsewhere.' })).rejects.toMatchObject({ code: '22023' })
+  })
+
+  it('without its own wording, the platform default version is accepted', async () => {
+    await as(pool, user(U.staffA), async (c) => {
+      await c.query(`select public.admissions_update_settings('uni-a', true, 'admissions@uni-a.example', null, null, null, null, null)`)
+      await c.query(`select set_config('request.jwt.claims', $1, true)`, [JSON.stringify({ sub: U.visitor2, role: 'authenticated', is_anonymous: true })])
+      const sql = `select public.admissions_submit_lead('uni-a', 'Sara Omer', 'sara@example.test', null, null, null, null, null, 'en', $1, $2, null) as r`
+      await expect(c.query(sql, ['2', CONSENT])).rejects.toMatchObject({ code: '22023' })
+    })
+    await as(pool, user(U.staffA), async (c) => {
+      await c.query(`select public.admissions_update_settings('uni-a', true, 'admissions@uni-a.example', null, null, null, null, null)`)
+      await c.query(`select set_config('request.jwt.claims', $1, true)`, [JSON.stringify({ sub: U.visitor2, role: 'authenticated', is_anonymous: true })])
+      const r = (await c.query(`select public.admissions_submit_lead('uni-a', 'Sara Omer', 'sara@example.test', null, null, null, null, null, 'en', 'default-1', 'The platform default wording, as shown by the app.', null) as r`)).rows[0].r
+      expect(r.reference).toMatch(/^L-\d{5}$/)
+    })
   })
 
   it('limits each visitor to 3 inquiries per university per day', async () => {

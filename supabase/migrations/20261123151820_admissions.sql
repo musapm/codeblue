@@ -446,11 +446,24 @@ set search_path = ''
 as $$
 declare
   v_tenant uuid := app.tenant_id_for_slug(p_tenant_slug);
+  s public.admissions_settings;
   v_lead uuid;
   v_reference text;
 begin
   if auth.uid() is null or v_tenant is null or not app.admissions_open(v_tenant, false) then
     raise exception 'not available' using errcode = '42501';
+  end if;
+  -- The consent record must be the wording the university shows: its own wording (exact text
+  -- and current version), or, when it has none, the platform default version (whose text lives
+  -- in the application).
+  select * into s from public.admissions_settings where tenant_id = v_tenant;
+  if s.consent_text is not null or s.consent_text_ar is not null then
+    if p_consent_version is distinct from s.consent_version::text
+       or p_consent_text is null or p_consent_text not in (coalesce(s.consent_text, ''), coalesce(s.consent_text_ar, '')) then
+      raise exception 'consent wording does not match' using errcode = '22023';
+    end if;
+  elsif p_consent_version is distinct from 'default-1' then
+    raise exception 'consent wording does not match' using errcode = '22023';
   end if;
   if (
     select count(*) from public.admission_leads l

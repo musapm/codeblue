@@ -21,7 +21,8 @@ _Date: 2026-11-21 · Commit audited: `136cba1` · Auditor: engineering (Claude C
 > | 5.3/5.4 Auth success paths, Auth config | ⚠️ Password sign-in and sign-out verified live. **Email flows still need your Supabase Auth settings + SMTP** (see `docs/authentication.md`) |
 > | Knowledge base (Phase 4, 2026-11-23) | ✅ Implemented and verified live 6/6. Embeddings wait for a provider key (ADR-021) |
 > | AI integration, RAG, citations, student assistant (Phase 5, 2026-11-23) | 🟡 **Implemented and tested locally** (fake model + local DB). Migration 10 is applied to "agent"; no API key is set, so it does not answer yet. The live eval has not run. Marketing chat previews remain labelled illustrations |
-> | Other assistants, tickets, analytics, backups | ❌ Not implemented (later phases); backups need a paid plan. Branding persistence is now done |
+> | Admissions agent & leads (Phase 6, 2026-11-23) | 🟡 Implemented and tested; database live. Visitor flows need anonymous sign-ins enabled; the assistant needs the API key |
+> | Other assistants, tickets, analytics dashboard, backups | ❌ Not implemented (later phases); backups need a paid plan. Branding persistence is now done |
 
 This audit describes what the code **actually does today**. It does not describe what the UI suggests
 or what the design documents plan. Every claim below comes from reading the code, running the

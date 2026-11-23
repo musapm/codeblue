@@ -197,3 +197,13 @@ Differences from the design above, on purpose:
 - Conflicting sources are handled by the prompt (mention both, prefer the authoritative or most recent one); there is no automatic conflict detection yet.
 
 Evaluation: `evals/assistant` (docs/ai-evals.md), opt-in because it calls the API and costs money.
+
+## 12. Phase 6: admissions assistant
+
+Same pipeline as §11, with `agent: 'admissions'` (ADR-025):
+- **Who:** anyone. Visitors use an anonymous session; the endpoint is `/api/admissions/[tenant]`.
+- **Gates:** `admissions_begin_turn`: public page and assistant on, its own monthly budget (default 20 USD), a daily limit per visitor (default 20 questions), 1–1,000 characters.
+- **Sources:** published documents with visibility `public` (`admissions_search`), plus the university's **published program records**, turned into citable passages (`program://<id>`, `src/lib/admissions/public.ts`). With many programs, the ones the question names are kept, up to 8.
+- **Rules added for applicants:** never promise admission, scholarships or decisions; no access to applications; do not collect personal details in the chat, point to the inquiry form instead.
+- **Answers:** citations of programs link to the program page; document sources are shown without a download link (visitors cannot read the files).
+- **Usage** is booked as `admissions_agent` (separate from the student assistant's budget).

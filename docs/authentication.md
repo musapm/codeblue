@@ -79,6 +79,11 @@ The tooling in this repository cannot change them.
 5. **Sign-up policy:** recommended **invitation / approved university domains only**. Until the
    invitation flow ships (Phase 3), self-registered users land on the "No university access yet" page.
 6. **Password policy:** minimum 10 characters (matches the app), and enable leaked-password protection if your plan offers it.
+7. **Anonymous sign-ins (Phase 6, public admissions):** turn on **Authentication → Sign In / Providers → Allow anonymous sign-ins**. Visitors who ask the admissions assistant or send an inquiry get an anonymous session (ADR-025). Without it, the public page still shows programs, but the form and the assistant explain that they cannot receive anything yet.
+8. **CAPTCHA (recommended with step 7):** create a Cloudflare Turnstile widget for your domain. Then:
+   - put its **site key** in `NEXT_PUBLIC_TURNSTILE_SITE_KEY`;
+   - put its **secret key** in **Authentication → Attack Protection → CAPTCHA protection** (provider: Turnstile).
+   Enable both together: once Supabase requires CAPTCHA, every sign-in, sign-up, password reset and visitor session must send a token, and the app's forms only send one when the site key is set.
 
 ### Becoming the first platform owner
 

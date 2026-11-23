@@ -94,9 +94,24 @@ Current state: `PROJECT_STATUS.md` · Audit history: `docs/IMPLEMENTATION_AUDIT.
 - [ ] Shared (not in-memory) rate limiting for the endpoint (same item as Operations)
 - [ ] Ticket drafts from the chat (Phase 7) and admin review of negative feedback / knowledge gaps (Phase 8 "AI quality")
 
+## Phase 6: Admissions agent & leads 🟡 built and tested; database live; visitor flows wait for anonymous sign-ins
+
+- [x] Migration 11 `admissions`: settings, programs, leads (consent record, stages, assignment), notes, history, public page function, visitor inquiries, admissions assistant turns, per-agent budgets, analytics. 28 DB tests; applied to "agent" (byte-identical); advisors checked; types match live columns
+- [x] Visitor sessions: anonymous Supabase sign-in from a Server Action; anonymous sessions count as signed out everywhere else; optional Cloudflare Turnstile on visitor sessions and auth forms, CSP only when configured (ADR-025)
+- [x] Consent: exact wording + version stored per inquiry; database accepts only the wording currently shown; new wording = new version; staff-recorded inquiries need a consent note (ADR-026)
+- [x] Privacy: leads outside the generic audit log; erasure deletes notes and history and leaves a PII-free audit entry; visitors' assistant conversations private; leads only with `leads.read`
+- [x] Public pages: programs, program details, inquiry form, admissions assistant (programs + public documents as citable sources, applicant rules), en/ar, university branding
+- [x] Staff workspace: inquiries (filters, search), inquiry detail (pipeline, assignment, notes, history, consent record, delete), manual inquiry, programs (create/edit/publish/archive/delete), analytics (stat tiles, weekly columns, stage/source/program bars with table view), settings (page + assistant)
+- [x] Tests: unit 156, DB 136, browser 90; visual check of the public page and charts with fictional data
+- [ ] **Owner:** enable anonymous sign-ins (+ Turnstile site key and Supabase CAPTCHA together)
+- [ ] Live run: visitor inquiry, admissions question (needs the API key), staff pipeline; then remove test data
+- [ ] Eval cases for the admissions assistant (programs, fees in Arabic/English, "will I be admitted?" refusal, personal data)
+- [ ] Cleanup job for old anonymous users; lead export (access requests) and retention periods
+- [ ] Email notification to the admissions office on new inquiries (needs the email provider, Phase 14)
+
 ## Later phases
 
-See `docs/roadmap.md` (Phases 6–17): admissions, tickets, analytics, academic, staff, workflows, campus, voice, notifications/integrations,
+See `docs/roadmap.md` (Phases 7–17): tickets, analytics, academic, staff, workflows, campus, voice, notifications/integrations,
 subscriptions, security review, launch.
 
 ## Known follow-ups

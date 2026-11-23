@@ -208,3 +208,37 @@ Format: **ADR-NNN — Title** · Status · Date · Context → Decision → Cons
 **Consequences:**
 - **Limit:** the budget check runs before a call, so one in-flight answer can exceed the budget by its own cost. This is acceptable at a few cents per answer.
 - **Integrity caveat:** turns are recorded with the student's session (no service-role key exists yet, ADR-022). A student could therefore add records only to their own conversation, and could understate usage only by calling the function directly. Moving the recording to a service-role worker removes this; it is tracked in TASKS.md.
+
+## ADR-025 — Public visitors use anonymous Supabase sessions; Turnstile is enforced by Supabase Auth
+**Accepted · 2026-11-23**
+
+**Context:** Phase 6 lets prospective students without an account ask the admissions assistant and send an inquiry. Anything callable with the public (`anon`) key can be called directly, bypassing any check in our pages. No service-role key exists, and using one in request handlers would bypass RLS anyway (ADR-022).
+**Decision:**
+- **Reading** the public admissions page needs no session. `public_admissions(slug)` is granted to `anon` and returns only published programs and public settings, or `null`. Unknown, unpublished, suspended and feature-off universities look the same.
+- **Writing** (an inquiry, an assistant question) needs a session. A visitor without one gets an **anonymous Supabase sign-in** created by a Server Action. Every inquiry and conversation therefore has an owner, and the database enforces per-visitor limits:
+  - at most 3 inquiries per university per 24 hours;
+  - a daily question limit set by each university.
+- **CAPTCHA:** when `NEXT_PUBLIC_TURNSTILE_SITE_KEY` is set, the visitor session and the sign-in, sign-up and reset forms send a Cloudflare Turnstile token. **Supabase Auth verifies it** when CAPTCHA protection is enabled there, so it cannot be skipped by calling the API directly. The CSP allows Cloudflare's script and frame only when the key is set.
+- **Anonymous sessions are not accounts.** `getCurrentUser()` returns `null` for them, so the workspace, the platform console, invitations, staff actions and password changes treat them as signed out. Database functions for members still require membership and permissions, which anonymous users never have. A university's own staff can still use the public page with their normal session.
+- **Owner actions:** enable "Allow anonymous sign-ins" in Supabase Auth, and preferably CAPTCHA (Turnstile) together with the site key.
+
+**Consequences:**
+- Until anonymous sign-ins are enabled, the public page shows programs, and the form and the assistant say honestly that they cannot receive anything yet. On 2026-11-23 the live project returns `anonymous_provider_disabled`.
+- Anonymous users accumulate in `auth.users`. A cleanup job for old anonymous users (their conversations go with them; inquiries keep `submitted_by = null`) is in TASKS.md.
+
+## ADR-026 — Admissions leads: consent records, PII outside the append-only audit log, deletable on request
+**Accepted · 2026-11-23**
+
+**Context:** Leads are personal data about people who are not (yet) members. They must be traceable to explicit consent and erasable on request. The generic audit trigger copies whole rows into an append-only log, which would make erasure impossible.
+**Decision:**
+- **Consent record:** every lead stores `consent_at`, `consent_version` and the exact `consent_text` shown.
+  - A university's own wording (English/Arabic) is versioned by the database: a change creates a new version. `admissions_submit_lead` accepts only the current version with its exact text.
+  - Without its own wording, only the platform default version (`default-1`) is accepted. Its text lives in the app's dictionaries, so the database cannot compare it.
+  - The server action decides the wording, not the browser. If it changed after the page loaded, the visitor is asked to confirm again.
+  - Staff-recorded inquiries require a written consent note (`staff-recorded`).
+- **No generic audit trigger on leads, notes or events.** Their history is `admission_lead_events` (created, stage, assigned, program, note). It is deleted together with the lead. `admissions_delete_lead` writes one PII-free audit entry: action and reference. Programs and settings contain no personal data and keep the generic trigger.
+- **Privacy between roles:**
+  - Leads, notes and history need `leads.read`; changes need `leads.manage`. Assignees must be able to read leads.
+  - Visitors cannot read their own lead back, and staff cannot read visitors' assistant conversations. A lead created after chatting only records that link (source "assistant").
+
+**Consequences:** Erasure is complete for leads. Exports for data-subject access requests, retention periods and the anonymous-user cleanup remain to be built (TASKS.md).

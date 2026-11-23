@@ -138,3 +138,11 @@ Live runs on 2026-11-22 against project "agent":
 - **Browser (preview):** the chat and settings pages, disabled composer, Arabic RTL, accessibility, and the answer endpoint refusing cross-site requests (403) and doing nothing in preview mode (503).
 - **Live AI eval:** `evals/assistant` (13 cases), see `docs/ai-evals.md`. Not run yet.
 - **Not yet live-tested:** the chat against the real project "agent". Migration 10 is applied; the API key is still missing.
+
+### Admissions (Phase 6)
+
+- **Database:** `supabase/tests/admissions.test.ts` (28 tests), with an anonymous visitor actor (`visitor()` in the harness, claim `is_anonymous`): public page visibility, programs RLS and validation, inquiries (session, consent wording/version, contact, programs of the same university, daily limit), lead privacy, pipeline history, notes, staff-recorded inquiries, erasure without personal data in the audit log, analytics, assignees, the admissions assistant (switch, privacy, agent separation, budget per agent, daily limit) and public-only retrieval.
+- **Unit:** `src/lib/admissions/admissions.test.ts` (program passages, program selection, consent wording, staff form validation, lead search sanitizing) and 4 admissions cases in `src/lib/ai/assistant.test.ts` (functions used, applicant rules, program citations, daily limit, no model call without sources). The CSP test covers Turnstile.
+- **Browser (preview):** staff pages (inquiries, programs, analytics, settings) render honestly without data and offer no writes; navigation; Arabic; the public page is "not found" without a backend; the admissions endpoint refuses cross-site requests; accessibility of 3 pages.
+- **Visual check:** the public page and the charts were rendered with fictional data through a temporary local-only route (deleted) and checked in English and Arabic.
+- **Live (2026-11-23):** migration applied and byte-identical; `anon` cannot submit inquiries or read programs/leads; `public_admissions` returns `null` for the unpublished demo; anonymous sign-ins are disabled (`anonymous_provider_disabled`), so no visitor flow could run live yet.

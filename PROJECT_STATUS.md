@@ -1,6 +1,6 @@
 # Project Status
 
-_Last updated: 2026-11-23 (Phase 5)_
+_Last updated: 2026-11-23 (Phase 6)_
 
 ## Honest summary
 
@@ -14,7 +14,15 @@ UniAgent AI now has a **tested multi-tenant foundation plus real university mana
 
 **Student assistant (Phase 5):** built and tested locally. Students ask questions, and answers come only from published documents, with numbered sources that open the cited page. Its database (migration 10) is **applied to "agent"** and verified. It cannot answer yet because no Anthropic API key is set. The live AI eval has not been run.
 
-**Not built yet:** tickets, analytics, admissions and the other assistants. Invitations are not emailed yet: the link is shown once to copy and send.
+**Admissions (Phase 6):** built and tested; the database is live and verified. It includes:
+- a programs catalogue;
+- a public admissions page for each university, with an inquiry form that records consent;
+- an admissions assistant for visitors;
+- an inquiry pipeline for staff (stages, assignment, notes, history, deletion on request);
+- analytics from stored data only.
+Visitors need **anonymous sign-ins enabled** in Supabase Auth (currently disabled), and the assistant needs the API key.
+
+**Not built yet:** tickets, the full analytics dashboard and the other assistants. Invitations are not emailed yet: the link is shown once to copy and send.
 
 | Phase | Status |
 | --- | --- |
@@ -24,7 +32,8 @@ UniAgent AI now has a **tested multi-tenant foundation plus real university mana
 | 3: Super Admin & university management | ✅ **Core complete, verified live.** Deferred: invitation email, custom roles, sign-up domains (see TASKS.md) |
 | 4: Knowledge base | ✅ **Core complete, verified live (6/6).** Embeddings need a provider key (ADR-021) |
 | 5: Student assistant | 🟡 **Built and tested** (unit, DB, browser); migration 10 applied and verified. Answers need `ANTHROPIC_API_KEY`; the live eval and live chat test are pending |
-| 6–17 | Not started |
+| 6: Admissions & leads | 🟡 **Built and tested** (unit, DB, browser); migration 11 applied and verified. Visitor flows need anonymous sign-ins (+ Turnstile recommended); the assistant needs `ANTHROPIC_API_KEY` |
+| 7–17 | Not started |
 
 ## Supabase project "agent"
 
@@ -32,7 +41,7 @@ UniAgent AI now has a **tested multi-tenant foundation plus real university mana
 | --- | --- |
 | Ref / URL | `zijruhuvzxtuudsvnwgy` · `https://zijruhuvzxtuudsvnwgy.supabase.co` |
 | Region / plan | eu-central-1 (Frankfurt) · **Free** (no backups) |
-| Schema | 27 tables + private templates, all with RLS. **10 migrations**, byte-identical to git (`supabase/README.md`). pgvector 0.8.2. Buckets `tenant-assets` (public logos) and `tenant-documents` (private originals) |
+| Schema | 32 tables + private tables, all with RLS. **11 migrations**, byte-identical to git (`supabase/README.md`). pgvector 0.8.2. Buckets `tenant-assets` (public logos) and `tenant-documents` (private originals) |
 | Data | 1 fictional demo university ("Northbridge"). The Phase 3 live run's temporary accounts and test universities: see "Cleanup" below |
 | Advisors | Only documented, intended findings (`supabase/README.md`) |
 | Auth settings | **Not configured yet:** Site URL, redirect URLs, SMTP, email templates (owner action, `docs/authentication.md`) |
@@ -73,17 +82,18 @@ UniAgent AI now has a **tested multi-tenant foundation plus real university mana
 
 ### 2. Implemented but not connected to a real backend
 - **Student assistant** (chat, settings page, answer pipeline, budget): tested with a local database and a fake model. Its tables and functions are live on "agent". It needs an API key before it can answer anyone.
+- **Public admissions (inquiry form and admissions assistant):** live database, but visitors cannot get a session until anonymous sign-ins are enabled; the page then shows programs and says honestly that it cannot receive inquiries yet. Staff pages (inquiries, programs, analytics, settings) work with a normal account.
 - **Contact/demo form:** validates; not stored (`platform_inquiries` not built).
 - **Rate limiting:** in-memory per instance (now also on invitations, uploads, university creation).
 
 ### 3. UI-only / placeholder
-Module pages for admissions, academic, staff, tickets, workflows, campus, analytics, quality,
+Module pages for academic, staff, tickets, workflows, campus, analytics, quality,
 integrations; platform plans/usage/AI/settings (labelled "Planned · Phase N").
 Chat previews on the marketing site (static, labelled). Privacy/Terms drafts.
 
 ### 4. Planned but not implemented
 Invitation emails (needs transactional email) · custom roles editor · sign-up domain rules and
-self-service join · admissions, academic, staff, workflow and campus assistants · tickets · analytics and
+self-service join · academic, staff, workflow and campus assistants · lead export for access requests, retention rules · tickets · analytics and
 AI-quality review · notifications · subscriptions and plans · voice · integrations · backups · CI, monitoring.
 
 ### 5. Broken or incomplete
@@ -95,6 +105,7 @@ AI-quality review · notifications · subscriptions and plans · voice · integr
 | Replaced logo files are not deleted from storage (only the reference changes) | Low (cleanup job later) |
 | Deleting the account of a university's only owner is blocked by the owner guard (transfer ownership first). No self-service account deletion exists yet | Low (by design; document in support runbook) |
 | Assistant turns are recorded with the student's own session (no service-role worker yet): a student calling the API directly could add records to their own conversation or understate usage (ADR-024) | Medium before launch |
+| Anonymous visitor accounts are not cleaned up yet (they accumulate in Supabase Auth; inquiries survive their deletion) | Low (cleanup job, TASKS.md) |
 | Assistant system prompt is below the 512-token caching minimum, so it is not cached (small cost effect) | Low |
 | CSP allows inline scripts | Medium (Phase 16) |
 | Duplicate `id="main"` after switching workspaces | Low |
@@ -104,9 +115,9 @@ AI-quality review · notifications · subscriptions and plans · voice · integr
 | Suite | Result |
 | --- | --- |
 | Typecheck / lint / build | ✅ |
-| Unit + component (`npm test`) | ✅ 143/143 (incl. the assistant turn with a fake database and fake model) |
-| Database isolation (`npm run test:db`) | ✅ 108/108 (local PostgreSQL 16; includes migration 10) |
-| Browser e2e, preview mode (`npm run test:e2e`) | ✅ 82/82 (incl. chat and assistant settings pages, cross-site refusal of the answer endpoint, accessibility) |
+| Unit + component (`npm test`) | ✅ 156/156 (incl. both assistants with a fake database and fake model) |
+| Database isolation (`npm run test:db`) | ✅ 136/136 (local PostgreSQL 16; includes migrations 10–11 and anonymous visitors) |
+| Browser e2e, preview mode (`npm run test:e2e`) | ✅ 90/90 (incl. admissions staff pages, both answer endpoints refusing cross-site requests, accessibility) |
 | Live AI eval (`npm run test:eval`, 13 cases) | ⏸ Not run: needs `ANTHROPIC_API_KEY` and your approval to spend (~USD 0.15–0.50 per run) |
 | **Live e2e against "agent"** (`e2e/live`, opt-in) | ✅ Phase 3 onboarding path 9/9: steps 1–7 in one run, then 8–9 after a test-selector fix and the support-access fix below. Phase 2 regression 4/4 (the 2 owner cases need a demo-tenant owner and were skipped, see `docs/testing.md`) |
 
@@ -115,7 +126,11 @@ Real defects found by the live run and fixed:
 - An owner was offered a button to remove their own owner role. It is now hidden; the database already refused it if they were the last owner.
 
 ## Decisions and actions needed from you
-0. **Phase 5:**
+0. **Phase 6:**
+   - **Enable anonymous sign-ins** in Supabase Auth: Authentication → Sign In / Providers. Without them, visitors cannot send inquiries or use the admissions assistant.
+   - **Recommended:** Cloudflare Turnstile. Put the site key in `NEXT_PUBLIC_TURNSTILE_SITE_KEY` and the secret key in Supabase Auth CAPTCHA protection, and enable both together (`docs/authentication.md`, steps 7–8).
+   - **Turn on the admissions feature and publish a page** for a university, when you want a live run with real data.
+   **Phase 5:**
    - **Set `ANTHROPIC_API_KEY`** in the environment settings. Note that anyone using the environment can read it. Then start a new session.
    - **Approve the eval run** (about USD 0.15–0.50).
 1. **Enable leaked-password protection** in Supabase Auth (security advisor finding).
@@ -150,7 +165,25 @@ Real defects found by the live run and fixed:
 - **Verified:** typecheck, lint and build pass, plus unit 143, DB 108 and browser 82. An eval run with a deliberately invalid key confirmed that the API is reachable from this environment and that errors are handled (no cost).
 - **Not verified yet:** real answers from the model, citation quality in Arabic and English, cost per answer, and the chat against "agent". These need the API key; no results are claimed until then.
 
+## Phase 6 status (2026-11-23)
+- **Built:**
+  - migration 11 `admissions` (28 DB tests). Applied to "agent" as version `20261123151820`: byte-identical, advisors show only documented findings, and the hand-written types match the live columns;
+  - public pages `/[lang]/admissions/[tenant]` (programs, program details, the admissions assistant, the inquiry form with consent);
+  - the staff workspace `/app/[tenant]/admissions` (inquiries with filters, inquiry detail with pipeline, notes, history and deletion, programs, analytics, settings);
+  - anonymous visitor sessions and optional Turnstile (ADR-025);
+  - the consent and erasure rules (ADR-026).
+- **Verified:**
+  - typecheck, lint and build pass, plus unit 156, DB 136 and browser 90;
+  - a visual check of the public page and charts (en/ar) with fictional data;
+  - live probes: anonymous callers cannot submit inquiries or read the tables, the unpublished demo page returns nothing, and anonymous sign-ins are disabled on the project.
+- **Not verified live:**
+  - a visitor sending an inquiry or chatting, which needs anonymous sign-ins (and the API key for the assistant);
+  - staff using the pipeline against "agent". The database tests cover the same rules, but no live run has been done.
+
 ## Next steps
-1. Phase 5 go-live: set the API key, run the eval, then write and run a live chat test against "agent" (student asks, sources open, staff-only documents are never cited).
+1. Go-live for Phases 5–6:
+   - set the API key and run the eval;
+   - enable anonymous sign-ins (+ Turnstile);
+   - then run live tests against "agent": a student chat, a visitor inquiry and an admissions question, and the staff pipeline. Clean up the test data afterwards.
 2. Phase 3 follow-ups: invitation email (after the provider decision), custom roles editor, sign-up domains.
 3. Operational: CI pipeline (`check` + `test:db` + e2e), error tracking, shared rate limiting, inquiry storage.

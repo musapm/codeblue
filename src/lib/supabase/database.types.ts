@@ -6,7 +6,7 @@
 // Assistant entries (migration 10) were compared with the generated types on 2026-11-23: rows and functions match.
 // Same intentional deviations: Insert/Update are `never`, and p_conversation / p_model / p_usage / p_comment /
 // p_instructions accept null (PostgREST passes SQL null).
-// Admissions entries (migration 11) are hand-written from the migration until it is applied and compared;
+// Admissions entries (migration 11): row columns and nullability were checked against the live project on 2026-11-23;
 // admission_programs keeps Insert/Update because staff write it directly (RLS: programs.manage).
 
 export type Json =

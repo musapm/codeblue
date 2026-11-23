@@ -82,3 +82,20 @@ Chronological log of significant work. For the current snapshot see `PROJECT_STA
 - **App:** streaming chat for students (sources open the cited document; feedback; history; Arabic/English) and a settings page for administrators (switch, guidance, budget, usage).
 - **Tests:** 143 unit (incl. the whole turn with a fake database and fake SDK), 108 DB, 82 browser. The live AI eval (13 cases) is built but **not run**: there is no API key in this environment yet.
 - **Found while building:** the prompt is below the model's 512-token caching minimum, so it is not cached yet (documented in ADR-023 instead of claiming savings). The settings page showed a misleading "$0.00" budget in preview mode, and the "New conversation" button overflowed its card; both were fixed.
+
+## 2026-11-23: Phase 6 (admissions & leads)
+
+- **Database:** migration 11 `admissions`: programs, consented leads with stages, assignment, notes and history, a public page function, visitor inquiries and admissions assistant turns with per-visitor limits, per-agent AI budgets, analytics. 28 DB tests (136 total). Applied to "agent" (byte-identical).
+- **Design decisions:**
+  - Visitors get anonymous Supabase sessions, with Turnstile enforced by Supabase Auth (ADR-025).
+  - Leads keep their exact consent wording and stay out of the append-only audit log, so they can be erased (ADR-026).
+- **App:**
+  - public admissions page (programs, program details, assistant, inquiry form) in English and Arabic with the university's branding;
+  - staff workspace (inquiries, inquiry detail, programs, analytics, settings).
+  The student and admissions assistants share one tested answer pipeline.
+- **Found while building:**
+  - The audit trigger would have copied lead PII into the append-only log, so leads use their own history instead.
+  - The database accepted any consent text from the caller, so it now accepts only the wording the university shows.
+  - Whole tuition amounts showed `.00`.
+  - The settings page blamed permissions in preview mode.
+- **Not live yet:** anonymous sign-ins are disabled on the project, so no visitor flow has run against "agent".

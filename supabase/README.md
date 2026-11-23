@@ -30,6 +30,7 @@ Migration file versions match the versions recorded in the project
 | `20261123100613_knowledge.sql` | Phase 4: knowledge base (documents, versions, chunks, access lists, search_knowledge, `tenant-documents` bucket) |
 | `20261123121337_knowledge_file_cleanup.sql` | Phase 4: managers may see files of deleted documents so they can be removed (fix found by the live test) |
 | `20261123124604_assistant.sql` | Phase 5: assistant settings, conversations, messages, feedback, `ai_usage_events`, budget helper and the `assistant_*` functions. Applied 2026-11-23, byte-identical (MD5 `dcf15abd…`, 18,788 bytes) |
+| `20261123151820_admissions.sql` | Phase 6: admissions settings, programs, consented leads with notes and history, public page function, visitor inquiries and admissions assistant turns (anonymous sessions), per-agent AI budgets, analytics; assistant conversations gain an `agent` column. Applied 2026-11-23, byte-identical (MD5 `46d73168…`, 54,907 bytes) |
 
 ## Rules for new migrations
 
@@ -60,4 +61,6 @@ TEST_DATABASE_URL=postgres://postgres:postgres@127.0.0.1:5432/postgres npm run t
 | `authenticated` can execute SECURITY DEFINER `create_tenant`, `my_workspaces`, `my_tenant_access`, `my_platform_role` and the Phase 3 functions (`create_invitation`, `invitation_preview`, `accept_invitation`, `tenant_invitations`, `revoke_invitation`, `tenant_members`, `update_tenant_profile`, `publish_branding`, `platform_tenants`, `platform_staff`) | They are the API. `my_*` and `invitation_preview` only describe the caller; every other function checks permissions itself (tested in `tests/management.test.ts`). `anon` cannot execute any of them. |
 | `search_knowledge` and the `knowledge_*` functions (Phase 4) | Same pattern: each checks `app.can_manage_knowledge` / membership itself; reads go through RLS (`app.can_read_knowledge`). Covered by `tests/knowledge.test.ts`. |
 | Public bucket `tenant-assets` | Logos must load for students without a session. Writes/listing require `tenant.branding.manage` for the folder's tenant (T16); 1 MB limit; PNG/JPEG/WebP only. |
-| RLS enabled without policies on `app.role_templates`, `app.role_template_permissions` | Intentional deny-all; private schema, not exposed through the Data API. |
+| RLS enabled without policies on `app.role_templates`, `app.role_template_permissions`, `app.admission_lead_counters` | Intentional deny-all; private schema, not exposed through the Data API. |
+| `assistant_*` and `admissions_*` functions (Phases 5–6) | The API. Each checks membership, permissions, the feature and the university's switches itself; visitor functions accept any session (anonymous included) and enforce per-visitor limits. Covered by `tests/assistant.test.ts` and `tests/admissions.test.ts`. |
+| `anon` can execute SECURITY DEFINER `public_admissions` (Phase 6) | Intentional: the public admissions page must load without a session. It returns only published programs and public settings of universities that published their page, and `null` otherwise (no difference between unknown and unpublished). |

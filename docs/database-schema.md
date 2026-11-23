@@ -261,6 +261,33 @@ Functions (SECURITY DEFINER, `search_path = ''`, `authenticated` only):
 
 `app.assistant_month_cost(tenant)` sums the current month's estimated cost for the budget check. Settings changes are audited. Messages and usage are not audited row by row (they are the records themselves). Integrity caveat: ADR-024.
 
+## 2d. Phase 6 — admissions (implemented, migration 11 `admissions`, applied 2026-11-23)
+
+| Table | Contents | Access |
+| --- | --- | --- |
+| `admissions_settings` | public page switch, contact email, privacy URL, welcome texts (en/ar), consent wording (en/ar) + `consent_version`, assistant switch, instructions, monthly budget (default 20 USD), daily questions per visitor (default 20) | read: `programs.manage`, `assistant.configure` or `leads.read`; writes through functions; audited |
+| `admission_programs` | code, names (en/ar), level, department, description/requirements/intakes/tuition notes (en/ar), duration, study mode, language, tuition amount + currency + period, deadline, https application URL, status draft/published/archived, `published_at` | read: `programs.manage` or `leads.read`; **direct writes** with `programs.manage` (RLS) + feature; audited; public read only through `public_admissions` |
+| `admission_leads` | reference (`L-00001` per university), name, email and/or phone, country, program, intake, message, locale, source form/assistant/manual, stage new→contacted→qualified→applied→admitted→enrolled / lost (+ reason), assignee, **consent record** (`consent_at`, `consent_version`, `consent_text`), submitter, linked conversation | read: `leads.read`; changes through functions with `leads.manage`; **not** in the generic audit log (ADR-026) |
+| `admission_lead_notes`, `admission_lead_events` | internal notes; history (created, stage, assigned, program, note) | read: `leads.read`; deleted with the lead |
+| `app.admission_lead_counters` | per-university lead numbers | private |
+| `assistant_conversations.agent` | `student` or `admissions` | visitors read only their own admissions conversations; staff cannot |
+
+Functions:
+
+| Function | Who | Purpose |
+| --- | --- | --- |
+| `public_admissions(slug)` | anyone (`anon` too) | Published programs + public settings + published branding, or `null` |
+| `admissions_submit_lead(…)` | any session (anonymous included) | Inquiry with the consent record; checks the wording/version; 3 per visitor per university per day; published programs only; own admissions conversation only |
+| `admissions_search(slug, query, limit)` | any session, page and assistant on | Full-text search over published documents with visibility `public` |
+| `admissions_begin_turn(slug, conversation, question)` | any session | Gates (page + assistant on, budget, daily limit per visitor, 1–1000 characters); returns history, instructions, contact email |
+| `admissions_update_settings(…)` / `admissions_update_assistant(…)` | `programs.manage` / `assistant.configure` | Page settings (new consent wording = new version) / assistant switch, guidance, budget, daily limit |
+| `admissions_create_lead(…)` | `leads.manage` | Inquiry received in person/by phone, with a consent note |
+| `admissions_update_lead(lead, stage, lost_reason, assignee, program)` | `leads.manage` | Pipeline; assignee must read leads; every change logged |
+| `admissions_add_note(lead, body)` / `admissions_delete_lead(lead)` | `leads.manage` | Notes / erasure (PII-free audit entry) |
+| `admissions_assignees(slug)` / `admissions_analytics(slug)` | `leads.read` | Assignable people / counts by stage, source, program, 12 weekly buckets, assistant usage this month |
+
+Also changed: `assistant_complete_turn` and `assistant_set_feedback` accept admissions conversations without membership; usage is booked per agent (`app.ai_month_cost(tenant, feature)`), so each agent has its own budget; `assistant_usage_summary` counts student conversations only.
+
 ## 3. Phase 15 — plans, features, subscriptions (planned)
 
 ```
@@ -285,7 +312,7 @@ Effective features = plan features + enabled overrides − disabled overrides, c
 | --- | --- |
 | 4 Knowledge | `documents` (tenant, title, department, category, visibility, status, version, effective/expiry dates, authoritative flag, source_url, storage_path, checksum), `document_versions`, `document_access` (role/department grants), `document_chunks` (tenant_id, document_id, ordinal, page, content, tsv tsvector, embedding vector(n), embedding_model, token_count), `jobs` (queue), `knowledge_categories` |
 | 5 Chat | Implemented, see §2c. Citations are stored on the message (jsonb with chunk, document and pages); knowledge gaps are messages with status `no_sources` |
-| 6 Admissions | `programs`, `program_requirements`, `leads` (consent fields, source, stage, assigned_to), `lead_notes`, `lead_events` |
+| 6 Admissions | Implemented, see §2d |
 | 7 Tickets | `ticket_categories`, `tickets` (number per tenant, status, priority, department, assignee, conversation_id, ai_summary), `ticket_messages` (public replies), `ticket_internal_notes` (separate table, staff-only RLS), `ticket_attachments`, `ticket_events`, `assignment_rules` |
 | 8 Analytics | `daily_tenant_metrics` (rollups computed from events; no fabricated numbers) |
 | 9 Academic | `courses`, `course_materials`, `quizzes`, `quiz_questions`, `quiz_attempts`, `topic_mastery` |
