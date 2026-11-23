@@ -24,7 +24,10 @@ create table if not exists auth.users (
   email text,
   email_confirmed_at timestamptz,
   raw_user_meta_data jsonb not null default '{}'::jsonb,
-  created_at timestamptz not null default now()
+  created_at timestamptz not null default now(),
+  -- Supabase Auth columns used by our functions (anonymous sign-ins, last activity).
+  is_anonymous boolean not null default false,
+  last_sign_in_at timestamptz
 );
 
 -- Supabase installs extensions such as pgcrypto into the `extensions` schema.

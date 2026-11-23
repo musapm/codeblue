@@ -146,3 +146,10 @@ Live runs on 2026-11-22 against project "agent":
 - **Browser (preview):** staff pages (inquiries, programs, analytics, settings) render honestly without data and offer no writes; navigation; Arabic; the public page is "not found" without a backend; the admissions endpoint refuses cross-site requests; accessibility of 3 pages.
 - **Visual check:** the public page and the charts were rendered with fictional data through a temporary local-only route (deleted) and checked in English and Arabic.
 - **Live (2026-11-23):** migration applied and byte-identical; `anon` cannot submit inquiries or read programs/leads; `public_admissions` returns `null` for the unpublished demo; anonymous sign-ins are disabled (`anonymous_provider_disabled`), so no visitor flow could run live yet.
+
+### Phase 6 follow-ups
+
+- **Database:** `supabase/tests/admissions-maintenance.test.ts` (6 tests, migration 12): a complete export without internal ids; refused without `leads.read`; every export audited with the reference only; the cleanup cannot be called through the API, refuses fewer than 7 days, and removes only anonymous visitors unused for the period, while inquiries (unlinked) and AI cost records stay. The auth shim now has `is_anonymous` and `last_sign_in_at`.
+- **Unit / browser:** `robots.txt` and `sitemap.xml` (`src/app/seo.test.ts`, and 2 browser checks).
+- **Admissions eval:** `evals/admissions` (10 cases), run with `npm run test:eval` (opt-in, costs money). A run with an invalid key confirmed the path; not run with a real key.
+- **Live:** `e2e/live/live-admissions.spec.ts` is **written but not run**. It needs anonymous sign-ins enabled and `LIVE_ADMISSIONS_TENANT_SLUG` plus an owner account. The flow covers publishing the page and a program, a visitor inquiry with consent, the anonymous session being refused by the workspace, the pipeline, note, export and deletion, and cleanup.

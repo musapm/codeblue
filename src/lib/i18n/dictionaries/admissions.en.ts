@@ -101,6 +101,8 @@ export const admissionsEn = {
       note: 'Note added',
     },
     someone: 'Former member',
+    export: 'Export data (JSON)',
+    exportHint: 'For access requests: everything stored about this person. Each export is recorded in the audit log.',
     delete: 'Delete inquiry',
     deleteConfirm: 'Delete this inquiry with its notes and history? This cannot be undone. Use it for deletion requests.',
     readOnly: 'You can view inquiries; changing them requires the “Manage admissions leads” permission.',

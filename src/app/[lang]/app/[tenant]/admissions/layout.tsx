@@ -30,7 +30,7 @@ export default async function AdmissionsLayout({ children, params }: LayoutProps
       />
       <SettingsTabs
         tabs={[
-          { href: base, label: a.tabs.leads!, exact: true },
+          { href: base, label: a.tabs.leads!, exact: true, also: [`${base}/leads/`] },
           ...(canPrograms ? [{ href: `${base}/programs`, label: a.tabs.programs! }] : []),
           { href: `${base}/analytics`, label: a.tabs.analytics! },
           ...(canSettings ? [{ href: `${base}/settings`, label: a.tabs.settings! }] : []),

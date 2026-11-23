@@ -993,6 +993,7 @@ export type Database = {
         Returns: Json
       }
       admissions_delete_lead: { Args: { p_lead: string }; Returns: undefined }
+      admissions_export_lead: { Args: { p_lead: string }; Returns: Json }
       admissions_search: {
         Args: { p_limit?: number; p_query: string; p_tenant_slug: string }
         Returns: Json

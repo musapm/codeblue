@@ -241,4 +241,4 @@ Format: **ADR-NNN — Title** · Status · Date · Context → Decision → Cons
   - Leads, notes and history need `leads.read`; changes need `leads.manage`. Assignees must be able to read leads.
   - Visitors cannot read their own lead back, and staff cannot read visitors' assistant conversations. A lead created after chatting only records that link (source "assistant").
 
-**Consequences:** Erasure is complete for leads. Exports for data-subject access requests, retention periods and the anonymous-user cleanup remain to be built (TASKS.md).
+**Consequences:** Erasure is complete for leads. The audited export for access requests (`admissions_export_lead`) and the anonymous-visitor cleanup are written and tested in migration 12, which is not applied yet. Retention periods remain a policy decision (TASKS.md).

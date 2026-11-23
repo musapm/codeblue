@@ -31,6 +31,7 @@ Migration file versions match the versions recorded in the project
 | `20261123121337_knowledge_file_cleanup.sql` | Phase 4: managers may see files of deleted documents so they can be removed (fix found by the live test) |
 | `20261123124604_assistant.sql` | Phase 5: assistant settings, conversations, messages, feedback, `ai_usage_events`, budget helper and the `assistant_*` functions. Applied 2026-11-23, byte-identical (MD5 `dcf15abd…`, 18,788 bytes) |
 | `20261123151820_admissions.sql` | Phase 6: admissions settings, programs, consented leads with notes and history, public page function, visitor inquiries and admissions assistant turns (anonymous sessions), per-agent AI budgets, analytics; assistant conversations gain an `agent` column. Applied 2026-11-23, byte-identical (MD5 `46d73168…`, 54,907 bytes) |
+| `20261124100000_admissions_maintenance.sql` | Phase 6: `admissions_export_lead` (audited export of one inquiry for access requests) and `app.cleanup_anonymous_visitors(days)`. **Written and tested locally; not applied yet** (its version number will change to the one Supabase records) |
 
 ## Rules for new migrations
 
@@ -64,3 +65,17 @@ TEST_DATABASE_URL=postgres://postgres:postgres@127.0.0.1:5432/postgres npm run t
 | RLS enabled without policies on `app.role_templates`, `app.role_template_permissions`, `app.admission_lead_counters` | Intentional deny-all; private schema, not exposed through the Data API. |
 | `assistant_*` and `admissions_*` functions (Phases 5–6) | The API. Each checks membership, permissions, the feature and the university's switches itself; visitor functions accept any session (anonymous included) and enforce per-visitor limits. Covered by `tests/assistant.test.ts` and `tests/admissions.test.ts`. |
 | `anon` can execute SECURITY DEFINER `public_admissions` (Phase 6) | Intentional: the public admissions page must load without a session. It returns only published programs and public settings of universities that published their page, and `null` otherwise (no difference between unknown and unpublished). |
+
+## Scheduled cleanup of anonymous visitors (after migration 12)
+
+Anonymous visitor accounts (ADR-025) accumulate. Once migration 12 is applied, enable the `pg_cron`
+extension (Database → Extensions) and schedule the cleanup in the SQL editor:
+
+```sql
+select cron.schedule('cleanup-anonymous-visitors', '17 3 * * *', $$select app.cleanup_anonymous_visitors(30)$$);
+```
+
+It removes anonymous accounts created more than 30 days ago and unused since. Their assistant
+conversations go with them; inquiries stay (without the visitor link) and AI cost records stay.
+To be verified on the live project: that the migration role may delete from `auth.users` (Supabase
+documents this deletion for anonymous users; the local tests use a shim).

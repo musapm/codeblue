@@ -99,3 +99,13 @@ Chronological log of significant work. For the current snapshot see `PROJECT_STA
   - Whole tuition amounts showed `.00`.
   - The settings page blamed permissions in preview mode.
 - **Not live yet:** anonymous sign-ins are disabled on the project, so no visitor flow has run against "agent".
+
+## 2026-11-23: Phase 6 follow-ups (nothing applied to Supabase)
+
+- **Migration 12** (local, 6 DB tests):
+  - an audited export of one inquiry for access requests (JSON download on the inquiry page);
+  - the cleanup of old anonymous visitor accounts, to be scheduled with pg_cron.
+  It waits for the owner's Supabase session.
+- **Admissions eval:** 10 cases; needs the API key.
+- **Live admissions spec:** written, not run.
+- **Other:** `robots.txt` and `sitemap.xml`; the Inquiries tab stays active on inquiry pages.

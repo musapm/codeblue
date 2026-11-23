@@ -286,6 +286,10 @@ Functions:
 | `admissions_add_note(lead, body)` / `admissions_delete_lead(lead)` | `leads.manage` | Notes / erasure (PII-free audit entry) |
 | `admissions_assignees(slug)` / `admissions_analytics(slug)` | `leads.read` | Assignable people / counts by stage, source, program, 12 weekly buckets, assistant usage this month |
 
+Migration 12 `admissions_maintenance` (**written and tested locally, not applied yet**):
+- `admissions_export_lead(lead)`: `leads.read`. Returns everything stored about one inquiry (contact details, program, message, consent record, notes, history without internal ids) and writes a PII-free audit entry `admission_leads.export`. The app downloads it as JSON from the inquiry page.
+- `app.cleanup_anonymous_visitors(days ≥ 7)`: not callable through the API. Deletes anonymous accounts older than N days and unused since. To be scheduled with pg_cron (`supabase/README.md`).
+
 Also changed: `assistant_complete_turn` and `assistant_set_feedback` accept admissions conversations without membership; usage is booked per agent (`app.ai_month_cost(tenant, feature)`), so each agent has its own budget; `assistant_usage_summary` counts student conversations only.
 
 ## 3. Phase 15 — plans, features, subscriptions (planned)

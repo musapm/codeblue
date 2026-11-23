@@ -1,10 +1,11 @@
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
-import { ArrowLeft, Trash2 } from 'lucide-react'
+import { ArrowLeft, Download, Trash2 } from 'lucide-react'
 import { LeadNoteForm, LeadUpdateForm } from '@/components/admissions/staff-forms'
 import { ActionButton } from '@/components/management/action-form'
 import { Alert } from '@/components/ui/alert'
 import { Badge } from '@/components/ui/badge'
+import { buttonClasses } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { deleteLead } from '@/lib/admissions/actions'
 import { getLead, listAssignees, listPrograms } from '@/lib/admissions/queries'
@@ -246,6 +247,14 @@ export default async function LeadPage({ params }: PageProps<'/[lang]/app/[tenan
               </ol>
             </CardContent>
           </Card>
+
+          <div className="space-y-1">
+            <a href={`/api/admissions/${encodeURIComponent(slug)}/leads/${lead.id}/export`} className={buttonClasses({ variant: 'secondary', size: 'sm' })}>
+              <Download aria-hidden />
+              {a.lead.export}
+            </a>
+            <p className="text-xs text-muted-foreground">{a.lead.exportHint}</p>
+          </div>
 
           {canManage ? (
             <ActionButton

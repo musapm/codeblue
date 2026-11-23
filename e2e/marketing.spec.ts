@@ -122,3 +122,22 @@ test.describe('mobile navigation @mobile', () => {
     }
   })
 })
+
+test.describe('search engines', () => {
+  test('robots.txt keeps private areas out and points to the sitemap', async ({ request }) => {
+    const res = await request.get('/robots.txt')
+    expect(res.status()).toBe(200)
+    const body = await res.text()
+    for (const path of ['/api/', '/en/app', '/ar/platform', '/en/login']) expect(body).toContain(`Disallow: ${path}`)
+    expect(body).toMatch(/Sitemap: .*\/sitemap\.xml/)
+  })
+
+  test('sitemap.xml lists the public pages in both languages', async ({ request }) => {
+    const res = await request.get('/sitemap.xml')
+    expect(res.status()).toBe(200)
+    const body = await res.text()
+    expect(body).toContain('/en/pricing</loc>')
+    expect(body).toContain('/ar/pricing</loc>')
+    expect(body).not.toContain('/app')
+  })
+})

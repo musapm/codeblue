@@ -115,10 +115,10 @@ AI-quality review · notifications · subscriptions and plans · voice · integr
 | Suite | Result |
 | --- | --- |
 | Typecheck / lint / build | ✅ |
-| Unit + component (`npm test`) | ✅ 156/156 (incl. both assistants with a fake database and fake model) |
-| Database isolation (`npm run test:db`) | ✅ 136/136 (local PostgreSQL 16; includes migrations 10–11 and anonymous visitors) |
-| Browser e2e, preview mode (`npm run test:e2e`) | ✅ 90/90 (incl. admissions staff pages, both answer endpoints refusing cross-site requests, accessibility) |
-| Live AI eval (`npm run test:eval`, 13 cases) | ⏸ Not run: needs `ANTHROPIC_API_KEY` and your approval to spend (~USD 0.15–0.50 per run) |
+| Unit + component (`npm test`) | ✅ 158/158 (incl. both assistants with a fake database and fake model) |
+| Database isolation (`npm run test:db`) | ✅ 142/142 (local PostgreSQL 16; migrations 10–12, anonymous visitors) |
+| Browser e2e, preview mode (`npm run test:e2e`) | ✅ 92/92 (incl. admissions staff pages, both answer endpoints refusing cross-site requests, robots/sitemap, accessibility) |
+| Live AI eval (`npm run test:eval`, 13 student + 10 admissions cases) | ⏸ Not run: needs `ANTHROPIC_API_KEY` and your approval to spend (~USD 0.15–0.50 per run) |
 | **Live e2e against "agent"** (`e2e/live`, opt-in) | ✅ Phase 3 onboarding path 9/9: steps 1–7 in one run, then 8–9 after a test-selector fix and the support-access fix below. Phase 2 regression 4/4 (the 2 owner cases need a demo-tenant owner and were skipped, see `docs/testing.md`) |
 
 Real defects found by the live run and fixed:
@@ -130,6 +130,7 @@ Real defects found by the live run and fixed:
    - **Enable anonymous sign-ins** in Supabase Auth: Authentication → Sign In / Providers. Without them, visitors cannot send inquiries or use the admissions assistant.
    - **Recommended:** Cloudflare Turnstile. Put the site key in `NEXT_PUBLIC_TURNSTILE_SITE_KEY` and the secret key in Supabase Auth CAPTCHA protection, and enable both together (`docs/authentication.md`, steps 7–8).
    - **Turn on the admissions feature and publish a page** for a university, when you want a live run with real data.
+   - **Migration 12** (audited inquiry export and anonymous-visitor cleanup) is ready in git, but **not applied**. I can apply it whenever you do the Supabase steps. Then enable `pg_cron` and schedule the cleanup (`supabase/README.md`).
    **Phase 5:**
    - **Set `ANTHROPIC_API_KEY`** in the environment settings. Note that anyone using the environment can read it. Then start a new session.
    - **Approve the eval run** (about USD 0.15–0.50).
@@ -176,6 +177,12 @@ Real defects found by the live run and fixed:
   - typecheck, lint and build pass, plus unit 156, DB 136 and browser 90;
   - a visual check of the public page and charts (en/ar) with fictional data;
   - live probes: anonymous callers cannot submit inquiries or read the tables, the unpublished demo page returns nothing, and anonymous sign-ins are disabled on the project.
+- **Follow-ups (2026-11-23):**
+  - migration 12 (local, 6 DB tests): an audited JSON export of an inquiry for access requests, and the anonymous-visitor cleanup;
+  - admissions eval (10 cases, needs the key);
+  - a live admissions spec (written, not run);
+  - `robots.txt` and `sitemap.xml`;
+  - the Inquiries tab stays highlighted on inquiry pages.
 - **Not verified live:**
   - a visitor sending an inquiry or chatting, which needs anonymous sign-ins (and the API key for the assistant);
   - staff using the pipeline against "agent". The database tests cover the same rules, but no live run has been done.

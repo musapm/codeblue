@@ -4,13 +4,14 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { cn } from '@/lib/utils'
 
-export function SettingsTabs({ tabs }: { tabs: { href: string; label: string; exact?: boolean }[] }) {
+/** `also`: extra path prefixes that belong to the tab (e.g. detail pages of an exact tab). */
+export function SettingsTabs({ tabs }: { tabs: { href: string; label: string; exact?: boolean; also?: string[] }[] }) {
   const pathname = usePathname() ?? ''
   return (
     <nav className="border-b border-border">
       <ul className="-mb-px flex gap-6">
         {tabs.map((tab) => {
-          const active = tab.exact ? pathname === tab.href : pathname.startsWith(tab.href)
+          const active = (tab.exact ? pathname === tab.href : pathname.startsWith(tab.href)) || (tab.also ?? []).some((p) => pathname.startsWith(p))
           return (
             <li key={tab.href}>
               <Link

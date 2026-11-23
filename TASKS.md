@@ -104,9 +104,10 @@ Current state: `PROJECT_STATUS.md` · Audit history: `docs/IMPLEMENTATION_AUDIT.
 - [x] Staff workspace: inquiries (filters, search), inquiry detail (pipeline, assignment, notes, history, consent record, delete), manual inquiry, programs (create/edit/publish/archive/delete), analytics (stat tiles, weekly columns, stage/source/program bars with table view), settings (page + assistant)
 - [x] Tests: unit 156, DB 136, browser 90; visual check of the public page and charts with fictional data
 - [ ] **Owner:** enable anonymous sign-ins (+ Turnstile site key and Supabase CAPTCHA together)
-- [ ] Live run: visitor inquiry, admissions question (needs the API key), staff pipeline; then remove test data
-- [ ] Eval cases for the admissions assistant (programs, fees in Arabic/English, "will I be admitted?" refusal, personal data)
-- [ ] Cleanup job for old anonymous users; lead export (access requests) and retention periods
+- [~] Live run: spec written (`e2e/live/live-admissions.spec.ts`), **not run**. Needs anonymous sign-ins; the admissions question also needs the API key
+- [x] Eval cases for the admissions assistant (`evals/admissions`, 10 cases). Built; needs the key to run
+- [~] Migration 12 (`admissions_maintenance`): audited lead export (button on the inquiry page) and the anonymous-visitor cleanup. 6 DB tests. **Not applied yet**; then schedule the cleanup with pg_cron (`supabase/README.md`)
+- [ ] Retention periods for inquiries (policy decision)
 - [ ] Email notification to the admissions office on new inquiries (needs the email provider, Phase 14)
 
 ## Later phases
@@ -119,7 +120,7 @@ subscriptions, security review, launch.
 - [ ] Nonce-based CSP for `/app` and `/platform` (ADR-013)
 - [ ] Remove HSTS `preload` until production domains are final; drop the deprecated `interest-cohort`
 - [ ] Unique landmark ids across retained routes (duplicate `#main` after workspace switch)
-- [ ] `robots.txt` and sitemap
+- [x] `robots.txt` and sitemap (marketing pages; workspaces, console, auth and APIs excluded)
 - [ ] Legal review of Privacy Policy and Terms
 - [ ] Real support/sales emails in production env
 - [ ] Extended e2e viewport matrix
