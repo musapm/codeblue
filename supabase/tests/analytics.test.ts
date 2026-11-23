@@ -301,7 +301,7 @@ describe('numbers come from stored rows only', () => {
   it('admissions inquiries and AI costs (month and period)', async () => {
     const r = await overview(user(U.owner))
     expect(r.admissions).toEqual({ leads: 2, by_source: { form: 1, assistant: 1, manual: 0 } })
-    expect(r.ai.month).toEqual({ student_assistant: 0.5, admissions_agent: 0.25, ticketing: 0.1, academic_agent: 0 })
+    expect(r.ai.month).toEqual({ student_assistant: 0.5, admissions_agent: 0.25, ticketing: 0.1, academic_agent: 0, staff_assistant: 0 })
     expect(r.ai.budgets.student_assistant).toBe(25)
     expect(r.ai.period).toMatchObject({ calls: 3, cost_usd: 0.85, input_tokens: 1700, output_tokens: 170 })
   })
@@ -312,7 +312,7 @@ describe('numbers come from stored rows only', () => {
     const r = await overview(user(U.owner))
     expect(r.tickets).toBeNull()
     expect(r.admissions).toBeNull()
-    expect(Object.keys(r.assistant)).toEqual(['student'])
+    expect(Object.keys(r.assistant).sort()).toEqual(['staff', 'student']) // the staff assistant (Phase 10) is on by default
     await setFeature(tenantA, 'ticketing', true)
     await setFeature(tenantA, 'admissions_agent', true)
   })
