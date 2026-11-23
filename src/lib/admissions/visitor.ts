@@ -1,5 +1,6 @@
 import 'server-only'
 import { headers } from 'next/headers'
+import { cache } from 'react'
 import { getSessionIdentity } from '@/lib/auth/session'
 import { logger } from '@/lib/logger'
 import { clientIpFromHeaders, createMemoryRateLimiter } from '@/lib/rate-limit'
@@ -42,7 +43,7 @@ export async function ensureVisitorSession(captchaToken: string | undefined): Pr
 }
 
 /** The public admissions page of a university, or null (unknown, unpublished, suspended…). */
-export async function getPublicAdmissions(slug: string): Promise<PublicAdmissions | null> {
+export const getPublicAdmissions = cache(async (slug: string): Promise<PublicAdmissions | null> => {
   if (!isSupabaseConfigured()) return null
   const supabase = await createSupabaseServerClient()
   const { data, error } = await supabase.rpc('public_admissions', { p_tenant_slug: slug })
@@ -57,4 +58,4 @@ export async function getPublicAdmissions(slug: string): Promise<PublicAdmission
     return null
   }
   return parsed.data
-}
+})

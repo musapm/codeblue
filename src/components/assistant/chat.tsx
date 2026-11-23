@@ -1,6 +1,6 @@
 'use client'
 
-import { FileText, LifeBuoy, Send, ThumbsDown, ThumbsUp } from 'lucide-react'
+import { FileText, GraduationCap, LifeBuoy, Send, ThumbsDown, ThumbsUp } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { useEffect, useRef, useState, useTransition, type FormEvent, type KeyboardEvent } from 'react'
 import { Alert } from '@/components/ui/alert'
@@ -42,6 +42,9 @@ export type ChatLabels = {
 
 type UiMessage = ChatMessage & { pending?: boolean }
 
+/** How sources link out: documents through a signed link (members) or not at all (visitors); programs to their page. */
+type SourceOptions = { documentLinks: boolean; programHref?: (code: string) => string }
+
 type StreamEvent =
   | { type: 'meta'; conversationId: string }
   | { type: 'status'; stage: 'searching' | 'writing' }
@@ -59,10 +62,15 @@ export function AssistantChat({
   initialMessages,
   unavailable,
   labels,
+  endpoint,
+  documentLinks = true,
+  programHref,
+  onConversation,
 }: {
   tenant: string
   locale: 'en' | 'ar'
-  basePath: string
+  /** Page URL to keep in sync with the conversation (student chat). Omit for embedded chats. */
+  basePath?: string
   assistantName: string
   welcome: string
   conversationId: string | null
@@ -70,8 +78,14 @@ export function AssistantChat({
   /** Why questions cannot be asked right now (null: they can). */
   unavailable: string | null
   labels: ChatLabels
+  /** Default: the student assistant endpoint. */
+  endpoint?: string
+  documentLinks?: boolean
+  programHref?: (code: string) => string
+  onConversation?: (id: string) => void
 }) {
   const router = useRouter()
+  const sourceOptions: SourceOptions = { documentLinks, programHref }
   const [messages, setMessages] = useState<UiMessage[]>(initialMessages)
   const [conversationId, setConversationId] = useState(initialConversationId)
   const [stage, setStage] = useState<'searching' | 'writing' | null>(null)
@@ -99,7 +113,7 @@ export function AssistantChat({
 
     let response: Response
     try {
-      response = await fetch(`/api/assistant/${encodeURIComponent(tenant)}`, {
+      response = await fetch(endpoint ?? `/api/assistant/${encodeURIComponent(tenant)}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ question, conversationId, locale }),
@@ -122,7 +136,8 @@ export function AssistantChat({
         case 'meta':
           if (event.conversationId !== conversationId) {
             setConversationId(event.conversationId)
-            window.history.replaceState(null, '', `${basePath}?c=${event.conversationId}`)
+            onConversation?.(event.conversationId)
+            if (basePath) window.history.replaceState(null, '', `${basePath}?c=${event.conversationId}`)
           }
           break
         case 'status':
@@ -165,7 +180,7 @@ export function AssistantChat({
       fail('generic')
     } finally {
       setStage(null)
-      router.refresh() // the conversation list on the side
+      if (basePath) router.refresh() // the conversation list on the side
     }
   }
 
@@ -199,7 +214,7 @@ export function AssistantChat({
               </p>
             </div>
           ) : (
-            <AssistantMessage key={m.id} message={m} assistantName={assistantName} labels={labels} />
+            <AssistantMessage key={m.id} message={m} assistantName={assistantName} labels={labels} sources={sourceOptions} />
           ),
         )}
         {stage && !messages.some((m) => m.pending) ? (
@@ -244,7 +259,7 @@ export function AssistantChat({
   )
 }
 
-function AssistantMessage({ message, assistantName, labels }: { message: UiMessage; assistantName: string; labels: ChatLabels }) {
+function AssistantMessage({ message, assistantName, labels, sources }: { message: UiMessage; assistantName: string; labels: ChatLabels; sources: SourceOptions }) {
   const statusLabel = message.status !== 'answered' ? labels.statuses[message.status] : undefined
   return (
     <div className="max-w-[92%] space-y-3 rounded-2xl rounded-es-sm border border-border bg-card px-4 py-3 text-sm leading-relaxed">
@@ -255,7 +270,7 @@ function AssistantMessage({ message, assistantName, labels }: { message: UiMessa
       <p className="whitespace-pre-line" dir="auto">
         {renderWithMarkers(message.content)}
       </p>
-      {message.citations.length > 0 ? <SourceList citations={message.citations} labels={labels} /> : null}
+      {message.citations.length > 0 ? <SourceList citations={message.citations} labels={labels} options={sources} /> : null}
       {!message.pending && message.status !== 'error' && !message.id.startsWith('pending-') ? <Feedback message={message} labels={labels} /> : null}
     </div>
   )
@@ -274,7 +289,7 @@ function renderWithMarkers(text: string) {
   )
 }
 
-function SourceList({ citations, labels }: { citations: ChatCitation[]; labels: ChatLabels }) {
+function SourceList({ citations, labels, options }: { citations: ChatCitation[]; labels: ChatLabels; options: SourceOptions }) {
   const [failed, setFailed] = useState<number | null>(null)
   const [pending, startTransition] = useTransition()
 
@@ -307,17 +322,11 @@ function SourceList({ citations, labels }: { citations: ChatCitation[]; labels: 
     <div className="space-y-2">
       <p className="text-xs font-semibold text-muted-foreground">{labels.sources}</p>
       <ol className="space-y-2">
-        {citations.map((c) => (
-          <li key={c.n}>
-            <button
-              type="button"
-              onClick={() => open(c)}
-              disabled={pending}
-              title={labels.openSource}
-              className="flex w-full items-start gap-2.5 rounded-lg border border-border bg-canvas p-2.5 text-start hover:bg-muted/60 disabled:opacity-70"
-            >
+        {citations.map((c) => {
+          const body = (
+            <>
               <span className="mt-0.5 flex size-5 shrink-0 items-center justify-center rounded bg-primary-subtle text-[0.7rem] font-semibold text-primary-subtle-foreground">{c.n}</span>
-              <FileText aria-hidden className="mt-0.5 size-4 shrink-0 text-primary" />
+              {c.program_code ? <GraduationCap aria-hidden className="mt-0.5 size-4 shrink-0 text-primary" /> : <FileText aria-hidden className="mt-0.5 size-4 shrink-0 text-primary" />}
               <span className="min-w-0 flex-1">
                 <span className="block truncate text-xs font-semibold" dir="auto">
                   {c.title}
@@ -329,10 +338,26 @@ function SourceList({ citations, labels }: { citations: ChatCitation[]; labels: 
                   </span>
                 ) : null}
               </span>
-            </button>
-            {failed === c.n ? <p className="mt-1 text-xs text-danger">{labels.sourceUnavailable}</p> : null}
-          </li>
-        ))}
+            </>
+          )
+          const box = 'flex w-full items-start gap-2.5 rounded-lg border border-border bg-canvas p-2.5 text-start'
+          return (
+            <li key={c.n}>
+              {c.program_code && options.programHref ? (
+                <a href={options.programHref(c.program_code)} className={`${box} hover:bg-muted/60`}>
+                  {body}
+                </a>
+              ) : !c.program_code && options.documentLinks ? (
+                <button type="button" onClick={() => open(c)} disabled={pending} title={labels.openSource} className={`${box} hover:bg-muted/60 disabled:opacity-70`}>
+                  {body}
+                </button>
+              ) : (
+                <div className={box}>{body}</div>
+              )}
+              {failed === c.n ? <p className="mt-1 text-xs text-danger">{labels.sourceUnavailable}</p> : null}
+            </li>
+          )
+        })}
       </ol>
     </div>
   )

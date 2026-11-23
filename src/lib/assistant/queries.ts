@@ -24,6 +24,8 @@ export type ChatCitation = {
   page_from: number | null
   page_to: number | null
   cited_text: string
+  program_id?: string
+  program_code?: string
 }
 
 export type ChatMessage = {
@@ -41,11 +43,13 @@ export type ConversationSummary = { id: string; title: string; updatedAt: string
 const citationSchema = z.object({
   n: z.number().int(),
   chunk_id: z.number().int(),
-  document_id: z.string(),
+  document_id: z.string().catch(''),
   title: z.string(),
   page_from: z.number().int().nullable(),
   page_to: z.number().int().nullable(),
   cited_text: z.string().catch(''),
+  program_id: z.string().optional(),
+  program_code: z.string().optional(),
 })
 const citationsSchema = z.array(citationSchema).catch([])
 

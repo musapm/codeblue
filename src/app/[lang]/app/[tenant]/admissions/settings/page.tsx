@@ -67,9 +67,9 @@ export default async function AdmissionsSettingsPage({ params }: PageProps<'/[la
                 saving: dict.management.saving,
               }}
             />
-          ) : (
+          ) : canWrite ? (
             <p className="text-sm text-muted-foreground">{s.noPermission}</p>
-          )}
+          ) : null}
           <div className="rounded-lg border border-border bg-muted/40 p-3 text-sm">
             <p className="text-xs font-medium text-muted-foreground">{s.defaultConsent}</p>
             <p className="mt-1">{a.public.defaultConsent(university)}</p>
@@ -119,9 +119,9 @@ export default async function AdmissionsSettingsPage({ params }: PageProps<'/[la
                 saving: dict.management.saving,
               }}
             />
-          ) : (
+          ) : canWrite ? (
             <p className="text-sm text-muted-foreground">{s.noPermission}</p>
-          )}
+          ) : null}
         </CardContent>
       </Card>
     </div>

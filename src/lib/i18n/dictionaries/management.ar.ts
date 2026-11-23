@@ -282,7 +282,7 @@ export const managementAr: ManagementDictionary = {
       categoryHint: 'مثل: القبول، الرسوم، الامتحانات، السكن.',
       visibility: 'من يمكنه العثور عليها',
       visibilities: {
-        public: 'عامة: الجميع بمن فيهم المتقدمون (في مراحل لاحقة)',
+        public: 'عامة: الجميع بمن فيهم المتقدمون (يجيب منها مساعد القبول)',
         members: 'الأعضاء: الطلاب والموظفون',
         staff: 'الموظفون فقط',
         restricted: 'مقيّدة: أقسام أو أدوار محددة',

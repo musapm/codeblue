@@ -227,6 +227,63 @@ test.describe('student assistant (UI preview mode)', () => {
   }
 })
 
+test.describe('admissions (UI preview mode)', () => {
+  test('staff pages render honestly without data and offer no writes', async ({ page }) => {
+    const errors = trackErrors(page)
+    await page.goto('/en/app/northbridge/admissions')
+    await expect(page.getByRole('heading', { level: 1 })).toHaveText('Admissions')
+    await expect(page.getByText(/No inquiries yet/)).toBeVisible()
+    await expect(page.getByRole('button', { name: 'Save inquiry' })).toHaveCount(0)
+    const tabs = page.getByRole('navigation').filter({ has: page.getByRole('link', { name: 'Inquiries' }) })
+    for (const name of ['Inquiries', 'Programs', 'Analytics', 'Settings']) await expect(tabs.getByRole('link', { name })).toBeVisible()
+    await tabs.getByRole('link', { name: 'Programs' }).click()
+    await expect(page.getByText(/No programs yet/)).toBeVisible()
+    await expect(page.getByRole('button', { name: 'Create program' })).toHaveCount(0)
+    await page.goto('/en/app/northbridge/admissions/analytics')
+    await expect(page.getByText(/nothing here is estimated or sample data/)).toBeVisible()
+    await page.goto('/en/app/northbridge/admissions/settings')
+    await expect(page.getByText(/Anonymous sign-ins must be enabled/)).toBeVisible()
+    expect(errors).toEqual([])
+  })
+
+  test('navigation lists admissions as available', async ({ page }) => {
+    await page.goto('/en/app/northbridge')
+    const nav = page.getByRole('navigation', { name: 'Workspace navigation' }).first()
+    const link = nav.getByRole('link', { name: /Admissions/ })
+    await expect(link).toBeVisible()
+    await expect(link).not.toContainText('P6')
+  })
+
+  test('Arabic admissions page is translated', async ({ page }) => {
+    await page.goto('/ar/app/northbridge/admissions')
+    await expect(page.getByRole('heading', { level: 1 })).toHaveText('القبول')
+  })
+
+  test('the public page of a university without a backend is not found; unknown ids too', async ({ page }) => {
+    await page.goto('/en/admissions/northbridge')
+    await expect(page.getByRole('heading', { name: 'Page not found' })).toBeVisible()
+    await page.goto('/en/app/northbridge/admissions/leads/00000000-0000-4000-8000-000000000000')
+    await expect(page.getByRole('heading', { name: 'Page not found' })).toBeVisible()
+  })
+
+  test('the admissions endpoint refuses cross-site requests and needs a backend', async ({ request, baseURL }) => {
+    const body = { question: 'Which programs do you offer?', locale: 'en' }
+    expect((await request.post('/api/admissions/northbridge', { data: body, headers: { Origin: 'https://evil.example' } })).status()).toBe(403)
+    const preview = await request.post('/api/admissions/northbridge', { data: body, headers: { Origin: new URL(baseURL!).origin } })
+    expect(preview.status()).toBe(503)
+    expect(await preview.json()).toEqual({ error: 'notConfigured' })
+  })
+
+  for (const path of ['/en/app/northbridge/admissions', '/en/app/northbridge/admissions/programs', '/ar/app/northbridge/admissions/settings']) {
+    test(`${path} has no serious accessibility violations`, async ({ page }) => {
+      await page.goto(path)
+      const results = await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa']).analyze()
+      const serious = results.violations.filter((v) => v.impact === 'serious' || v.impact === 'critical')
+      expect(serious.map((v) => `${v.id}: ${v.nodes.length} node(s)`)).toEqual([])
+    })
+  }
+})
+
 test.describe('workspace on mobile @mobile', () => {
   test('sidebar is available from the menu button', async ({ page }) => {
     await page.goto('/en/app/northbridge')

@@ -24,7 +24,8 @@ export function programName(locale: Locale, p: Pick<Program, 'name' | 'name_ar'>
 
 export function money(locale: Locale, amount: number, currency: string): string {
   try {
-    return new Intl.NumberFormat(locale === 'ar' ? 'ar' : 'en', { style: 'currency', currency, maximumFractionDigits: 2 }).format(amount)
+    const whole = Number.isInteger(amount)
+    return new Intl.NumberFormat(locale === 'ar' ? 'ar' : 'en', { style: 'currency', currency, minimumFractionDigits: whole ? 0 : 2, maximumFractionDigits: 2 }).format(amount)
   } catch {
     return `${amount} ${currency}`
   }

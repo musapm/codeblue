@@ -284,7 +284,7 @@ export const managementEn = {
       categoryHint: 'For example: Admissions, Fees, Exams, Housing.',
       visibility: 'Who can find it',
       visibilities: {
-        public: 'Public: anyone, including applicants (later phases)',
+        public: 'Public: anyone, including applicants (the admissions assistant answers from it)',
         members: 'Members: students and staff',
         staff: 'Staff only',
         restricted: 'Restricted: selected departments or roles',
