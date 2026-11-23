@@ -12,7 +12,7 @@ UniAgent AI now has a **tested multi-tenant foundation plus real university mana
 
 **Knowledge base (Phase 4):** verified live.
 
-**Student assistant (Phase 5):** built and tested locally. Students ask questions, and answers come only from published documents, with numbered sources that open the cited page. It is **not live yet**: migration 10 must be applied to "agent", and an Anthropic API key must be set. The live AI eval has not been run.
+**Student assistant (Phase 5):** built and tested locally. Students ask questions, and answers come only from published documents, with numbered sources that open the cited page. Its database (migration 10) is **applied to "agent"** and verified. It cannot answer yet because no Anthropic API key is set. The live AI eval has not been run.
 
 **Not built yet:** tickets, analytics, admissions and the other assistants. Invitations are not emailed yet: the link is shown once to copy and send.
 
@@ -23,7 +23,7 @@ UniAgent AI now has a **tested multi-tenant foundation plus real university mana
 | 2: Auth, tenants & security foundation | ✅ Core complete (isolation gate passed). Auth email settings need your input |
 | 3: Super Admin & university management | ✅ **Core complete, verified live.** Deferred: invitation email, custom roles, sign-up domains (see TASKS.md) |
 | 4: Knowledge base | ✅ **Core complete, verified live (6/6).** Embeddings need a provider key (ADR-021) |
-| 5: Student assistant | 🟡 **Built and tested locally** (unit, DB, browser). Live verification needs migration 10 applied and `ANTHROPIC_API_KEY` |
+| 5: Student assistant | 🟡 **Built and tested** (unit, DB, browser); migration 10 applied and verified. Answers need `ANTHROPIC_API_KEY`; the live eval and live chat test are pending |
 | 6–17 | Not started |
 
 ## Supabase project "agent"
@@ -32,7 +32,7 @@ UniAgent AI now has a **tested multi-tenant foundation plus real university mana
 | --- | --- |
 | Ref / URL | `zijruhuvzxtuudsvnwgy` · `https://zijruhuvzxtuudsvnwgy.supabase.co` |
 | Region / plan | eu-central-1 (Frankfurt) · **Free** (no backups) |
-| Schema | 22 tables + private templates, all with RLS. **9 migrations**, byte-identical to git (`supabase/README.md`). pgvector 0.8.2. Buckets `tenant-assets` (public logos) and `tenant-documents` (private originals). **Migration 10 (`assistant`, 5 tables) is in git but not applied yet** |
+| Schema | 27 tables + private templates, all with RLS. **10 migrations**, byte-identical to git (`supabase/README.md`). pgvector 0.8.2. Buckets `tenant-assets` (public logos) and `tenant-documents` (private originals) |
 | Data | 1 fictional demo university ("Northbridge"). The Phase 3 live run's temporary accounts and test universities: see "Cleanup" below |
 | Advisors | Only documented, intended findings (`supabase/README.md`) |
 | Auth settings | **Not configured yet:** Site URL, redirect URLs, SMTP, email templates (owner action, `docs/authentication.md`) |
@@ -72,7 +72,7 @@ UniAgent AI now has a **tested multi-tenant foundation plus real university mana
 - Security baseline (headers, validation, redirect guard, redaction), error pages, health endpoint.
 
 ### 2. Implemented but not connected to a real backend
-- **Student assistant** (chat, settings page, answer pipeline, budget): tested with a local database and a fake model. It needs migration 10 on "agent" and an API key before it can answer anyone.
+- **Student assistant** (chat, settings page, answer pipeline, budget): tested with a local database and a fake model. Its tables and functions are live on "agent". It needs an API key before it can answer anyone.
 - **Contact/demo form:** validates; not stored (`platform_inquiries` not built).
 - **Rate limiting:** in-memory per instance (now also on invitations, uploads, university creation).
 
@@ -116,7 +116,6 @@ Real defects found by the live run and fixed:
 
 ## Decisions and actions needed from you
 0. **Phase 5:**
-   - **Apply migration 10** (`assistant`): I will request it, and you confirm the Supabase prompt.
    - **Set `ANTHROPIC_API_KEY`** in the environment settings. Note that anyone using the environment can read it. Then start a new session.
    - **Approve the eval run** (about USD 0.15–0.50).
 1. **Enable leaked-password protection** in Supabase Auth (security advisor finding).
@@ -143,15 +142,15 @@ Real defects found by the live run and fixed:
 
 ## Phase 5 status (2026-11-23)
 - **Built:**
-  - migration 10 `assistant` (local, 9 DB tests);
+  - migration 10 `assistant` (9 DB tests). **Applied to "agent"** as version `20261123124604`: byte-identical, RLS and grants checked live, security advisors show only the documented intended findings, and the generated types match;
   - the answer pipeline (`src/lib/ai`): retrieval as the student, no model call without passages, Claude Opus 5.5 with citable `search_result` blocks, refusal fallbacks, citations mapped to pages, and usage with estimated cost;
   - the streaming endpoint `/api/assistant/[tenant]`;
   - the student chat `/app/[tenant]/ask` and the settings page `/app/[tenant]/assistant`;
   - the eval suite `evals/assistant` (13 cases).
 - **Verified:** typecheck, lint and build pass, plus unit 143, DB 108 and browser 82. An eval run with a deliberately invalid key confirmed that the API is reachable from this environment and that errors are handled (no cost).
-- **Not verified yet:** real answers from the model, citation quality in Arabic and English, cost per answer, and the chat against "agent". These need the migration and the key; no results are claimed until then.
+- **Not verified yet:** real answers from the model, citation quality in Arabic and English, cost per answer, and the chat against "agent". These need the API key; no results are claimed until then.
 
 ## Next steps
-1. Phase 5 go-live: apply migration 10, set the API key, run the eval, then write and run a live chat test against "agent" (student asks, sources open, staff-only documents are never cited).
+1. Phase 5 go-live: set the API key, run the eval, then write and run a live chat test against "agent" (student asks, sources open, staff-only documents are never cited).
 2. Phase 3 follow-ups: invitation email (after the provider decision), custom roles editor, sign-up domains.
 3. Operational: CI pipeline (`check` + `test:db` + e2e), error tracking, shared rate limiting, inquiry storage.

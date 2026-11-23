@@ -137,4 +137,4 @@ Live runs on 2026-11-22 against project "agent":
 - **Unit:** `src/lib/ai/ai.test.ts` (prices, system prompt, follow-up retrieval, message layout with `search_result` blocks, citation mapping) and `src/lib/ai/assistant.test.ts` (the whole turn with a fake database and a fake Anthropic SDK: gates, no model call without passages, streamed answer with citations and recorded usage, knowledge gap, refusal, API failure). No network, no cost.
 - **Browser (preview):** the chat and settings pages, disabled composer, Arabic RTL, accessibility, and the answer endpoint refusing cross-site requests (403) and doing nothing in preview mode (503).
 - **Live AI eval:** `evals/assistant` (13 cases), see `docs/ai-evals.md`. Not run yet.
-- **Not yet live-tested:** the chat against the real project "agent" (migration 10 must be applied first, and the API key set).
+- **Not yet live-tested:** the chat against the real project "agent". Migration 10 is applied; the API key is still missing.

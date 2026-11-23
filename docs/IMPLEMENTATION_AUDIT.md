@@ -20,7 +20,7 @@ _Date: 2026-11-21 · Commit audited: `136cba1` · Auditor: engineering (Claude C
 > | 2.1/2.2 Workspace and tenant context on fixtures | ✅ Real data for signed-in users. Preview fixtures only when no backend is configured |
 > | 5.3/5.4 Auth success paths, Auth config | ⚠️ Password sign-in and sign-out verified live. **Email flows still need your Supabase Auth settings + SMTP** (see `docs/authentication.md`) |
 > | Knowledge base (Phase 4, 2026-11-23) | ✅ Implemented and verified live 6/6. Embeddings wait for a provider key (ADR-021) |
-> | AI integration, RAG, citations, student assistant (Phase 5, 2026-11-23) | 🟡 **Implemented and tested locally** (fake model + local DB). Not live: migration 10 is not applied and no API key is set. The live eval has not run. Marketing chat previews remain labelled illustrations |
+> | AI integration, RAG, citations, student assistant (Phase 5, 2026-11-23) | 🟡 **Implemented and tested locally** (fake model + local DB). Migration 10 is applied to "agent"; no API key is set, so it does not answer yet. The live eval has not run. Marketing chat previews remain labelled illustrations |
 > | Other assistants, tickets, analytics, backups | ❌ Not implemented (later phases); backups need a paid plan. Branding persistence is now done |
 
 This audit describes what the code **actually does today**. It does not describe what the UI suggests

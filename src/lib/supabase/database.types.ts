@@ -3,8 +3,9 @@
 // Knowledge entries (migration 8) were compared with the generated types on 2026-11-23: rows, functions and
 // enums match. Intentional deviations: Insert/Update are `never` (all writes go through the knowledge_*
 // functions) and knowledge_begin_upload.p_document accepts null (new document), which PostgREST passes through.
-// Assistant entries (migration 10) are hand-written from the migration until it is applied and regenerated;
-// nullable p_conversation / p_model / p_usage / p_comment are passed through by PostgREST as SQL null.
+// Assistant entries (migration 10) were compared with the generated types on 2026-11-23: rows and functions match.
+// Same intentional deviations: Insert/Update are `never`, and p_conversation / p_model / p_usage / p_comment /
+// p_instructions accept null (PostgREST passes SQL null).
 
 export type Json =
   | string

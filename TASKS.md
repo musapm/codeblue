@@ -79,9 +79,9 @@ Current state: `PROJECT_STATUS.md` · Audit history: `docs/IMPLEMENTATION_AUDIT.
 - [ ] Background worker with retries for large files (currently processed after the upload response, with the uploader's session; ADR-022)
 - [ ] Virus-scan hook
 
-## Phase 5: Student assistant (AI + RAG + citations) 🟡 built and tested locally; not live yet
+## Phase 5: Student assistant (AI + RAG + citations) 🟡 built and tested; database live; waiting for the API key
 
-- [~] Migration 10 `assistant` (settings, conversations, messages, feedback, usage, budget gate): written, 9 DB tests pass locally. **Not applied to "agent" yet** (needs your confirmation in the Supabase prompt); then regenerate types (hand-written for now)
+- [x] Migration 10 `assistant` (settings, conversations, messages, feedback, usage, budget gate): 9 DB tests; applied to "agent" (byte-identical), RLS/grants/advisors checked live, generated types compared
 - [x] Gates in the database: permission `assistant.use`, feature `student_assistant`, on/off switch, monthly budget, question length; conversations private to their author
 - [x] Answer pipeline (`src/lib/ai`): retrieval as the student, no model call without passages, Claude Opus 5.5 (effort medium, adaptive thinking, refusal fallbacks), passages as `search_result` blocks, citations mapped to chunks and pages, knowledge gaps, refusals and errors stored with usage and estimated cost (ADR-023, ADR-024)
 - [x] Streaming endpoint `/api/assistant/[tenant]` (NDJSON; same-origin, JSON, auth, rate limit); turns complete even if the student leaves
@@ -89,7 +89,7 @@ Current state: `PROJECT_STATUS.md` · Audit history: `docs/IMPLEMENTATION_AUDIT.
 - [x] Settings `/app/[tenant]/assistant`: on/off, extra guidance (cannot override safety rules), monthly budget, this month's usage and estimated cost
 - [x] Tests: unit 143 (26 new: prompt, citations, prices, whole turn with fakes), DB 108, browser 82 (6 new incl. cross-site refusal of the endpoint)
 - [~] Eval suite `evals/assistant` (13 cases: English, Arabic, cross-language, mixed, follow-up, unanswerable, injection in document and question, personal data, cross-tenant). **Not run yet: needs `ANTHROPIC_API_KEY` and your approval to spend** (about USD 0.15–0.50 per run, docs/ai-evals.md)
-- [ ] Live test of the chat against "agent" (after migration 10 and the API key)
+- [ ] Live test of the chat against "agent" (needs the API key)
 - [ ] Record turns with a service-role worker instead of the student's session (integrity caveat, ADR-024)
 - [ ] Shared (not in-memory) rate limiting for the endpoint (same item as Operations)
 - [ ] Ticket drafts from the chat (Phase 7) and admin review of negative feedback / knowledge gaps (Phase 8 "AI quality")

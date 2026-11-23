@@ -238,7 +238,7 @@ Guards:
 
 Storage: public bucket `tenant-assets` (1 MB, PNG/JPEG/WebP). Insert/update/delete/list require `tenant.branding.manage` for the tenant in the first path segment (`app.try_uuid`). `app.valid_branding` limits `logo_path` to `<uuid>/<safe name>`.
 
-## 2c. Phase 5 — student assistant (migration 10 `assistant`, written and tested locally; **not yet applied** to "agent")
+## 2c. Phase 5 — student assistant (implemented, migration 10 `assistant`, applied 2026-11-23)
 
 | Table | Columns (main) | RLS (select only; all writes go through functions) |
 | --- | --- | --- |

@@ -77,7 +77,7 @@ Chronological log of significant work. For the current snapshot see `PROJECT_STA
 
 ## 2026-11-23: Phase 5 (student assistant), built and tested locally
 
-- **Database:** migration 10 `assistant` (settings, private conversations and messages, feedback, `ai_usage_events`, budget gate, six `assistant_*` functions). 9 DB tests pass locally (108 total). Not yet applied to "agent".
+- **Database:** migration 10 `assistant` (settings, private conversations and messages, feedback, `ai_usage_events`, budget gate, six `assistant_*` functions). 9 DB tests pass locally (108 total). Applied to "agent" (version `20261123124604`), byte-identical; RLS, grants, advisors and generated types checked.
 - **AI pipeline:** retrieval with the student's own permissions; no model call when nothing readable matches; Claude Opus 5.5 with passages as `search_result` blocks, so every cited sentence maps back to a stored passage and page; refusals, knowledge gaps and errors are stored with tokens and estimated cost. Monthly budget per university is enforced in the database.
 - **App:** streaming chat for students (sources open the cited document; feedback; history; Arabic/English) and a settings page for administrators (switch, guidance, budget, usage).
 - **Tests:** 143 unit (incl. the whole turn with a fake database and fake SDK), 108 DB, 82 browser. The live AI eval (13 cases) is built but **not run**: there is no API key in this environment yet.
