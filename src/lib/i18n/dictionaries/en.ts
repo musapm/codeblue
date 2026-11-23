@@ -1,4 +1,5 @@
 import type { PlatformBranding } from '@/lib/branding/platform'
+import { admissionsEn } from './admissions.en'
 import { managementEn } from './management.en'
 
 /**
@@ -141,6 +142,13 @@ export const en = (brand: PlatformBranding) => ({
     restrictedNeedsAccess: 'Choose at least one department or role that may read this document.',
     searchQueryRequired: 'Type at least 2 characters.',
     budgetInvalid: 'Enter an amount between 0 and 100,000.',
+    contactRequired: 'Give an email address or a phone number.',
+    phoneInvalid: 'Use digits, spaces, brackets, dashes and an optional + (6–32 characters).',
+    consentNoteRequired: 'Describe how consent was given (at least 10 characters).',
+    codeInvalid: 'Use up to 32 letters, digits, dots, dashes or underscores.',
+    currencyInvalid: 'Use a three-letter currency code such as USD.',
+    tuitionIncomplete: 'Give the amount, the currency and the period together.',
+    numberInvalid: 'Enter a valid number.',
   },
   contactForm: {
     name: 'Full name',
@@ -314,7 +322,9 @@ export const en = (brand: PlatformBranding) => ({
       nextStepsTitle: 'Next milestone',
       nextSteps: 'Phase 4 adds the knowledge base: upload official documents, process them in the background and search them with citations, scoped to each university.',
     },
-  },  management: managementEn,
+  },
+  management: managementEn,
+  admissions: admissionsEn,
 })
 
 export type Dictionary = ReturnType<typeof en>

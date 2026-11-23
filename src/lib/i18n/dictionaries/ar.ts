@@ -1,5 +1,6 @@
 import type { PlatformBranding } from '@/lib/branding/platform'
 import type { Dictionary } from './en'
+import { admissionsAr } from './admissions.ar'
 import { managementAr } from './management.ar'
 
 /** Arabic UI dictionary (Modern Standard Arabic). Must match the English shape exactly. */
@@ -139,6 +140,13 @@ export const ar = (brand: PlatformBranding): Dictionary => ({
     restrictedNeedsAccess: 'اختر قسماً أو دوراً واحداً على الأقل يُسمح له بقراءة هذه الوثيقة.',
     searchQueryRequired: 'اكتب حرفين على الأقل.',
     budgetInvalid: 'أدخل مبلغًا بين 0 و100000.',
+    contactRequired: 'أدخل بريدًا إلكترونيًا أو رقم هاتف.',
+    phoneInvalid: 'استخدم أرقامًا ومسافات وأقواسًا وشرطات مع + اختيارية (6–32 حرفًا).',
+    consentNoteRequired: 'صف كيف أُعطيت الموافقة (10 أحرف على الأقل).',
+    codeInvalid: 'استخدم حتى 32 حرفًا لاتينيًا أو رقمًا أو نقطة أو شرطة أو شرطة سفلية.',
+    currencyInvalid: 'استخدم رمز عملة من ثلاثة أحرف مثل USD.',
+    tuitionIncomplete: 'أدخل المبلغ والعملة والفترة معًا.',
+    numberInvalid: 'أدخل رقمًا صحيحًا.',
   },
   contactForm: {
     name: 'الاسم الكامل',
@@ -314,4 +322,5 @@ export const ar = (brand: PlatformBranding): Dictionary => ({
     },
   },
   management: managementAr,
+  admissions: admissionsAr,
 })

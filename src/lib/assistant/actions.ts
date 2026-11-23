@@ -6,6 +6,8 @@ import { toFieldErrors } from '@/lib/auth/schemas'
 import { beginAction, dbFailure, formValues, isActionContext, log } from '@/lib/management/action-helpers'
 import { errorState, successState, type ActionState } from '@/lib/management/action-state'
 import { slugField } from '@/lib/management/schemas'
+import { getSessionIdentity } from '@/lib/auth/session'
+import { createSupabaseServerClient } from '@/lib/supabase/server'
 
 /** Assistant Server Actions. The database authorizes each one again (assistant_* functions, RLS). */
 
@@ -40,12 +42,16 @@ const feedbackSchema = z.object({
   comment: z.string().trim().max(1000).optional(),
 })
 
+/**
+ * Rate an answer. Any session may call this, including anonymous admissions visitors: the
+ * database only accepts feedback on answers in the caller's own conversations.
+ */
 export async function setAssistantFeedback(input: { messageId: string; rating: 1 | -1; comment?: string }): Promise<ActionState> {
-  const ctx = await beginAction()
-  if (!isActionContext(ctx)) return ctx
+  if (!(await getSessionIdentity())) return errorState('forbidden')
   const parsed = feedbackSchema.safeParse(input)
   if (!parsed.success) return errorState('invalid')
-  const { error } = await ctx.supabase.rpc('assistant_set_feedback', {
+  const supabase = await createSupabaseServerClient()
+  const { error } = await supabase.rpc('assistant_set_feedback', {
     p_message: parsed.data.messageId,
     p_rating: parsed.data.rating,
     p_comment: parsed.data.comment || null,

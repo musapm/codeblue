@@ -61,6 +61,7 @@ const limiters = {
   upload: createMemoryRateLimiter({ limit: 20, windowMs: 10 * 60_000 }),
   tenant: createMemoryRateLimiter({ limit: 20, windowMs: 60 * 60_000 }),
   accept: createMemoryRateLimiter({ limit: 20, windowMs: 10 * 60_000 }),
+  lead: createMemoryRateLimiter({ limit: 60, windowMs: 10 * 60_000 }),
 }
 
 export async function isRateLimited(kind: keyof typeof limiters, userId: string): Promise<boolean> {

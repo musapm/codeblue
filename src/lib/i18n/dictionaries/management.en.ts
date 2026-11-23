@@ -15,6 +15,7 @@ export const managementEn = {
     supportReadOnly: 'Support access is read-only.',
     notConfigured: 'The database is not configured in this environment.',
     rateLimited: 'Too many requests. Wait a few minutes and try again.',
+    inUse: 'This item is still in use (for example, a program that has inquiries). Archive it instead.',
     generic: 'Something went wrong. Please try again.',
   },
   saved: 'Saved.',

@@ -52,11 +52,11 @@ function fakeSupabase(opts: { begin?: { data?: unknown; error?: { code: string }
   const supabase = {
     rpc: async (fn: string, args: Record<string, unknown>) => {
       calls.push({ fn, args })
-      if (fn === 'assistant_begin_turn')
+      if (fn === 'assistant_begin_turn' || fn === 'admissions_begin_turn')
         return opts.begin?.error
           ? { data: null, error: opts.begin.error }
           : { data: opts.begin?.data ?? { conversation_id: 'conv-1', history: [], instructions: null, support_email: 'help@uni.example' }, error: null }
-      if (fn === 'search_knowledge') return { data: opts.search ?? [], error: null }
+      if (fn === 'search_knowledge' || fn === 'admissions_search') return { data: opts.search ?? [], error: null }
       if (fn === 'assistant_complete_turn') return { data: 'msg-1', error: null }
       return { data: null, error: { code: 'XX000' } }
     },
@@ -79,7 +79,7 @@ const passage = {
 
 const texts = { noSources: (email: string | null) => `NOT FOUND ${email ?? '-'}`, refused: 'REFUSED', failed: 'FAILED' }
 
-async function run(supabase: never, question = 'How much is tuition?') {
+async function run(supabase: never, question = 'How much is tuition?', extra: Partial<Parameters<typeof answerQuestion>[0]> = {}) {
   const events = []
   for await (const e of answerQuestion({
     supabase,
@@ -89,6 +89,7 @@ async function run(supabase: never, question = 'How much is tuition?') {
     locale: 'en',
     university: { universityName: 'Uni', assistantName: 'Ava' },
     texts,
+    ...extra,
   }))
     events.push(e)
   return events
@@ -188,5 +189,60 @@ describe('answerQuestion', () => {
     })
     await run(supabase, 'When is it due?')
     expect(calls.find((c) => c.fn === 'search_knowledge')!.args).toMatchObject({ p_tenant_slug: 'uni', p_query: 'How much is tuition? When is it due?', p_limit: 6 })
+  })
+})
+
+describe('answerQuestion (admissions agent)', () => {
+  const programChunk = {
+    chunk_id: -1,
+    document_id: '',
+    version_no: 0,
+    title: 'Computer Science',
+    title_ar: null,
+    page_from: null,
+    page_to: null,
+    heading: null,
+    content: 'Program: Computer Science (code CS-BSC)\nTuition: 1200 USD per semester',
+    score: 0,
+    program_id: 'prog-1',
+    program_code: 'CS-BSC',
+  }
+
+  it('uses the admissions functions, public retrieval and applicant rules; programs are citable', async () => {
+    state.final = {
+      model: 'claude-opus-5-5',
+      stop_reason: 'end_turn',
+      usage,
+      content: [{ type: 'text', text: 'Tuition is 1200 USD per semester.', citations: [{ type: 'search_result_location', search_result_index: 1, cited_text: 'Tuition: 1200 USD per semester' }] }],
+    }
+    const { supabase, calls } = fakeSupabase({ search: [passage] })
+    const events = await run(supabase, 'How much is computer science?', { agent: 'admissions', programs: [programChunk] })
+    expect(calls.map((c) => c.fn)).toEqual(['admissions_begin_turn', 'admissions_search', 'assistant_complete_turn'])
+    const params = state.streamCalls[0] as { system: Array<{ text: string }>; messages: Array<{ content: Array<{ type: string; source?: string }> }> }
+    expect(params.system[0]!.text).toMatch(/admissions assistant/)
+    expect(params.system[0]!.text).toMatch(/Never promise admission/)
+    expect(params.messages.at(-1)!.content.filter((b) => b.type === 'search_result').map((b) => b.source)).toEqual(['kb://doc-1/v1#chunk-42', 'program://prog-1'])
+    expect(events.at(-1)).toMatchObject({ type: 'done', status: 'answered', citations: [{ n: 1, program_id: 'prog-1', program_code: 'CS-BSC', title: 'Computer Science' }] })
+  })
+
+  it('maps the per-visitor daily limit and answers from programs alone when no document matches', async () => {
+    const limited = fakeSupabase({ begin: { error: { code: '54000' } } })
+    expect(await run(limited.supabase, 'Fees?', { agent: 'admissions' })).toEqual([{ type: 'error', error: 'limit' }])
+
+    state.final = { model: 'claude-opus-5-5', stop_reason: 'end_turn', usage, content: [{ type: 'text', text: 'See the program.', citations: [{ type: 'search_result_location', search_result_index: 0, cited_text: 'x' }] }] }
+    const { supabase } = fakeSupabase({ search: [] })
+    expect((await run(supabase, 'Fees?', { agent: 'admissions', programs: [programChunk] })).at(-1)).toMatchObject({ status: 'answered' })
+  })
+
+  it('makes no model call when there is neither a document nor a program', async () => {
+    const { supabase } = fakeSupabase({ search: [] })
+    expect((await run(supabase, 'Fees?', { agent: 'admissions', programs: [] })).at(-1)).toMatchObject({ status: 'no_sources', text: 'NOT FOUND help@uni.example' })
+    expect(state.streamCalls).toHaveLength(0)
+  })
+
+  it('student questions never receive program records', async () => {
+    const { supabase } = fakeSupabase({ search: [] })
+    expect((await run(supabase, 'Fees?', { programs: [programChunk] })).at(-1)).toMatchObject({ status: 'no_sources' })
+    expect(state.streamCalls).toHaveLength(0)
   })
 })

@@ -1,6 +1,6 @@
-import { after } from 'next/server'
 import { z } from 'zod'
-import { answerQuestion, type AssistantEvent } from '@/lib/ai/assistant'
+import { answerQuestion } from '@/lib/ai/assistant'
+import { ARABIC, isSameOrigin, jsonError as fail, ndjsonResponse } from '@/lib/ai/http'
 import { getCurrentUser } from '@/lib/auth/session'
 import { getDictionary } from '@/lib/i18n/get-dictionary'
 import { logger } from '@/lib/logger'
@@ -32,25 +32,6 @@ const bodySchema = z.object({
 const perUser = createMemoryRateLimiter({ limit: 20, windowMs: 5 * 60_000 })
 const perIp = createMemoryRateLimiter({ limit: 60, windowMs: 5 * 60_000 })
 
-const NO_STORE = { 'Cache-Control': 'no-store' }
-
-function fail(status: number, error: string): Response {
-  return Response.json({ error }, { status, headers: NO_STORE })
-}
-
-/** Browsers always send Origin on cross-origin POSTs; require it to match this host. */
-function isSameOrigin(request: Request): boolean {
-  const origin = request.headers.get('origin')
-  const host = request.headers.get('x-forwarded-host') ?? request.headers.get('host')
-  if (!origin || !host) return false
-  try {
-    return new URL(origin).host === host
-  } catch {
-    return false
-  }
-}
-
-const ARABIC = /\p{Script=Arabic}/u
 
 export async function POST(request: Request, ctx: { params: Promise<{ tenant: string }> }) {
   if (!isSameOrigin(request)) return fail(403, 'forbidden')
@@ -102,47 +83,5 @@ export async function POST(request: Request, ctx: { params: Promise<{ tenant: st
     texts: dict.management.assistant.answers,
   })
 
-  return new Response(toNdjson(events), {
-    headers: { ...NO_STORE, 'Content-Type': 'application/x-ndjson; charset=utf-8', 'X-Content-Type-Options': 'nosniff' },
-  })
-}
-
-/**
- * Stream the events as NDJSON. The generator always runs to the end, even if the student
- * closes the page, so the answer and its usage are still stored (and billed usage recorded);
- * `after()` keeps the request alive until then.
- */
-function toNdjson(events: AsyncGenerator<AssistantEvent>): ReadableStream<Uint8Array> {
-  const encoder = new TextEncoder()
-  let markDone!: () => void
-  after(new Promise<void>((resolve) => (markDone = resolve)))
-
-  return new ReadableStream<Uint8Array>({
-    async start(controller) {
-      let open = true
-      const send = (event: AssistantEvent) => {
-        if (!open) return
-        try {
-          controller.enqueue(encoder.encode(`${JSON.stringify(event)}\n`))
-        } catch {
-          open = false // the client went away; keep consuming so the turn is stored
-        }
-      }
-      try {
-        for await (const event of events) send(event)
-      } catch (error) {
-        log.error('assistant.stream_failed', { error })
-        send({ type: 'error', error: 'generic' })
-      } finally {
-        markDone()
-        if (open) {
-          try {
-            controller.close()
-          } catch {
-            // already closed by the client
-          }
-        }
-      }
-    },
-  })
+  return ndjsonResponse(events)
 }

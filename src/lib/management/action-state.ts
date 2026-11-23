@@ -16,6 +16,7 @@ export const ACTION_ERRORS = [
   'supportReadOnly',
   'notConfigured',
   'rateLimited',
+  'inUse',
   'generic',
 ] as const
 
