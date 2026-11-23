@@ -7,7 +7,7 @@ Current state: `PROJECT_STATUS.md` · Audit history: `docs/IMPLEMENTATION_AUDIT.
 ## Phase 0: Discovery, architecture, planning ✅
 
 - [x] Inspection, architecture, database, isolation, authn/authz, AI, RAG, deployment, security docs
-- [x] Roadmap, ADR-001…020, implementation audit
+- [x] Roadmap, ADR-001…022, implementation audit
 
 ## Phase 1: Foundation & design system ✅
 
@@ -58,6 +58,25 @@ Current state: `PROJECT_STATUS.md` · Audit history: `docs/IMPLEMENTATION_AUDIT.
 - [x] Tests: 30 new database tests (invitations, escalation, owner guard, profile, branding, platform functions, T16 storage), unit tests, preview e2e + axe, live onboarding suite (`e2e/live/live-management.spec.ts`)
 - [ ] Remove replaced logo files from storage (cleanup job)
 - [ ] Live re-run of the 2 Phase 2 owner cases with a dedicated demo-tenant owner (blocked from deletion by the owner guard; needs a second owner or a dedicated test tenant)
+
+## Phase 4: Knowledge base & ingestion (built and tested locally; live run pending)
+
+- [~] Migration 8 `knowledge` written and tested locally (98 DB tests). **Not applied to "agent" yet**: the Supabase connector's confirmation prompt has not been answered
+- [x] Tables: knowledge_documents (metadata, visibility, authority, dates, source URL), knowledge_document_versions (upload state machine, hash, page/char/chunk counts, safe error codes), knowledge_chunks (Arabic + English full-text, optional pgvector embedding + model), knowledge_document_access (restricted lists)
+- [x] Visibility: public / members / staff / restricted (departments, roles); drafts hidden until published (knowledge.publish); archived and expired documents excluded; support sessions excluded
+- [x] Atomic version activation (retrieval never mixes versions); deletion removes versions + chunks in one transaction, then files
+- [x] search_knowledge: permission filter before ranking, full-text (Arabic stemmer + normalization, English stemmer), optional vector similarity with RRF fusion, authority/priority boost
+- [x] Private bucket `tenant-documents`: uploads only to registered paths; originals readable by document readers (signed URLs)
+- [x] T16 (original files) and T17 (retrieval isolation) database tests
+- [x] Ingestion: content-signature checks, PDF (unpdf) with Arabic reading-order reconstruction, DOCX (mammoth), TXT, CSV, NFKC + Arabic mark repair, structure-aware chunking with page ranges and overlap, scanned-PDF detection (needs_ocr)
+- [x] Upload flow: signed direct-to-storage upload, server verification (size, signature, SHA-256), processing after the response (`after()`), retry
+- [x] UI: list with live status, upload with full metadata, document page (passage preview, versions, downloads, publish/archive/delete, new version), test search; en/ar
+- [x] Tests: unit 117 (incl. real-file extraction with generated fixtures), preview e2e 76, live spec written (`e2e/live/live-knowledge.spec.ts`)
+- [ ] Apply migration 8 to "agent", regenerate types, run the live knowledge suite
+- [~] Embeddings: provider interface + storage + vector search path implemented and tested with synthetic vectors. **Needs a provider and key** (Voyage AI / OpenAI / Cohere) and the Arabic/English benchmark (ADR-021)
+- [ ] OCR for scanned PDFs (later)
+- [ ] Background worker with retries for large files (currently processed after the upload response, with the uploader's session; ADR-022)
+- [ ] Virus-scan hook
 
 ## Later phases
 

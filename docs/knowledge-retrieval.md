@@ -1,6 +1,11 @@
 # Knowledge Ingestion & Retrieval (RAG)
 
-> Status: **Phase 0 design**, implemented in Phase 4 (ingestion) and Phase 5 (retrieval in chat).
+> Status: **Phase 4 implemented** (migration 8, `src/lib/knowledge/*`); retrieval in chat is Phase 5.
+> Differences from the design below:
+> - Retrieval is `public.search_knowledge` (SECURITY DEFINER with explicit, caller-scoped checks applied before ranking; it replaces `app.match_chunks`).
+> - Processing runs in `after()` with the uploader's session until a worker exists (ADR-022).
+> - Embeddings wait for a provider decision (ADR-021).
+> - Arabic PDFs are rebuilt in reading order from glyph positions (`pdf-bidi.ts`).
 
 ## 1. Ingestion pipeline
 

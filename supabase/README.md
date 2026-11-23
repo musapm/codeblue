@@ -27,6 +27,7 @@ Migration file versions match the versions recorded in the project
 | `20261121200323_audit.sql` | database-enforced audit triggers on all access/configuration tables |
 | `20261122105259_management.sql` | Phase 3: invitations (`create_invitation`, `invitation_preview`, `accept_invitation`, `tenant_invitations`, `revoke_invitation`), `tenant_members`, `update_tenant_profile`, `publish_branding`, `platform_tenants`, `platform_staff`; last-owner guard; `tenant-assets` storage bucket + per-tenant policies; `department_admin` gains `academic.use` |
 | `20261122105537_owner_protection.sql` | Phase 3: only owners (or platform owners/admins) change ownership (ADR-018) |
+| `20261123090000_knowledge.sql` | Phase 4: knowledge base (documents, versions, chunks, access lists, search_knowledge, `tenant-documents` bucket). **Not yet applied to "agent"**; the file will be renamed to the recorded version after applying |
 
 ## Rules for new migrations
 

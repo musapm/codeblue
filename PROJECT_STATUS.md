@@ -1,6 +1,6 @@
 # Project Status
 
-_Last updated: 2026-11-22 (Phase 3)_
+_Last updated: 2026-11-23 (Phase 4 in progress)_
 
 ## Honest summary
 
@@ -18,7 +18,7 @@ UniAgent AI now has a **tested multi-tenant foundation plus real university mana
 | 1: Foundation & design system | ✅ Complete |
 | 2: Auth, tenants & security foundation | ✅ Core complete (isolation gate passed). Auth email settings need your input |
 | 3: Super Admin & university management | ✅ **Core complete, verified live.** Deferred: invitation email, custom roles, sign-up domains (see TASKS.md) |
-| 4: Knowledge base | ⏭ Next |
+| 4: Knowledge base | 🟡 **Built and tested locally.** Migration 8 not yet applied to "agent" (Supabase confirmation pending); live run pending; embeddings need a provider key |
 | 5–17 | Not started |
 
 ## Supabase project "agent"
@@ -113,7 +113,12 @@ Real defects found by the live run and fixed:
 5. **Sign-up policy:** invitation-only (current behaviour) or allow approved email domains to self-join?
 6. Plan upgrade timing (before the first pilot with real data); Frankfurt region OK?
 
+## Phase 4 status (2026-11-23)
+- **Built and tested locally:** knowledge schema, visibility rules, upload/processing pipeline (PDF incl. Arabic reading order, DOCX, TXT, CSV), Arabic/English search with permission filtering before ranking, knowledge UI.
+- **Tests:** 117 unit (incl. real PDF/DOCX fixtures), 98 database (incl. T16 originals, T17 retrieval), 76 browser (preview).
+- **Not yet done:** applying migration 8 to "agent" (the Supabase connector asks for a confirmation in the app that has not been answered), the live knowledge run, embeddings (needs a provider key and benchmark).
+
 ## Next steps
-1. Phase 4: knowledge base (document upload to tenant-scoped storage, background processing, chunking, embeddings, `match_chunks` with isolation test T17).
+1. Apply migration 8 and run `e2e/live/live-knowledge.spec.ts`; then Phase 5 (student assistant with citations).
 2. Phase 3 follow-ups: invitation email (after the provider decision), custom roles editor, sign-up domains.
 3. Operational: CI pipeline (`check` + `test:db` + e2e), error tracking, shared rate limiting, inquiry storage.

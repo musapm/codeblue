@@ -61,3 +61,10 @@ Chronological log of significant work. For the current snapshot see `PROJECT_STA
 - **Tests:** 97 unit, 80 database, 72 browser (preview + axe). The live onboarding suite ran 9/9 against "agent".
 - **The live run found a real gap:** support sessions could see only the overview. Fixed with a fixed read-only page set (ADR-019).
 - **Deferred:** invitation email (provider decision), custom roles editor, sign-up domains.
+
+## 2026-11-23: Phase 4 (knowledge base), built and tested locally
+
+- Migration 8 `knowledge` covers documents, versions, chunks, access lists, visibility rules, the write API, `search_knowledge` and the private bucket. It is tested locally (98 DB tests including T16/T17) but not yet applied to "agent", because the Supabase confirmation prompt has not been answered.
+- Ingestion covers PDF, DOCX, TXT and CSV. Real-file tests found that **Arabic PDFs extract in reversed visual order**, so `pdf-bidi.ts` now rebuilds reading order from glyph positions. They also found two normalization bugs, both fixed: misaligned Arabic letter mapping, and harakat detached by NFKC.
+- UI: knowledge list with live status, signed direct upload with metadata, document page with passage preview, versions, publish/archive/delete, and test search.
+- Embeddings are prepared but inactive: they need a provider key and a benchmark (ADR-021).

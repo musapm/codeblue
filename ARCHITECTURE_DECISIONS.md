@@ -153,3 +153,26 @@ Format: **ADR-NNN — Title** · Status · Date · Context → Decision → Cons
 - Until a transactional email provider is chosen, the inviter copies the link from the UI. It cannot be shown again.
 
 **Consequences:** A leaked database does not leak usable links, and a forwarded link is useless to anyone else. Email delivery can be added later without changing the token model.
+
+## ADR-021 — Retrieval works on full-text search until an embedding provider is chosen
+**Accepted · 2026-11-23**
+
+**Context:** Anthropic has no embeddings endpoint. The plan requires an Arabic/English benchmark (Voyage AI, OpenAI, Cohere) before choosing, and no provider key exists yet.
+**Decision:**
+- `knowledge_chunks.embedding` is a dimensionless `vector` with `embedding_model`. Retrieval only compares vectors of the same model; HNSW indexes are created per model when one is chosen.
+- `search_knowledge` fuses full-text and vector ranks with RRF, and works with full-text only when no query embedding is given.
+- `EmbeddingProvider` (`src/lib/knowledge/embeddings.ts`) is configured with `EMBEDDINGS_PROVIDER` / `EMBEDDINGS_MODEL` / `EMBEDDINGS_API_KEY`. Without them, nothing claims semantic search, and the UI says so.
+
+**Consequences:** Useful, tested retrieval today. Adding embeddings later needs a key, a benchmark, an index and a re-embed job, but no schema change.
+
+## ADR-022 — Direct signed uploads; processing after the response with the uploader's session
+**Accepted · 2026-11-23**
+
+**Context:** Serverless hosts limit request bodies (about 4.5 MB on Vercel), and no service-role key is configured for background workers.
+**Decision:**
+- The browser uploads straight to the private bucket with a one-time signed upload token. The token is created only for a version path registered by `knowledge_begin_upload` (a storage policy enforces this).
+- The server then downloads the stored file, verifies its size, content signature and SHA-256, and runs extraction in `after()` with the uploader's session. The database authorizes every step again.
+
+**Consequences:**
+- Large files never pass through our request bodies.
+- Processing is bounded by the host's function duration. A Postgres-backed worker with retries (architecture.md) replaces `after()` when large volumes or OCR arrive.
