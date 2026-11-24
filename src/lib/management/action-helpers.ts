@@ -68,6 +68,7 @@ const limiters = {
   staff: createMemoryRateLimiter({ limit: 30, windowMs: 10 * 60_000 }),
   workflow: createMemoryRateLimiter({ limit: 60, windowMs: 10 * 60_000 }),
   campus: createMemoryRateLimiter({ limit: 30, windowMs: 10 * 60_000 }),
+  voice: createMemoryRateLimiter({ limit: 120, windowMs: 10 * 60_000 }),
 }
 
 export async function isRateLimited(kind: keyof typeof limiters, userId: string): Promise<boolean> {

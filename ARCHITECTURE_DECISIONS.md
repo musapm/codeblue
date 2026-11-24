@@ -440,3 +440,34 @@ Format: **ADR-NNN — Title** · Status · Date · Context → Decision → Cons
   - campus answers inside the student chat;
   - an eval set for campus answers.
 
+## ADR-033 — Voice: one interface, the browser now, a server provider later, usage priced by the university
+**Accepted · 2026-11-24**
+
+**Context:** Phase 13 asks for speech to text and text to speech behind a provider interface, a feature switch, separate usage tracking and a provider and cost evaluation. No speech vendor has been chosen and no key exists; prices may not be hard-coded.
+**Decision:**
+- **One interface, two kinds of provider:**
+  - `browser`: the browser's own speech recognition and synthesis. It works today at no cost.
+  - `server`: a vendor behind `SpeechProvider`, reached through `/api/voice/[tenant]/transcribe` and `/speak`. These endpoints are guarded like the assistant's: same origin, signed in, rate limited, plus the database gate.
+  - No vendor adapter is written until the vendor is chosen. Until then the server option answers "not configured", and the settings page says so.
+- **Off by default.** The `voice` feature plus a university switch (`voice_settings`, `assistant.configure`), with speech input and read-aloud switched separately.
+  - Voice is offered in the student chat to people who may use the student assistant, and in the staff chat to people who may use the staff assistant.
+  - Speech input only fills the message box: people still review and send.
+- **Privacy:**
+  - **Browser provider:** some browsers send dictation audio to their maker's servers. The chats say so whenever voice is on.
+  - **Server provider:** the vendor processes the audio under the university's contract.
+  - **Never stored:** audio and spoken text are not kept by the app. Only durations and character counts are recorded, in `voice_usage_events`, which nobody can select directly; figures come from `voice_usage` and analytics.
+- **Cost:** no prices in the product. Administrators enter their contract's price per minute and per 1,000 characters, and the database computes each use's cost; a caller can never set a cost.
+  - The browser costs 0. Server uses without an entered price are counted as "unpriced".
+  - For the server provider, a monthly budget and a daily speech-input limit per person stop new calls (`voice_begin`).
+- **Evaluation:** `docs/voice.md` and the Voice page list how to compare vendors on the university's own recordings: Arabic accuracy (MSA, dialect, mixed), data handling, speed, voices, price and operations. The choice stays with the product owner.
+
+**Consequences:**
+- **Testing:** the roadmap criteria are met with 8 DB tests, unit tests of the server flow with a fake vendor, and component tests of the browser controls. The server path was never exercised against a real vendor.
+- **Browser support:** varies. The controls appear only where the browser supports them.
+- **Trust:** browser usage figures are reported by the person's own session and could be under-reported. They carry no cost, and they are rate limited.
+- **Not built:**
+  - a vendor adapter;
+  - voice in the public admissions assistant;
+  - streaming speech input;
+  - an Arabic dialect setting (`ar-SA` for now).
+

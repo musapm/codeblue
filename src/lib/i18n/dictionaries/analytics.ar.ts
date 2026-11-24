@@ -103,6 +103,14 @@ export const analyticsAr: AnalyticsDictionary = {
       kinds: { summary: 'ملخصات', quiz: 'اختبارات تدريبية', flashcards: 'مجموعات بطاقات', study_plan: 'خطط مذاكرة' },
       open: 'المقررات',
     },
+    voice: {
+      title: 'الصوت',
+      inputMinutes: 'الإدخال الصوتي (بالدقائق)',
+      outputCharacters: 'الأحرف المقروءة بصوت عالٍ',
+      people: 'مستخدمو الصوت',
+      cost: 'التكلفة في هذه الفترة',
+      month: (spent: string, budget: string) => `هذا الشهر: ${spent} من ${budget}`,
+    },
     workflows: {
       title: 'طلبات الخدمات',
       submitted: 'المرسلة',

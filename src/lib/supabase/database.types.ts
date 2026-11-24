@@ -189,6 +189,23 @@ export type Database = {
         Update: never
         Relationships: []
       }
+      voice_settings: {
+        Row: {
+          daily_input_seconds: number
+          enabled: boolean
+          input_enabled: boolean
+          input_price_per_minute: number | null
+          monthly_budget_usd: number
+          output_enabled: boolean
+          output_price_per_1k_chars: number | null
+          provider: string
+          tenant_id: string
+          updated_at: string
+        }
+        Insert: never
+        Update: never
+        Relationships: []
+      }
       campus_locations: {
         Row: {
           accessibility: Json
@@ -1608,6 +1625,24 @@ export type Database = {
       academic_update_progress: { Args: { p_item: string; p_state: Json }; Returns: undefined }
       academic_update_settings: { Args: { p_daily_limit: number; p_monthly_budget_usd: number; p_tenant_slug: string }; Returns: undefined }
       analytics_overview: { Args: { p_days: number; p_tenant_slug: string }; Returns: Json }
+      voice_status: { Args: { p_surface: string; p_tenant_slug: string }; Returns: Json }
+      voice_update_settings: {
+        Args: {
+          p_daily_input_seconds: number
+          p_enabled: boolean
+          p_input_enabled: boolean
+          p_input_price_per_minute: number | null
+          p_monthly_budget_usd: number
+          p_output_enabled: boolean
+          p_output_price_per_1k_chars: number | null
+          p_provider: string
+          p_tenant_slug: string
+        }
+        Returns: undefined
+      }
+      voice_begin: { Args: { p_kind: string; p_surface: string; p_tenant_slug: string }; Returns: Json }
+      voice_record: { Args: { p_characters: number; p_kind: string; p_provider: string; p_seconds: number; p_surface: string; p_tenant_slug: string }; Returns: undefined }
+      voice_usage: { Args: { p_tenant_slug: string }; Returns: Json }
       campus_save_location: { Args: { p_data: Json; p_location: string | null; p_tenant_slug: string }; Returns: string }
       campus_set_published: { Args: { p_location: string; p_published: boolean }; Returns: undefined }
       campus_delete_location: { Args: { p_location: string }; Returns: undefined }

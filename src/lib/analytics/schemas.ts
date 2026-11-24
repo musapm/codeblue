@@ -123,6 +123,11 @@ export const OverviewSchema = z.object({
     })
     .nullable()
     .optional(),
+  // Phase 13 (optional: absent before migration 19). Costs only for people who may see costs.
+  voice: z
+    .object({ input_minutes: num, output_characters: num, people: num, cost_usd: nullableNum, month_cost_usd: nullableNum, budget_usd: nullableNum })
+    .nullable()
+    .optional(),
   // Phase 11 (optional: absent before migration 17).
   workflows: z
     .object({

@@ -104,6 +104,14 @@ export const analyticsEn = {
       kinds: { summary: 'Summaries', quiz: 'Practice quizzes', flashcards: 'Flashcard decks', study_plan: 'Study plans' } as Record<string, string>,
       open: 'Courses',
     },
+    voice: {
+      title: 'Voice',
+      inputMinutes: 'Speech input (minutes)',
+      outputCharacters: 'Characters read aloud',
+      people: 'People using voice',
+      cost: 'Cost in this period',
+      month: (spent: string, budget: string) => `This month: ${spent} of ${budget}`,
+    },
     workflows: {
       title: 'Service requests',
       submitted: 'Submitted',

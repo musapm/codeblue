@@ -202,3 +202,15 @@ Chronological log of significant work. For the current snapshot see `PROJECT_STA
 - **Found while building:** in Arabic pages the map labels overlapped their markers (SVG text follows the page direction); a search for "office" in Arabic also matches "library" (the same root), which is kept and ranked lower on purpose.
 - **Not live yet:** migration 18 waits for the owner's Supabase session; answers need the API key.
 
+## 2026-11-24: Phase 13 (voice), nothing applied to Supabase
+
+- **Database:** migration 19 `voice` (local, 8 DB tests, 274 total): voice settings, a separate usage table without audio or text, the server provider gate, usage figures and analytics.
+- **Design decision (ADR-033):**
+  - one interface with the browser's speech features working now and a server provider ready for a vendor;
+  - no prices in the product: each university enters its contract prices and the database computes costs;
+  - speech input only fills the message box.
+- **App:** microphone and read-aloud controls in the student and staff chats, the Voice settings page, voice in analytics, and `docs/voice.md` with the provider evaluation.
+- **Not done on purpose:**
+  - no vendor adapter: the vendor is a decision for the product owner, and an adapter that could not be called would be untested code;
+  - real speech was not tested here (the test browser has no microphone).
+

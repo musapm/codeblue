@@ -7,6 +7,7 @@ import { ticketsEn } from './tickets.en'
 import { staffEn } from './staff.en'
 import { workflowsEn } from './workflows.en'
 import { campusEn } from './campus.en'
+import { voiceEn } from './voice.en'
 
 /**
  * English UI dictionary (canonical shape). The Arabic dictionary must match this shape
@@ -177,6 +178,8 @@ export const en = (brand: PlatformBranding) => ({
     campusAliases: 'Use at most 20 other names of up to 80 characters each.',
     campusBuilding: 'Choose a building (buildings cannot be inside another location, and a location with rooms must stay a building).',
     campusQuestion: 'Write a question of at least 3 characters.',
+    voicePrice: 'Enter a price from 0 to 100 USD, or leave it empty.',
+    voiceMinutes: 'Enter a whole number of minutes from 1 to 600.',
   },
   contactForm: {
     name: 'Full name',
@@ -223,6 +226,7 @@ export const en = (brand: PlatformBranding) => ({
       admissions: 'Admissions',
       academic: 'Academic assistant',
       'staff-assistant': 'Staff assistant',
+      voice: 'Voice',
       tickets: 'Tickets',
       knowledge: 'Knowledge base',
       workflows: 'Requests & workflows',
@@ -239,6 +243,7 @@ export const en = (brand: PlatformBranding) => ({
       assistant: 'Configure the 24/7 student assistant: instructions, tone, welcome message, handoff rules, and review conversations with cited sources.',
       admissions: 'Prospective-student assistant, programs, consented lead capture, lead assignment and follow-up tracking.',
       academic: 'Lecture summaries, practice questions, flashcards and study plans built from university-provided materials, enabled per course.',
+      voice: 'Speech input and reading answers aloud in the assistant chats, with usage tracked separately.',
       'staff-assistant': 'Internal assistant for staff: search department knowledge, summarize tickets, and draft emails, letters and announcements.',
       tickets: 'Support tickets from chat or forms with AI summaries, department routing, priorities, internal notes and status tracking.',
       knowledge: 'Upload and manage official documents (PDF, DOCX, TXT, CSV) with versions, visibility, departments and processing status.',
@@ -364,6 +369,7 @@ export const en = (brand: PlatformBranding) => ({
   staff: staffEn,
   workflows: workflowsEn,
   campus: campusEn,
+  voice: voiceEn,
 })
 
 export type Dictionary = ReturnType<typeof en>

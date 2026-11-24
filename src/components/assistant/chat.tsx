@@ -11,6 +11,7 @@ import { Spinner } from '@/components/ui/misc'
 import { openKnowledgeSource, setAssistantFeedback } from '@/lib/assistant/actions'
 import type { ChatCitation, ChatMessage } from '@/lib/assistant/queries'
 import { cn } from '@/lib/utils'
+import { DictateButton, ReadAloudButton, type VoiceConfig } from '@/components/voice/voice-controls'
 
 /**
  * Student chat. Questions go to the streaming endpoint (/api/assistant/[tenant]); the answer
@@ -68,6 +69,7 @@ export function AssistantChat({
   onConversation,
   handoff,
   extraBody,
+  voice,
 }: {
   tenant: string
   locale: 'en' | 'ar'
@@ -89,6 +91,8 @@ export function AssistantChat({
   handoff?: { href: string; label: string; hint: string }
   /** Extra JSON fields sent with each question (staff assistant: the department filter). */
   extraBody?: Record<string, string | null>
+  /** Speech input and read-aloud (Phase 13), when the university has voice switched on. */
+  voice?: VoiceConfig
 }) {
   const router = useRouter()
   const sourceOptions: SourceOptions = { documentLinks, programHref }
@@ -220,7 +224,7 @@ export function AssistantChat({
               </p>
             </div>
           ) : (
-            <AssistantMessage key={m.id} message={m} assistantName={assistantName} labels={labels} sources={sourceOptions} />
+            <AssistantMessage key={m.id} message={m} assistantName={assistantName} labels={labels} sources={sourceOptions} voice={voice} />
           ),
         )}
         {stage && !messages.some((m) => m.pending) ? (
@@ -267,6 +271,7 @@ export function AssistantChat({
           dir={draft.trim() ? 'auto' : undefined}
           className="min-h-11 flex-1 resize-none"
         />
+        {voice ? <DictateButton config={voice} disabled={busy || !!unavailable} onText={(text) => setDraft((d) => (d.trim() ? `${d.trimEnd()} ${text}` : text).slice(0, 2000))} /> : null}
         <Button type="submit" size="icon" disabled={busy || !!unavailable || draft.trim().length < 2} aria-label={labels.send}>
           {busy ? <Spinner className="size-4" /> : <Send aria-hidden className="rtl:-scale-x-100" />}
         </Button>
@@ -275,13 +280,14 @@ export function AssistantChat({
   )
 }
 
-function AssistantMessage({ message, assistantName, labels, sources }: { message: UiMessage; assistantName: string; labels: ChatLabels; sources: SourceOptions }) {
+function AssistantMessage({ message, assistantName, labels, sources, voice }: { message: UiMessage; assistantName: string; labels: ChatLabels; sources: SourceOptions; voice?: VoiceConfig }) {
   const statusLabel = message.status !== 'answered' ? labels.statuses[message.status] : undefined
   return (
     <div className="max-w-[92%] space-y-3 rounded-2xl rounded-es-sm border border-border bg-card px-4 py-3 text-sm leading-relaxed">
       <div className="flex flex-wrap items-center gap-2">
         <p className="text-xs font-semibold text-muted-foreground">{assistantName}</p>
         {statusLabel && !message.pending ? <Badge variant={message.status === 'error' ? 'danger' : 'warning'}>{statusLabel}</Badge> : null}
+        {voice && !message.pending && message.status !== 'error' ? <ReadAloudButton config={voice} text={message.content} className="ms-auto h-7" /> : null}
       </div>
       <p className="whitespace-pre-line" dir="auto">
         {renderWithMarkers(message.content)}

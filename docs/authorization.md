@@ -129,3 +129,9 @@ All of it needs the `campus_assistant` feature:
 - **Manage locations** (create, edit, publish, delete; see unpublished ones): `campus.manage` (owners and administrators by default).
 - **Campus answers (AI) settings:** `assistant.configure`.
 
+## Voice (Phase 13)
+
+- **Use voice in a chat:** the `voice` feature, the university's switch, and the chat's own permission (`assistant.use` for the student chat, `assistant.staff.use` for the staff chat).
+- **Voice settings and usage figures:** `assistant.configure`.
+- **Usage rows** are not readable by anyone directly; only aggregates are shown.
+

@@ -658,6 +658,44 @@ test.describe('campus map and assistant (UI preview mode)', () => {
   }
 })
 
+test.describe('voice (UI preview mode)', () => {
+  test('the voice settings render without data, explain the choice of provider and offer no writes', async ({ page }) => {
+    const errors = trackErrors(page)
+    await page.goto('/en/app/northbridge/voice')
+    await expect(page.getByRole('heading', { level: 1 })).toHaveText('Voice')
+    await expect(page.getByRole('heading', { name: 'Choosing a provider' })).toBeVisible()
+    await expect(page.getByText(/Arabic accuracy/)).toBeVisible()
+    await expect(page.getByRole('button', { name: 'Save settings' })).toHaveCount(0)
+    const nav = page.getByRole('navigation', { name: 'Workspace navigation' }).first()
+    await expect(nav.getByRole('link', { name: /Voice/ })).toBeVisible()
+    expect(errors).toEqual([])
+  })
+
+  test('the voice endpoints refuse cross-site requests and need a backend', async ({ request, baseURL }) => {
+    const origin = new URL(baseURL!).origin
+    const crossSite = await request.post('/api/voice/northbridge/speak', { data: { text: 'Hello', surface: 'student_chat', locale: 'en' }, headers: { Origin: 'https://evil.example' } })
+    expect(crossSite.status()).toBe(403)
+    const preview = await request.post('/api/voice/northbridge/speak', { data: { text: 'Hello', surface: 'student_chat', locale: 'en' }, headers: { Origin: origin } })
+    expect(preview.status()).toBe(503)
+    expect(await preview.json()).toEqual({ error: 'preview' })
+    const transcribe = await request.post('/api/voice/northbridge/transcribe', { multipart: { surface: 'student_chat', locale: 'en' }, headers: { Origin: 'https://evil.example' } })
+    expect(transcribe.status()).toBe(403)
+  })
+
+  test('the student chat shows no voice controls when voice is not available', async ({ page }) => {
+    await page.goto('/en/app/northbridge/ask')
+    await expect(page.getByRole('button', { name: 'Speak your question' })).toHaveCount(0)
+  })
+
+  test('Arabic voice page is translated and has no serious accessibility violations', async ({ page }) => {
+    await page.goto('/ar/app/northbridge/voice')
+    await expect(page.getByRole('heading', { level: 1 })).toHaveText('الصوت')
+    const results = await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa']).analyze()
+    const serious = results.violations.filter((v) => v.impact === 'serious' || v.impact === 'critical')
+    expect(serious.map((v) => `${v.id}: ${v.nodes.length} node(s)`)).toEqual([])
+  })
+})
+
 test.describe('workspace on mobile @mobile', () => {
   test('sidebar is available from the menu button', async ({ page }) => {
     await page.goto('/en/app/northbridge')

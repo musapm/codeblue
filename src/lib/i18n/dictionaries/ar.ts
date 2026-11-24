@@ -6,6 +6,7 @@ import { academicAr } from './academic.ar'
 import { staffAr } from './staff.ar'
 import { workflowsAr } from './workflows.ar'
 import { campusAr } from './campus.ar'
+import { voiceAr } from './voice.ar'
 import { analyticsAr } from './analytics.ar'
 import { ticketsAr } from './tickets.ar'
 
@@ -175,6 +176,8 @@ export const ar = (brand: PlatformBranding): Dictionary => ({
     campusAliases: 'استخدم 20 اسمًا آخر كحد أقصى، لا يتجاوز كل منها 80 حرفًا.',
     campusBuilding: 'اختر مبنى (لا يكون المبنى داخل موقع آخر، والموقع الذي يحتوي على غرف يبقى مبنى).',
     campusQuestion: 'اكتب سؤالًا من 3 أحرف على الأقل.',
+    voicePrice: 'أدخل سعرًا من 0 إلى 100 دولار، أو اتركه فارغًا.',
+    voiceMinutes: 'أدخل عددًا صحيحًا من الدقائق من 1 إلى 600.',
   },
   contactForm: {
     name: 'الاسم الكامل',
@@ -221,6 +224,7 @@ export const ar = (brand: PlatformBranding): Dictionary => ({
       admissions: 'القبول',
       academic: 'المساعد الأكاديمي',
       'staff-assistant': 'مساعد الموظفين',
+      voice: 'الصوت',
       tickets: 'التذاكر',
       knowledge: 'قاعدة المعرفة',
       workflows: 'الطلبات والإجراءات',
@@ -237,6 +241,7 @@ export const ar = (brand: PlatformBranding): Dictionary => ({
       assistant: 'تهيئة مساعد الطلاب المتاح على مدار الساعة: التعليمات والأسلوب ورسالة الترحيب وقواعد التحويل، ومراجعة المحادثات مع مصادرها.',
       admissions: 'مساعد للطلاب المحتملين، والبرامج الأكاديمية، وتسجيل العملاء المحتملين بموافقتهم، وتوزيعهم ومتابعتهم.',
       academic: 'ملخصات المحاضرات وأسئلة التدريب والبطاقات التعليمية وخطط المذاكرة من مواد الجامعة، ويُفعَّل لكل مقرر على حدة.',
+      voice: 'الإدخال الصوتي وقراءة الإجابات بصوت عالٍ في محادثات المساعدين، مع متابعة الاستخدام بشكل منفصل.',
       'staff-assistant': 'مساعد داخلي للموظفين: البحث في معرفة القسم، وتلخيص التذاكر، وصياغة الرسائل والخطابات والإعلانات.',
       tickets: 'تذاكر الدعم من المحادثة أو النماذج مع ملخصات ذكية وتوجيه للأقسام وأولويات وملاحظات داخلية وتتبع للحالة.',
       knowledge: 'رفع الوثائق الرسمية وإدارتها (PDF وDOCX وTXT وCSV) مع الإصدارات والصلاحيات والأقسام وحالة المعالجة.',
@@ -362,4 +367,5 @@ export const ar = (brand: PlatformBranding): Dictionary => ({
   staff: staffAr,
   workflows: workflowsAr,
   campus: campusAr,
+  voice: voiceAr,
 })

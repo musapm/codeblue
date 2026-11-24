@@ -237,3 +237,30 @@ Live runs on 2026-11-22 against project "agent":
 - **Visual check:** the map, the open/closed labels and the location form were rendered with fictional data through a temporary local-only route (deleted), in English and Arabic, on a production build, including keyboard focus on a map point. It found a real defect: in Arabic pages the map labels overlapped their markers, because SVG text anchors follow the page direction. Fixed by keeping the plan left-to-right. A placeholder that looked like real hours for a closed day was removed.
 - **Not run:** any live test (migration 18 not applied; answers need the API key). There is no eval set for campus answers yet.
 
+### Voice (Phase 13)
+
+- **Database:** `supabase/tests/voice.test.ts` (8 tests, migration 19, local only). Covered:
+  - off by default and who changes the settings (invalid provider and prices refused);
+  - each chat keeps its own permission; input switched off separately;
+  - the browser costs nothing; the provider must match the settings; values are bounded;
+  - server usage priced with the entered prices or left unpriced;
+  - the daily input limit, the budget and the per-kind switches;
+  - usage rows never selectable; figures and settings permissions; audit; analytics (costs only for cost viewers); the feature switch.
+- **Unit:** `src/lib/voice/voice.test.ts` (9 tests) covers:
+  - text for reading aloud and the speech language tags;
+  - settings and usage rules;
+  - no server provider without a known adapter;
+  - the server flow with a fake vendor: "not configured" before touching the database, the gate mapping, seconds booked after transcription, empty and oversized audio refused, a vendor failure books nothing, read-aloud books the cleaned characters.
+
+  `src/components/voice/voice.test.tsx` (5 tests) uses fake speech APIs:
+  - the controls are hidden when the browser cannot do it or the kind is off;
+  - dictation in the interface language fills the text and reports only the duration (never the words);
+  - a refused microphone is explained;
+  - read-aloud uses the cleaned text and the right language and reports characters.
+- **Browser (preview):** the Voice page without data (the provider evaluation, no writes, navigation); both voice endpoints refusing cross-site requests and needing a backend; no voice controls in the chat when voice is not available; Arabic; accessibility.
+- **Visual check:** the chat with the microphone and read-aloud controls, the privacy notice and the settings form with the server provider and no vendor connected, rendered with fictional data through a temporary local-only route (deleted), in English and Arabic, on a production build.
+- **Not run:**
+  - real speech in a real browser: the tests use fake speech APIs, and the headless browser has no microphone;
+  - any server vendor (none connected);
+  - anything against "agent" (migration 19 not applied).
+

@@ -438,6 +438,24 @@ Functions:
 
 Changed: `analytics_overview` (the campus answers' month cost and budget).
 
+## 2k. Phase 13 — voice (migration 19 `voice`, **written and tested locally, not applied yet**)
+
+| Table | Contents | Access |
+| --- | --- | --- |
+| `voice_settings` | on/off (default off), speech input on/off, read-aloud on/off, provider `browser`/`server`, the university's prices (USD per minute of input, per 1,000 characters of output; empty: unknown), monthly budget (default 5 USD), daily speech input per person (default 600 seconds) | read: `assistant.configure`; audited |
+| `voice_usage_events` | kind input/output, provider, surface (student or staff chat), seconds or characters (bounded), cost computed by the database (0 for the browser, null without a price) | **no direct reads**; figures through `voice_usage` and `analytics_overview`; written through `voice_record` |
+
+Functions:
+
+| Function | Who | Purpose |
+| --- | --- | --- |
+| `voice_status(slug, surface)` | members | Available in this chat (feature, switch, the chat's own permission), input/output, provider, within budget |
+| `voice_update_settings(…)` / `voice_usage(slug)` | `assistant.configure` | Settings / this month's minutes, uses, characters, people, cost, unpriced uses |
+| `voice_begin(slug, surface, kind)` | voice users | Server provider only: switch per kind (55000), budget (53400), daily input limit (54000) |
+| `voice_record(slug, surface, kind, provider, seconds, characters)` | voice users | Book usage; the provider must match the settings; the cost comes from the university's prices |
+
+Changed: `analytics_overview` (a `voice` section: minutes, characters, people; costs and budget only with `analytics.ai_costs.view`).
+
 ## 3. Phase 15 — plans, features, subscriptions (planned)
 
 ```
@@ -469,7 +487,7 @@ Effective features = plan features + enabled overrides − disabled overrides, c
 | 10 Staff assistant | Implemented, see §2h (migration 16 not applied yet): staff conversations in `assistant_conversations`, drafts in `staff_drafts`; ticket digests are not stored |
 | 11 Workflows | Implemented, see §2i (migration 17 not applied yet): versioned forms, requests with tracking numbers and a status flow. Not built: attachments, multi-step approval chains, deadlines |
 | 12 Campus | Implemented, see §2j (migration 18 not applied yet): `campus_locations` with hours, accessibility and other names; no map tiles. Not built: routes, holiday calendars, public access |
-| 13 Voice | `voice_sessions`, usage in `ai_usage_events` with `modality = 'voice'` |
+| 13 Voice | Implemented, see §2k (migration 19 not applied yet): `voice_settings`, `voice_usage_events` (separate from AI tokens). Not built: a vendor adapter, voice sessions |
 | 14 Integrations & notifications | `integrations` (tenant, provider, status, config), `integration_secrets` (Supabase Vault references only), `integration_logs`, `notifications`, `notification_preferences`, `outbound_messages` |
 | 23 Cost control | `model_prices` (provider, model, unit prices, effective_from), `tenant_ai_budgets`, `usage_counters` (tenant, period, requests, tokens, cost_micros) |
 

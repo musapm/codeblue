@@ -14,6 +14,8 @@ import { getStaffStatus } from '@/lib/staff/queries'
 import { departmentOptions, staffUnavailable } from '@/lib/staff/view'
 import { getWorkspaceContext, hasWorkspacePermission, requireWorkspaceAccess } from '@/lib/tenancy/context'
 import { cn } from '@/lib/utils'
+import { getVoiceStatus } from '@/lib/voice/queries'
+import { voiceConfig } from '@/lib/voice/view'
 
 /** Staff questions over the documents the staff member may read, optionally one department's. */
 export default async function StaffAskPage({ params, searchParams }: PageProps<'/[lang]/app/[tenant]/staff-assistant'>) {
@@ -30,15 +32,17 @@ export default async function StaffAskPage({ params, searchParams }: PageProps<'
   const requested = typeof c === 'string' ? c : null
 
   const live = !ctx.user.isPreview && !!ctx.tenantId && ctx.accessVia !== 'support'
-  const [status, conversations, conversation, departments] = live
+  const [status, conversations, conversation, departments, voiceStatus] = live
     ? await Promise.all([
         getStaffStatus(slug),
         listConversations(ctx.tenantId!, 30, 'staff'),
         requested ? getConversation(ctx.tenantId!, requested, 'staff') : Promise.resolve(null),
         listDepartments(ctx.tenantId!),
+        getVoiceStatus(slug, 'staff_chat'),
       ])
-    : [null, [], null, []]
+    : [null, [], null, [], null]
   const unavailable = staffUnavailable(ctx, status, dict)
+  const voice = unavailable ? undefined : voiceConfig(dict, locale, slug, 'staff_chat', voiceStatus)
 
   const labels: ChatLabels = {
     placeholder: s.chat.placeholder,
@@ -76,8 +80,10 @@ export default async function StaffAskPage({ params, searchParams }: PageProps<'
           labels={labels}
           departments={departmentOptions(locale, departments)}
           departmentLabels={{ label: s.chat.department, all: s.chat.allDepartments }}
+          voice={voice}
         />
         <p className="text-xs text-muted-foreground">{s.chat.disclaimer}</p>
+        {voice ? <p className="text-xs text-muted-foreground">{dict.voice.notice[voice.provider]}</p> : null}
       </div>
 
       <Card className="h-fit">

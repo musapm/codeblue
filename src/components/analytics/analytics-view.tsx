@@ -268,6 +268,25 @@ export function AnalyticsView({
             </Card>
           ) : null}
 
+          {data.voice ? (
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-base">{d.voice.title}</CardTitle>
+                {data.voice.month_cost_usd !== null && data.voice.budget_usd !== null ? (
+                  <CardDescription>{d.voice.month(usd(data.voice.month_cost_usd), usd(data.voice.budget_usd))}</CardDescription>
+                ) : null}
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-2 gap-3">
+                  <StatTile label={d.voice.inputMinutes} value={n(data.voice.input_minutes)} />
+                  <StatTile label={d.voice.outputCharacters} value={n(data.voice.output_characters)} />
+                  <StatTile label={d.voice.people} value={n(data.voice.people)} />
+                  {data.voice.cost_usd !== null ? <StatTile label={d.voice.cost} value={usd(data.voice.cost_usd)} /> : null}
+                </div>
+              </CardContent>
+            </Card>
+          ) : null}
+
           {data.workflows ? (
             <Card>
               <CardHeader>

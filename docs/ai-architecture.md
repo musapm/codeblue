@@ -265,3 +265,11 @@ Three tools share one gate (`app.staff_gate`: `assistant.staff.use`, the feature
 - **Call:** `messages.parse` (low effort, 3,000-token cap) returning the answer and the record numbers used; numbers outside the list are dropped. Refusals and unusable output still book usage.
 - **Not built:** an eval set (Arabic and English, open-now questions, unknown places), and campus answers inside the student chat.
 
+## 19. Phase 13: voice
+
+Voice sits around the chats, not in the model call (ADR-033, `docs/voice.md`):
+- **Speech input** turns speech into text in the message box. The question then goes through the normal answer pipeline; the model never receives audio.
+- **Read-aloud** speaks the stored answer text, without the [n] markers.
+- **Providers:** the browser's own speech features (working), or a server vendor behind `SpeechProvider` (interface, endpoints, gate and usage built; no vendor connected).
+- **Usage and cost** are tracked in `voice_usage_events`, separately from AI tokens, priced with the university's own contract prices.
+

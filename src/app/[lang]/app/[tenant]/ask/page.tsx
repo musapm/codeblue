@@ -12,6 +12,8 @@ import { formatDate } from '@/lib/management/view'
 import { createSupabaseServerClient } from '@/lib/supabase/server'
 import { canSeeNavItem } from '@/lib/navigation/workspace-nav'
 import { getWorkspaceContext, requireWorkspaceAccess } from '@/lib/tenancy/context'
+import { getVoiceStatus, type VoiceStatus } from '@/lib/voice/queries'
+import { voiceConfig } from '@/lib/voice/view'
 import { cn } from '@/lib/utils'
 
 /** Student assistant: ask questions, answered from the university's published documents with sources. */
@@ -29,6 +31,7 @@ export default async function AskPage({ params, searchParams }: PageProps<'/[lan
   let conversations: Awaited<ReturnType<typeof listConversations>> = []
   let conversation: Awaited<ReturnType<typeof getConversation>> = null
   let supportEmail: string | null = null
+  let voiceStatus: VoiceStatus | null = null
 
   if (ctx.user.isPreview || !ctx.tenantId) {
     unavailable = a.unavailable.preview!
@@ -36,12 +39,14 @@ export default async function AskPage({ params, searchParams }: PageProps<'/[lan
     unavailable = a.unavailable.forbidden!
   } else {
     const supabase = await createSupabaseServerClient()
-    const [status, list, current, settings] = await Promise.all([
+    const [status, list, current, settings, voice] = await Promise.all([
       getAssistantStatus(slug),
       listConversations(ctx.tenantId),
       requested ? getConversation(ctx.tenantId, requested) : Promise.resolve(null),
       supabase.from('tenant_settings').select('support_email').eq('tenant_id', ctx.tenantId).maybeSingle(),
+      getVoiceStatus(slug, 'student_chat'),
     ])
+    voiceStatus = voice
     conversations = list
     conversation = current
     supportEmail = settings.data?.support_email ?? null
@@ -76,6 +81,7 @@ export default async function AskPage({ params, searchParams }: PageProps<'/[lan
     !ctx.user.isPreview &&
     ctx.accessVia !== 'support' &&
     canSeeNavItem({ key: '', segment: '', icon: 'tickets', status: 'available', phase: 7, permission: 'tickets.create', feature: 'ticketing' }, ctx.access)
+  const voice = unavailable ? undefined : voiceConfig(dict, locale, slug, 'student_chat', voiceStatus)
   const handoff = canAskPerson
     ? { href: localizedPath(locale, `/app/${slug}/requests/new`), label: dict.tickets.handoff.askPerson, hint: dict.tickets.handoff.askPersonHint }
     : undefined
@@ -97,8 +103,10 @@ export default async function AskPage({ params, searchParams }: PageProps<'/[lan
             unavailable={unavailable}
             labels={labels}
             handoff={handoff}
+            voice={voice}
           />
           <p className="text-xs text-muted-foreground">{a.disclaimer}</p>
+          {voice ? <p className="text-xs text-muted-foreground">{dict.voice.notice[voice.provider]}</p> : null}
           {supportEmail ? <HandoffNote text={a.handoff(supportEmail)} /> : null}
         </div>
 

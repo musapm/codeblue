@@ -198,9 +198,20 @@ Current state: `PROJECT_STATUS.md` · Audit history: `docs/IMPLEMENTATION_AUDIT.
 - [ ] Holiday calendars and exceptions; public access to the directory for visitors
 - [ ] Campus answers inside the student chat; eval set for campus answers
 
+## Phase 13: Voice 🟡 built and tested locally; migration 19 not applied
+
+- [x] Migration 19 `voice`: settings (off by default; input and read-aloud; browser or server provider; the university's prices, budget, daily input limit), separate usage table without audio or text, the server gate, usage figures, voice use in analytics (ADR-033). 8 DB tests, local only
+- [x] Provider interface: browser speech (working) and a server `SpeechProvider` with endpoints, budget and limits (no vendor connected)
+- [x] Microphone and read-aloud in the student and staff chats; privacy notice; Voice settings page with contract prices, usage and the provider evaluation
+- [x] Provider and cost evaluation: `docs/voice.md`
+- [x] Tests: unit 249 (14 new), DB 274 (8 new), browser 144 (4 new); visual check (en/ar)
+- [ ] **Apply migration 19** (with 12–18), turn on `voice`, then test dictation and read-aloud on real devices (Arabic and English)
+- [ ] **Decision:** a server speech vendor (only if browser speech is not good enough); then write and test its adapter
+- [ ] Voice in the public admissions assistant; an Arabic dialect setting per university; streaming speech input
+
 ## Later phases
 
-See `docs/roadmap.md` (Phases 13–17): voice, notifications/integrations,
+See `docs/roadmap.md` (Phases 14–17): notifications/integrations,
 subscriptions, security review, launch.
 
 ## Known follow-ups

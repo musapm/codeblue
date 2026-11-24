@@ -34,6 +34,7 @@ export type NavIconName =
   | 'tickets'
   | 'requests'
   | 'services'
+  | 'voice'
   | 'courses'
   | 'knowledge'
   | 'workflows'
@@ -69,6 +70,7 @@ export const WORKSPACE_NAV: NavSection[] = [
       { key: 'admissions', segment: 'admissions', icon: 'admissions', status: 'available', phase: 6, permission: 'leads.read', feature: 'admissions_agent' },
       { key: 'academic', segment: 'academic', icon: 'academic', status: 'available', phase: 9, permission: 'academic.manage', feature: 'academic_agent' },
       { key: 'staff-assistant', segment: 'staff-assistant', icon: 'staff', status: 'available', phase: 10, permission: 'assistant.staff.use', feature: 'staff_assistant' },
+      { key: 'voice', segment: 'voice', icon: 'voice', status: 'available', phase: 13, permission: 'assistant.configure', feature: 'voice' },
     ],
   },
   {

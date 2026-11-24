@@ -2,6 +2,7 @@
 
 import { useId, useState } from 'react'
 import { AssistantChat, type ChatLabels } from '@/components/assistant/chat'
+import type { VoiceConfig } from '@/components/voice/voice-controls'
 import { Select } from '@/components/ui/input'
 import type { ChatMessage } from '@/lib/assistant/queries'
 
@@ -22,6 +23,7 @@ export function StaffChat({
   welcome,
   departments,
   departmentLabels,
+  voice,
 }: {
   tenant: string
   locale: 'en' | 'ar'
@@ -34,6 +36,7 @@ export function StaffChat({
   welcome: string
   departments: { value: string; label: string }[]
   departmentLabels: { label: string; all: string }
+  voice?: VoiceConfig
 }) {
   const id = useId()
   const [departmentId, setDepartmentId] = useState('')
@@ -66,6 +69,7 @@ export function StaffChat({
         labels={labels}
         endpoint={`/api/staff-assistant/${encodeURIComponent(tenant)}`}
         extraBody={{ departmentId: departmentId || null }}
+        voice={voice}
       />
     </div>
   )
