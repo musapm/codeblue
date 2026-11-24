@@ -37,9 +37,13 @@ describe('createMemoryRateLimiter', () => {
 })
 
 describe('clientIpFromHeaders', () => {
-  it('uses the first forwarded address', () => {
-    expect(clientIpFromHeaders(new Headers({ 'x-forwarded-for': '203.0.113.7, 10.0.0.1' }))).toBe('203.0.113.7')
-    expect(clientIpFromHeaders(new Headers({ 'cf-connecting-ip': '198.51.100.2' }))).toBe('198.51.100.2')
-    expect(clientIpFromHeaders(new Headers())).toBe('unknown')
+  it('reads only the header the deployment trusts', () => {
+    const spoofed = new Headers({ 'x-forwarded-for': '1.2.3.4, 198.51.100.2', 'cf-connecting-ip': '198.51.100.2', 'x-real-ip': '10.0.0.9' })
+    expect(clientIpFromHeaders(spoofed, undefined)).toBe('1.2.3.4') // default: Vercel, which overwrites x-forwarded-for
+    expect(clientIpFromHeaders(spoofed, 'cf-connecting-ip')).toBe('198.51.100.2') // behind Cloudflare
+    expect(clientIpFromHeaders(spoofed, 'x-real-ip')).toBe('10.0.0.9')
+    expect(clientIpFromHeaders(spoofed, 'x-anything')).toBe('1.2.3.4') // unknown setting: the default
+    expect(clientIpFromHeaders(new Headers({ 'cf-connecting-ip': '198.51.100.2' }), undefined)).toBe('unknown') // no fallback to other headers
+    expect(clientIpFromHeaders(new Headers({ 'x-forwarded-for': 'x'.repeat(200) }), undefined)).toBe('unknown')
   })
 })

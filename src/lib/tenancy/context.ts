@@ -1,6 +1,7 @@
 import 'server-only'
-import { notFound } from 'next/navigation'
+import { notFound, redirect } from 'next/navigation'
 import { cache } from 'react'
+import { getMfaState, mfaStep, platformMfaRequired } from '@/lib/auth/mfa'
 import { requireUser, type SessionUser } from '@/lib/auth/session'
 import { DEMO_TENANTS, findDemoTenant, type TenantBrandingPreview } from '@/lib/branding/demo-tenants'
 import { AppError } from '@/lib/errors'
@@ -167,5 +168,10 @@ export const requirePlatformAccess = cache(async (locale: Locale): Promise<{ use
   if (user.isPreview) return { user, role: 'owner' }
   const role = await getPlatformRole()
   if (!role) notFound()
+  // Platform staff must use two-step sign-in (ADR-036); requireUser already asked for the code.
+  if (platformMfaRequired()) {
+    const state = await getMfaState(await createSupabaseServerClient(), true)
+    if (mfaStep(state, true) === 'enroll') redirect(localizedPath(locale, '/two-step?required=platform'))
+  }
   return { user, role }
 })

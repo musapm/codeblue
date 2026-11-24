@@ -5,7 +5,8 @@ import { programToChunk, selectPrograms } from '@/lib/admissions/public'
 import { getPublicAdmissions } from '@/lib/admissions/visitor'
 import { getSessionIdentity } from '@/lib/auth/session'
 import { getDictionary } from '@/lib/i18n/get-dictionary'
-import { clientIpFromHeaders, createMemoryRateLimiter } from '@/lib/rate-limit'
+import { clientIpFromHeaders } from '@/lib/rate-limit'
+import { createRateLimiter } from '@/lib/rate-limit-shared'
 import { isSupabaseConfigured } from '@/lib/supabase/config'
 import { createSupabaseServerClient } from '@/lib/supabase/server'
 
@@ -24,8 +25,8 @@ const bodySchema = z.object({
 })
 
 // Per-instance limits (see rate-limit.ts). The database budget and daily limit apply regardless.
-const perSession = createMemoryRateLimiter({ limit: 10, windowMs: 5 * 60_000 })
-const perIp = createMemoryRateLimiter({ limit: 40, windowMs: 5 * 60_000 })
+const perSession = createRateLimiter('admissions.session', { limit: 10, windowMs: 5 * 60_000 })
+const perIp = createRateLimiter('admissions.ip', { limit: 40, windowMs: 5 * 60_000 })
 
 export async function POST(request: Request, ctx: { params: Promise<{ tenant: string }> }) {
   if (!isSameOrigin(request)) return fail(403, 'forbidden')
@@ -46,7 +47,7 @@ export async function POST(request: Request, ctx: { params: Promise<{ tenant: st
   }
 
   const ip = clientIpFromHeaders(request.headers)
-  if (!perSession.check(`s:${session.id}`).allowed || !perIp.check(`ip:${ip}`).allowed) return fail(429, 'rateLimited')
+  if (!(await perSession.check(`s:${session.id}`)).allowed || !(await perIp.check(`ip:${ip}`)).allowed) return fail(429, 'rateLimited')
 
   const page = await getPublicAdmissions(slug)
   if (!page || !page.settings.assistant_enabled) return fail(404, 'disabled')

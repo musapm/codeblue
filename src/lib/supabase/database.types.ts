@@ -1693,6 +1693,7 @@ export type Database = {
       platform_subscription: { Args: { p_tenant_slug: string }; Returns: Json }
       platform_usage_report: { Args: { p_month: string }; Returns: Json }
       tenant_subscription: { Args: { p_tenant_slug: string }; Returns: Json }
+      rate_limit_hit: { Args: { p_bucket: string; p_limit: number; p_window_seconds: number }; Returns: Json }
       integration_save: { Args: { p_config: Json; p_integration: string | null; p_kind: string; p_name: string; p_secret_ref: string | null; p_tenant_slug: string }; Returns: string }
       integration_set_status: { Args: { p_integration: string; p_status: string }; Returns: undefined }
       integration_delete: { Args: { p_integration: string }; Returns: undefined }

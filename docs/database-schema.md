@@ -481,6 +481,17 @@ Functions (platform owner/admin/billing unless noted): `platform_plan_save`, `pl
 
 Limits: triggers on `invitations`, `tenant_memberships` and `knowledge_documents` (54000 "plan limit reached"), and `app.plan_ai_check` in every AI gate (53400). Effective features remain in `tenant_features`; assigning a plan rewrites them from the plan.
 
+## 3a. Phase 16 — hardening (migrations 22 `rate_limits` and 23 `mfa`, **written and tested locally, not applied yet**)
+
+| Object | Purpose |
+| --- | --- |
+| `app.rate_limit_hits` (private) | Fixed-window counters per HMAC bucket; no personal data; old windows removed now and then |
+| `public.rate_limit_hit(bucket, limit, window_seconds)` | Increments and answers allowed / remaining / retry-after; callable by `anon` (buckets must be 64-hex HMACs) |
+| `app.mfa_ok()` | True for a second-step session, or for an account without a verified factor |
+| policy `mfa_required` (restrictive) | On every public table and on `storage.objects` |
+
+`app.has_membership`, `app.is_tenant_member`, `app.has_permission`, `app.is_platform_admin`, `app.has_support_access`, `app.has_role_permission`, `my_tenant_access`, `my_workspaces` and `my_platform_role` also require `app.mfa_ok()`.
+
 ## 4. Later phases (outline)
 
 | Phase | Tables |

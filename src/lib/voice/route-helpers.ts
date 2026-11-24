@@ -1,13 +1,14 @@
 import 'server-only'
 import { isSameOrigin, jsonError as fail } from '@/lib/ai/http'
 import { getCurrentUser } from '@/lib/auth/session'
-import { clientIpFromHeaders, createMemoryRateLimiter } from '@/lib/rate-limit'
+import { clientIpFromHeaders } from '@/lib/rate-limit'
+import { createRateLimiter } from '@/lib/rate-limit-shared'
 import { isSupabaseConfigured } from '@/lib/supabase/config'
 import type { VoiceError } from './server'
 
 /** Shared guards for the voice endpoints: same origin, signed in, rate limited (per instance). */
-const perUser = createMemoryRateLimiter({ limit: 60, windowMs: 5 * 60_000 })
-const perIp = createMemoryRateLimiter({ limit: 180, windowMs: 5 * 60_000 })
+const perUser = createRateLimiter('voice.user', { limit: 60, windowMs: 5 * 60_000 })
+const perIp = createRateLimiter('voice.ip', { limit: 180, windowMs: 5 * 60_000 })
 
 export async function guardVoiceRequest(request: Request): Promise<Response | { userId: string }> {
   if (!isSameOrigin(request)) return fail(403, 'forbidden')
@@ -15,7 +16,7 @@ export async function guardVoiceRequest(request: Request): Promise<Response | { 
   const user = await getCurrentUser()
   if (!user || user.isPreview) return fail(401, 'forbidden')
   const ip = clientIpFromHeaders(request.headers)
-  if (!perUser.check(`u:${user.id}`).allowed || !perIp.check(`ip:${ip}`).allowed) return fail(429, 'rateLimited')
+  if (!(await perUser.check(`u:${user.id}`)).allowed || !(await perIp.check(`ip:${ip}`)).allowed) return fail(429, 'rateLimited')
   return { userId: user.id }
 }
 

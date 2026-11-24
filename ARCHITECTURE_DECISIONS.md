@@ -506,3 +506,20 @@ Format: **ADR-NNN — Title** · Status · Date · Context → Decision → Cons
 - **Not built:** online card payments and invoices (a provider decision); a scheduled sweep; reminders before a trial or period ends (needs the email provider from ADR-034); proration; storage limits (storage is reported, not enforced); a plan-wide voice cap (voice keeps its own budget).
 - A suspended university's members see the suspended page, not the plan card; the platform team explains why.
 - **Testing:** 9 DB tests and unit tests of the forms and money rules; nothing ran against "agent".
+
+## ADR-036 — Phase 16 hardening: nonce CSP, shared rate limits, two-step sign-in in the database
+**Accepted · 2026-11-24**
+
+**Context:** The Phase 16 checklist (security.md §7) asks for a nonce CSP on app routes, rate limits on a shared store, MFA, an RLS coverage report, a secret scan, a dependency audit, upload fuzzing and a log review. The app uses Cache Components; public pages are prerendered.
+
+**Decision:**
+- **CSP:** the proxy gives `/[lang]/app/*` and `/[lang]/platform/*` a per-request nonce with `'strict-dynamic'` and no `'unsafe-inline'` scripts; `next.config` sets the static policy on every other path (prerendered pages cannot carry a nonce). Verified on a production build with the whole browser suite.
+- **Shared rate limits:** a Postgres counter (`public.rate_limit_hit`, migration 22) in fixed windows. Buckets are HMAC-SHA-256 of "name:key" with `RATE_LIMIT_SECRET`, so the function can be called before sign-in without storing personal data or letting anyone fill another person's bucket. Without the secret (preview, tests, local) or on a database error, the per-instance memory limiter is used. The client IP comes only from the header the hosting edge sets (`TRUSTED_IP_HEADER`).
+- **Two-step sign-in (TOTP, Supabase Auth MFA):** the database requires a second-step session (`aal2`) from any account with a verified factor: in the access helpers, in a restrictive `mfa_required` policy on every public table and on storage objects, and in the self-access functions (migration 23). The app sends first-step sessions to `/login/verify` and lets people set it up at `/two-step`; platform staff must set it up (`PLATFORM_MFA`, default required).
+- **Coverage report as a test:** catalog checks that fail on any new table or function that breaks the rules (RLS, policies, search_path, anon grants).
+- **Logs:** free-text and identity fields are dropped and email addresses masked in every string.
+
+**Consequences:**
+- Signed-in pages cannot be cached at the edge (they already render per request).
+- Two-step sign-in has not been exercised against a real Supabase Auth; `PLATFORM_MFA=optional` is the switch if the platform requirement blocks access before it is.
+- The remaining items (prompt-injection eval with a key, the backup restore drill) need the owner's resources; see docs/security-review.md.

@@ -1,6 +1,6 @@
 # Project Status
 
-_Last updated: 2026-11-24 (Phase 15)_
+_Last updated: 2026-11-24 (Phase 16)_
 
 ## Honest summary
 
@@ -94,6 +94,7 @@ Visitors need **anonymous sign-ins enabled** in Supabase Auth (currently disable
 | 13: Voice | 🟡 **Built and tested locally** (unit, DB, browser, visual check). Migration 19 **not applied**; browser speech works; no server speech vendor chosen or connected |
 | 14: Notifications & integrations | 🟡 **Built and tested locally** (unit, DB, browser). Migration 20 **not applied**; no email provider and no connectors (need a decision and credentials) |
 | 15: Subscriptions & commercial | 🟡 **Built and tested locally** (unit, DB, browser). Migration 21 **not applied**; payments are recorded by hand; the renewal check is run by hand until a scheduled job exists |
+| 16: Security, QA, production readiness | 🟡 **Review done; fixes built and tested locally** (unit, DB, browser). Migrations 22–23 **not applied**; two-step sign-in not tested live; the prompt-injection eval and the backup restore drill need your resources (docs/security-review.md) |
 | 14–17 | Not started |
 
 ## Supabase project "agent"
@@ -195,7 +196,7 @@ Real defects found by the live run and fixed:
 - An owner was offered a button to remove their own owner role. It is now hidden; the database already refused it if they were the last owner.
 
 ## Decisions and actions needed from you
-0. **Phases 6–15:** **apply migrations 12 to 21** together when you do the Supabase steps; I can do all ten in one session. Then:
+0. **Phases 6–16:** **apply migrations 12 to 23** together when you do the Supabase steps; I can do all twelve in one session. Then:
    - turn on the `ticketing` feature for a university and add categories under Tickets → Categories & routing;
    - give someone the "AI quality reviewer" role if you want reviews done by someone other than the owner;
    - give teaching staff the new "Faculty member" role, create a course under Academic assistant, and assign its instructor;
@@ -412,9 +413,21 @@ Real defects found by the live run and fixed:
   - anything against "agent" (migration 21 not applied).
 - **Decisions needed:** whether to add online payments (a provider) and invoices; where the scheduled renewal check runs; the first plans and their prices.
 
+## Phase 16 status (2026-11-24)
+- **Built:**
+  - nonce-based CSP for the signed-in pages; header fixes (microphone allowed for voice, no HSTS preload);
+  - shared rate limits (migration 22) and a configurable trusted client-IP header;
+  - two-step sign-in (TOTP) enforced by the database (migration 23), required for platform staff;
+  - an automated RLS and privilege coverage test, a secret scanner (files and history), upload fuzzing, log redaction;
+  - `docs/security-review.md` (checklist and findings), `docs/runbooks/backup-restore.md`, ADR-036.
+- **Found and fixed:** voice input was blocked by our own Permissions-Policy (since Phase 13); a damaged PDF could leave an unhandled rejection in pdf.js (mitigated); spoofable client IPs behind Cloudflare; per-instance rate limits; one private table without RLS.
+- **Verified:** typecheck, lint and build pass, plus unit 285, DB 303 and browser 157; `npm audit` clean; secret scan clean.
+- **Not verified / not done:** two-step sign-in against a real Supabase Auth; the prompt-injection eval (needs the key); the backup restore drill (needs the production project).
+- **For you:** set `RATE_LIMIT_SECRET` (and `TRUSTED_IP_HEADER=cf-connecting-ip` if Cloudflare is in front); keep TOTP enabled in Supabase Auth.
+
 ## Next steps
-1. Go-live for Phases 5–15:
-   - apply migrations 12 to 21;
+1. Go-live for Phases 5–16:
+   - apply migrations 12 to 23;
    - set the API key and run the eval;
    - enable anonymous sign-ins (+ Turnstile);
    - then run live tests against "agent": a student chat, a visitor inquiry and an admissions question, the staff pipeline, a request handled end to end (reply, note, transfer, notifications, AI draft and summary), the analytics and AI quality pages on that real activity, a course end to end (material, join, each study aid, a quiz), the staff assistant (a question with a department filter, a draft, a digest), and a service request end to end (build and publish a form, submit it, ask for information, answer, approve, complete), the campus (add and publish a few locations, search, a campus question), and voice on a phone and a laptop (Arabic and English dictation and read-aloud). Clean up the test data afterwards.

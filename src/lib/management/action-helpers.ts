@@ -3,7 +3,8 @@ import { headers } from 'next/headers'
 import { getCurrentUser, type SessionUser } from '@/lib/auth/session'
 import { defaultLocale, isLocale, type Locale } from '@/lib/i18n/config'
 import { logger } from '@/lib/logger'
-import { clientIpFromHeaders, createMemoryRateLimiter } from '@/lib/rate-limit'
+import { clientIpFromHeaders } from '@/lib/rate-limit'
+import { createRateLimiter } from '@/lib/rate-limit-shared'
 import { isSupabaseConfigured } from '@/lib/supabase/config'
 import { createSupabaseServerClient } from '@/lib/supabase/server'
 import { errorState, mapDbError, type ActionState, type DbError } from './action-state'
@@ -55,23 +56,23 @@ export function dbFailure(op: string, error: DbError): ActionState<never> {
   return errorState(key)
 }
 
-// Per-instance limits (see rate-limit.ts); the database enforces authorization anyway.
+// Shared across server instances when configured (rate-limit-shared.ts); the database enforces authorization anyway.
 const limiters = {
-  invite: createMemoryRateLimiter({ limit: 30, windowMs: 10 * 60_000 }),
-  upload: createMemoryRateLimiter({ limit: 20, windowMs: 10 * 60_000 }),
-  tenant: createMemoryRateLimiter({ limit: 20, windowMs: 60 * 60_000 }),
-  accept: createMemoryRateLimiter({ limit: 20, windowMs: 10 * 60_000 }),
-  lead: createMemoryRateLimiter({ limit: 60, windowMs: 10 * 60_000 }),
-  ticket: createMemoryRateLimiter({ limit: 60, windowMs: 10 * 60_000 }),
-  study: createMemoryRateLimiter({ limit: 30, windowMs: 10 * 60_000 }),
-  join: createMemoryRateLimiter({ limit: 20, windowMs: 10 * 60_000 }),
-  staff: createMemoryRateLimiter({ limit: 30, windowMs: 10 * 60_000 }),
-  workflow: createMemoryRateLimiter({ limit: 60, windowMs: 10 * 60_000 }),
-  campus: createMemoryRateLimiter({ limit: 30, windowMs: 10 * 60_000 }),
-  voice: createMemoryRateLimiter({ limit: 120, windowMs: 10 * 60_000 }),
+  invite: createRateLimiter('action.invite', { limit: 30, windowMs: 10 * 60_000 }),
+  upload: createRateLimiter('action.upload', { limit: 20, windowMs: 10 * 60_000 }),
+  tenant: createRateLimiter('action.tenant', { limit: 20, windowMs: 60 * 60_000 }),
+  accept: createRateLimiter('action.accept', { limit: 20, windowMs: 10 * 60_000 }),
+  lead: createRateLimiter('action.lead', { limit: 60, windowMs: 10 * 60_000 }),
+  ticket: createRateLimiter('action.ticket', { limit: 60, windowMs: 10 * 60_000 }),
+  study: createRateLimiter('action.study', { limit: 30, windowMs: 10 * 60_000 }),
+  join: createRateLimiter('action.join', { limit: 20, windowMs: 10 * 60_000 }),
+  staff: createRateLimiter('action.staff', { limit: 30, windowMs: 10 * 60_000 }),
+  workflow: createRateLimiter('action.workflow', { limit: 60, windowMs: 10 * 60_000 }),
+  campus: createRateLimiter('action.campus', { limit: 30, windowMs: 10 * 60_000 }),
+  voice: createRateLimiter('action.voice', { limit: 120, windowMs: 10 * 60_000 }),
 }
 
 export async function isRateLimited(kind: keyof typeof limiters, userId: string): Promise<boolean> {
   const ip = clientIpFromHeaders(await headers())
-  return !limiters[kind].check(`${kind}:${userId}`).allowed || !limiters[kind].check(`${kind}:ip:${ip}`).allowed
+  return !(await limiters[kind].check(`user:${userId}`)).allowed || !(await limiters[kind].check(`ip:${ip}`)).allowed
 }

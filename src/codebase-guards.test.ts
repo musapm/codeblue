@@ -55,7 +55,8 @@ describe('codebase guards', () => {
     const offenders = files
       .filter((f) => /SUPABASE_SECRET_KEY|service_role/i.test(f.content))
       .map((f) => f.path)
-      .filter((path) => ![join('lib', 'env', 'server.ts'), join('lib', 'system', 'readiness.ts')].includes(path))
+      // secret-patterns.ts only describes the key's format so the secret scan can find leaked keys.
+      .filter((path) => ![join('lib', 'env', 'server.ts'), join('lib', 'system', 'readiness.ts'), join('lib', 'security', 'secret-patterns.ts')].includes(path))
     expect(offenders).toEqual([])
   })
 })

@@ -17,6 +17,9 @@ and they are visible to anyone. Never put secrets here.
 | `NEXT_PUBLIC_TURNSTILE_SITE_KEY` | Recommended with public admissions | — | Cloudflare Turnstile site key (public). Shows the check on sign-in, sign-up, reset and visitor sessions, and allows Cloudflare in the CSP. Set it together with CAPTCHA protection in Supabase Auth (docs/authentication.md step 8) |
 | `VOICE_PROVIDER` | No (Phase 13) | — | Server speech vendor for voice. No adapter is registered yet, so any value leaves the server provider "not configured" (docs/voice.md). The vendor's key will be a separate secret |
 | `EMAIL_PROVIDER` | No (Phase 14) | — | Email provider for notification emails. No adapter is registered yet, so emails stay queued. The provider's key will be a separate secret, and a worker with the service role will send the queue |
+| `RATE_LIMIT_SECRET` | Yes in production (Phase 16) | — | At least 32 random characters. Key for the shared rate-limit counters (migration 22). Unset → limits are per server instance only |
+| `TRUSTED_IP_HEADER` | Yes behind Cloudflare (Phase 16) | `x-forwarded-for` | The one header the hosting edge sets with the client IP: `x-forwarded-for` (Vercel alone), `cf-connecting-ip` (Cloudflare in front, origin reachable only through Cloudflare), `x-real-ip` |
+| `PLATFORM_MFA` | No (Phase 16) | `required` | `optional` lets platform staff into the console without two-step sign-in. Keep `required` in production |
 | `NEXT_PUBLIC_PLATFORM_NAME` | No | `UniAgent AI` | Product name shown everywhere (white-label) |
 | `NEXT_PUBLIC_PLATFORM_SHORT_NAME` | No | first word of the name | Compact name |
 | `NEXT_PUBLIC_PLATFORM_ASSISTANT_NAME` | No | `<name> Assistant` | Default assistant name |

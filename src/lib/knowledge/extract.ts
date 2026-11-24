@@ -2,6 +2,7 @@ import 'server-only'
 import type { KnowledgeMimeType } from './file-types'
 import { normalizeExtractedText } from './normalize'
 import { hasRtl, itemsToText } from './pdf-bidi'
+import { installPdfRejectionGuard } from './pdf-guard'
 import type { PageText } from './chunk'
 
 /**
@@ -33,13 +34,29 @@ export function pageItemsToText(items: PdfTextItem[]): string {
   return textItems.map((i) => i.str + (i.hasEOL ? '\n' : '')).join('')
 }
 
+/** Fonts and character maps from the local pdfjs-dist package (as unpdf does). */
+async function pdfAssetUrls(): Promise<{ standardFontDataUrl?: string; cMapUrl?: string; cMapPacked?: boolean }> {
+  try {
+    const base = import.meta.resolve('pdfjs-dist/package.json')
+    return { standardFontDataUrl: new URL('./standard_fonts/', base).href, cMapUrl: new URL('./cmaps/', base).href, cMapPacked: true }
+  } catch {
+    return {}
+  }
+}
+
 async function extractPdf(bytes: Uint8Array): Promise<Extracted> {
-  const { getDocumentProxy } = await import('unpdf')
+  installPdfRejectionGuard()
+  const { getResolvedPDFJS } = await import('unpdf')
+  const { getDocument } = await getResolvedPDFJS()
+  // A copy: pdf.js may transfer (detach) the buffer it is given. The loading task is kept so it
+  // can be destroyed when the file is damaged: otherwise pdf.js leaves a rejected promise behind
+  // that nothing handles, which stops a Node.js process (found by the Phase 16 upload fuzzing).
+  const task = getDocument({ data: new Uint8Array(bytes), useSystemFonts: true, disableFontFace: true, ...(await pdfAssetUrls()) })
   let pdf
   try {
-    // A copy: pdf.js may transfer (detach) the buffer it is given.
-    pdf = await getDocumentProxy(new Uint8Array(bytes))
+    pdf = await task.promise
   } catch (error) {
+    await task.destroy().catch(() => undefined)
     const name = (error as { name?: string }).name
     throw new ExtractionError(name === 'PasswordException' ? 'encrypted_file' : 'corrupt_file')
   }

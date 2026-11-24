@@ -6,6 +6,7 @@ import { localizedPath, type Locale } from '@/lib/i18n/config'
 import { logger } from '@/lib/logger'
 import { isSupabaseConfigured } from '@/lib/supabase/config'
 import { createSupabaseServerClient } from '@/lib/supabase/server'
+import { getMfaState, mfaStep, verifyPath } from './mfa'
 import { isPreviewModeActive, PREVIEW_IDENTITY } from './preview'
 
 /**
@@ -55,6 +56,11 @@ export async function requireUser(locale: Locale, nextPath?: string): Promise<Se
   if (!user) {
     const login = localizedPath(locale, '/login')
     redirect(nextPath ? `${login}?next=${encodeURIComponent(nextPath)}` : login)
+  }
+  if (!user.isPreview) {
+    // An account with two-step sign-in and a first-step session: the code comes first.
+    const state = await getMfaState(await createSupabaseServerClient())
+    if (mfaStep(state, false) === 'verify') redirect(verifyPath(localizedPath(locale, ''), nextPath))
   }
   return user
 }

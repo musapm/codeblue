@@ -3,7 +3,8 @@ import { headers } from 'next/headers'
 import { cache } from 'react'
 import { getSessionIdentity } from '@/lib/auth/session'
 import { logger } from '@/lib/logger'
-import { clientIpFromHeaders, createMemoryRateLimiter } from '@/lib/rate-limit'
+import { clientIpFromHeaders } from '@/lib/rate-limit'
+import { createRateLimiter } from '@/lib/rate-limit-shared'
 import { isSupabaseConfigured } from '@/lib/supabase/config'
 import { createSupabaseServerClient } from '@/lib/supabase/server'
 import { publicAdmissionsSchema, type PublicAdmissions } from './public'
@@ -16,7 +17,7 @@ import { publicAdmissionsSchema, type PublicAdmissions } from './public'
  */
 
 const log = logger.child({ module: 'admissions.visitor' })
-const sessionLimiter = createMemoryRateLimiter({ limit: 10, windowMs: 10 * 60_000 })
+const sessionLimiter = createRateLimiter('visitor.ip', { limit: 10, windowMs: 10 * 60_000 })
 
 export type VisitorSessionError = 'notConfigured' | 'sessionDisabled' | 'captcha' | 'rateLimited' | 'generic'
 
@@ -24,7 +25,7 @@ export async function ensureVisitorSession(captchaToken: string | undefined): Pr
   if (!isSupabaseConfigured()) return { ok: false, error: 'notConfigured' }
   if (await getSessionIdentity()) return { ok: true }
   const ip = clientIpFromHeaders(await headers())
-  if (!sessionLimiter.check(`visitor:${ip}`).allowed) return { ok: false, error: 'rateLimited' }
+  if (!(await sessionLimiter.check(`visitor:${ip}`)).allowed) return { ok: false, error: 'rateLimited' }
 
   const supabase = await createSupabaseServerClient()
   const { error } = await supabase.auth.signInAnonymously({ options: { captchaToken } })

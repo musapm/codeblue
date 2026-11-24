@@ -4,7 +4,8 @@ import { ARABIC, isSameOrigin, jsonError as fail, ndjsonResponse } from '@/lib/a
 import { getCurrentUser } from '@/lib/auth/session'
 import { getDictionary } from '@/lib/i18n/get-dictionary'
 import { logger } from '@/lib/logger'
-import { clientIpFromHeaders, createMemoryRateLimiter } from '@/lib/rate-limit'
+import { clientIpFromHeaders } from '@/lib/rate-limit'
+import { createRateLimiter } from '@/lib/rate-limit-shared'
 import { isSupabaseConfigured } from '@/lib/supabase/config'
 import { createSupabaseServerClient } from '@/lib/supabase/server'
 import { isOperating, tenantAccessPayloadSchema, toTenantSummary } from '@/lib/tenancy/mappers'
@@ -29,8 +30,8 @@ const bodySchema = z.object({
 })
 
 // Per-instance limits (see rate-limit.ts). The database budget caps spending regardless.
-const perUser = createMemoryRateLimiter({ limit: 20, windowMs: 5 * 60_000 })
-const perIp = createMemoryRateLimiter({ limit: 60, windowMs: 5 * 60_000 })
+const perUser = createRateLimiter('assistant.user', { limit: 20, windowMs: 5 * 60_000 })
+const perIp = createRateLimiter('assistant.ip', { limit: 60, windowMs: 5 * 60_000 })
 
 
 export async function POST(request: Request, ctx: { params: Promise<{ tenant: string }> }) {
@@ -52,7 +53,7 @@ export async function POST(request: Request, ctx: { params: Promise<{ tenant: st
   }
 
   const ip = clientIpFromHeaders(request.headers)
-  if (!perUser.check(`u:${user.id}`).allowed || !perIp.check(`ip:${ip}`).allowed) return fail(429, 'rateLimited')
+  if (!(await perUser.check(`u:${user.id}`)).allowed || !(await perIp.check(`ip:${ip}`)).allowed) return fail(429, 'rateLimited')
 
   const supabase = await createSupabaseServerClient()
   const access = await supabase.rpc('my_tenant_access', { p_slug: slug })

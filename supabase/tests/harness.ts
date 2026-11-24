@@ -13,9 +13,11 @@ import pg from 'pg'
 
 const MIGRATIONS_DIR = join(__dirname, '..', 'migrations')
 
-export type Actor = { kind: 'user'; id: string; anonymous?: boolean } | { kind: 'anon' } | { kind: 'service' }
+export type Actor = { kind: 'user'; id: string; anonymous?: boolean; aal?: 'aal1' | 'aal2' } | { kind: 'anon' } | { kind: 'service' }
 
 export const user = (id: string): Actor => ({ kind: 'user', id })
+/** A session after the second sign-in step (two-step sign-in, Phase 16). */
+export const userAal2 = (id: string): Actor => ({ kind: 'user', id, aal: 'aal2' })
 /** A Supabase anonymous sign-in (role authenticated, claim is_anonymous = true). */
 export const visitor = (id: string): Actor => ({ kind: 'user', id, anonymous: true })
 export const anon: Actor = { kind: 'anon' }
@@ -90,7 +92,7 @@ async function runAs<T>(pool: pg.Pool, actor: Actor, fn: (client: pg.PoolClient)
     await client.query('begin')
     const claims =
       actor.kind === 'user'
-        ? { sub: actor.id, role: 'authenticated', is_anonymous: actor.anonymous ?? false }
+        ? { sub: actor.id, role: 'authenticated', is_anonymous: actor.anonymous ?? false, aal: actor.aal ?? 'aal1' }
         : actor.kind === 'anon'
           ? { role: 'anon' }
           : { role: 'service_role' }

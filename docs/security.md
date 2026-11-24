@@ -68,6 +68,11 @@ RLS coverage report (every table has policies and tests) · secret scan · depen
 (MFA, lockout, reset) · nonce CSP for app routes · rate limits on a shared store · file upload fuzzing ·
 prompt-injection eval pass · log review for PII · backup restore drill.
 
+**Status (2026-11-24):** see `docs/security-review.md`. Done: coverage report, secret scan, dependency
+audit, nonce CSP, shared rate limits, upload fuzzing, log review, two-step sign-in (built and tested
+locally, not live). Not done: the prompt-injection eval (needs the API key) and the backup restore
+drill (needs the production project; `docs/runbooks/backup-restore.md`).
+
 ## 8. Observability
 
 `src/lib/logger.ts` emits JSON logs in production with `level`, `msg`, `time`, `requestId`, and

@@ -10,7 +10,7 @@ import { AppError, toPublicError } from './errors'
 import { FEATURES } from './features/catalog'
 import { canSeeNavItem, filterNav, plannedSegments, PLATFORM_NAV, WORKSPACE_NAV } from './navigation/workspace-nav'
 import { isPermissionKey, PERMISSION_KEYS } from './permissions/catalog'
-import { buildContentSecurityPolicy, buildSecurityHeaders } from './security/headers'
+import { buildContentSecurityPolicy, buildSecurityHeaders, NONCE_PATH, STATIC_CSP_SOURCE } from './security/headers'
 
 describe('preview mode (ADR-012)', () => {
   it('is only active when the flag is on AND no auth backend is configured', () => {
@@ -179,6 +179,28 @@ describe('security headers', () => {
     expect(prod).toContain('Strict-Transport-Security')
     expect(dev).not.toContain('Strict-Transport-Security')
     expect(buildContentSecurityPolicy({ isDev: true })).toContain("'unsafe-eval'")
+  })
+
+  it('signed-in pages use a nonce instead of unsafe-inline scripts', () => {
+    const csp = buildContentSecurityPolicy({ isDev: false, nonce: 'abc123' })
+    expect(csp).toMatch(/script-src 'self' 'nonce-abc123' 'strict-dynamic';/)
+    expect(csp).not.toMatch(/script-src[^;]*unsafe-inline/)
+    expect(NONCE_PATH.test('/en/app/northbridge')).toBe(true)
+    expect(NONCE_PATH.test('/ar/platform')).toBe(true)
+    expect(NONCE_PATH.test('/en/apply')).toBe(false)
+    expect(NONCE_PATH.test('/en/pricing')).toBe(false)
+    const staticSource = new RegExp(`^${STATIC_CSP_SOURCE}$`)
+    expect(staticSource.test('/en/pricing')).toBe(true)
+    expect(staticSource.test('/en/app/northbridge')).toBe(false)
+    expect(staticSource.test('/en/applications')).toBe(true)
+  })
+
+  it('allows the microphone for this site only, without HSTS preload', () => {
+    const headers = Object.fromEntries(buildSecurityHeaders({ isDev: false }).map((h) => [h.key, h.value]))
+    expect(headers['Permissions-Policy']).toContain('microphone=(self)')
+    expect(headers['Permissions-Policy']).not.toContain('interest-cohort')
+    expect(headers['Strict-Transport-Security']).not.toContain('preload')
+    expect(headers['Content-Security-Policy']).toBeUndefined() // set per path (next.config and the proxy)
   })
 
   it('allows Cloudflare Turnstile only when it is configured', () => {

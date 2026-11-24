@@ -787,6 +787,43 @@ test.describe('plans, subscriptions and usage (UI preview mode)', () => {
   }
 })
 
+test.describe('content security policy on signed-in pages', () => {
+  test('a fresh nonce per request, no inline scripts allowed, and the page still works', async ({ page, request }) => {
+    const first = (await request.get('/en/app/northbridge')).headers()['content-security-policy'] ?? ''
+    const second = (await request.get('/en/app/northbridge')).headers()['content-security-policy'] ?? ''
+    const nonce = (csp: string) => /'nonce-([^']+)'/.exec(csp)?.[1]
+    expect(nonce(first)).toBeTruthy()
+    expect(nonce(first)).not.toBe(nonce(second))
+    expect(first).not.toMatch(/script-src[^;]*unsafe-inline/)
+    expect((await request.get('/en/pricing')).headers()['content-security-policy']).toMatch(/script-src[^;]*unsafe-inline/) // prerendered public pages
+
+    const errors = trackErrors(page)
+    await page.goto('/en/app/northbridge')
+    await page.getByRole('button', { name: 'Switch workspace' }).click() // needs the page's scripts to run
+    await expect(page.getByRole('menuitem', { name: /Al-Noor Institute of Technology/ })).toBeVisible()
+    expect(errors.filter((e) => /Content Security Policy|Refused to/i.test(e))).toEqual([])
+    expect(errors).toEqual([])
+  })
+})
+
+test.describe('two-step sign-in (UI preview mode)', () => {
+  test('the account menu links to two-step sign-in; the page explains it without a backend', async ({ page }) => {
+    const errors = trackErrors(page)
+    await page.goto('/en/app/northbridge')
+    await page.getByRole('button', { name: 'Account' }).click()
+    await page.getByRole('menuitem', { name: 'Two-step sign-in' }).click()
+    await expect(page).toHaveURL(/\/en\/two-step$/)
+    await expect(page.getByRole('heading', { name: 'Two-step sign-in' })).toBeVisible()
+    await expect(page.getByText('Authentication is not configured', { exact: false }).first()).toBeVisible()
+    expect(errors).toEqual([])
+  })
+
+  test('the code step needs a real session', async ({ page }) => {
+    await page.goto('/ar/login/verify?next=/ar/platform')
+    await expect(page).toHaveURL(/\/ar\/login(\?|$)/)
+  })
+})
+
 test.describe('workspace on mobile @mobile', () => {
   test('sidebar is available from the menu button', async ({ page }) => {
     await page.goto('/en/app/northbridge')

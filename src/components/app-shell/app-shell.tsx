@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { ChevronsUpDown, Eye, LogOut, Menu, ShieldCheck, Check, ArrowLeft } from 'lucide-react'
+import { ArrowLeft, Check, ChevronsUpDown, Eye, LogOut, Menu, ShieldCheck } from 'lucide-react'
 import { useRef, useState, type CSSProperties, type ReactNode } from 'react'
 import { LanguageSwitcher } from '@/components/i18n/language-switcher'
 import {
@@ -48,6 +48,7 @@ export type AppShellProps = {
     account: string
     signedInAs: string
     signOut: string
+    twoStep: string
   }
   children: ReactNode
 }
@@ -213,6 +214,12 @@ export function AppShell(props: AppShellProps) {
                     ) : null}
                   </DropdownMenuLabel>
                   <DropdownMenuSeparator />
+                  <DropdownMenuItem asChild>
+                    <Link href={`/${locale}/two-step`}>
+                      <ShieldCheck aria-hidden />
+                      {labels.twoStep}
+                    </Link>
+                  </DropdownMenuItem>
                   <DropdownMenuItem onSelect={() => signOutForm.current?.requestSubmit()}>
                     <LogOut aria-hidden className="rtl:-scale-x-100" />
                     {labels.signOut}

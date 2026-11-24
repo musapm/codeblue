@@ -30,6 +30,15 @@ create table if not exists auth.users (
   last_sign_in_at timestamptz
 );
 
+-- Supabase Auth's MFA factors (two-step sign-in, Phase 16).
+create table if not exists auth.mfa_factors (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null references auth.users (id) on delete cascade,
+  factor_type text not null default 'totp',
+  status text not null default 'unverified',
+  created_at timestamptz not null default now()
+);
+
 -- Supabase installs extensions such as pgcrypto into the `extensions` schema.
 create schema if not exists extensions;
 grant usage on schema extensions to anon, authenticated, service_role;

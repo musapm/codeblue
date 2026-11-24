@@ -3,7 +3,8 @@
 import { headers } from 'next/headers'
 import { toFieldErrors, type FieldErrors } from '@/lib/auth/schemas'
 import { platformBranding } from '@/lib/branding/platform'
-import { clientIpFromHeaders, createMemoryRateLimiter } from '@/lib/rate-limit'
+import { clientIpFromHeaders } from '@/lib/rate-limit'
+import { createRateLimiter } from '@/lib/rate-limit-shared'
 import { buildInquiryMailto, contactSchema } from './schema'
 
 export type ContactActionState =
@@ -11,7 +12,7 @@ export type ContactActionState =
   | { status: 'error'; fieldErrors?: FieldErrors; rateLimited?: boolean }
   | { status: 'not_stored'; mailto: string }
 
-const limiter = createMemoryRateLimiter({ limit: 5, windowMs: 60 * 60_000 })
+const limiter = createRateLimiter('contact.ip', { limit: 5, windowMs: 60 * 60_000 })
 
 /**
  * Validates a demo/contact inquiry.
@@ -22,7 +23,7 @@ const limiter = createMemoryRateLimiter({ limit: 5, windowMs: 60 * 60_000 })
  */
 export async function submitInquiry(_prev: ContactActionState, formData: FormData): Promise<ContactActionState> {
   const ip = clientIpFromHeaders(await headers())
-  if (!limiter.check(`inquiry:${ip}`).allowed) return { status: 'error', rateLimited: true }
+  if (!(await limiter.check(`inquiry:${ip}`)).allowed) return { status: 'error', rateLimited: true }
 
   const parsed = contactSchema.safeParse({
     name: formData.get('name'),

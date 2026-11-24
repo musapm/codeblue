@@ -40,6 +40,22 @@ describe('redact', () => {
   })
 })
 
+describe('personal data in logs (Phase 16)', () => {
+  it('drops what people write and who they are', () => {
+    const out = redact({ question: 'Where is my grade?', answer: 'x', prompt: 'p', content: 'c', ip: '203.0.113.7', full_name: 'Sara', fullName: 'Sara', to: 'a@b.co', code: '23505', status: 429 }) as Record<string, unknown>
+    for (const k of ['question', 'answer', 'prompt', 'content', 'ip', 'full_name', 'fullName', 'to']) expect(out[k], k).toBe(REDACTED)
+    expect(out.code).toBe('23505')
+    expect(out.status).toBe(429)
+  })
+
+  it('masks email addresses inside any text, including error messages', () => {
+    expect(redact({ message: 'duplicate key (email)=(sara.ali@uni.example) already exists' })).toEqual({ message: 'duplicate key (email)=([email]) already exists' })
+    expect(redact('contact Sara <sara@uni.example.sa> now')).toBe('contact Sara <[email]> now')
+    expect(redact(new Error('no user someone@test.example'))).toMatchObject({ message: 'no user [email]' })
+    expect(redact({ note: 'version 1.2@3 and a@b' })).toEqual({ note: 'version 1.2@3 and a@b' }) // not addresses
+  })
+})
+
 describe('createLogger', () => {
   it('writes JSON lines with bindings and redaction', () => {
     const lines: string[] = []

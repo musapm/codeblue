@@ -231,14 +231,27 @@ Current state: `PROJECT_STATUS.md` · Audit history: `docs/IMPLEMENTATION_AUDIT.
 - [ ] **Decision:** online payments and invoices (a provider), proration, storage limits
 - [ ] Visual check of the platform billing pages with real data
 
-## Later phases
+## Phase 16: Security, QA, production readiness 🟡 review done, fixes tested locally; migrations 22–23 not applied
 
-See `docs/roadmap.md` (Phases 16–17): security review and production readiness, then launch.
+- [x] Nonce CSP for signed-in pages; header fixes (microphone for voice, HSTS preload, interest-cohort)
+- [x] Shared rate limits (migration 22); trusted client-IP header
+- [x] Two-step sign-in (TOTP) enforced by the database (migration 23); required for platform staff
+- [x] RLS and privilege coverage test; secret scan (files and history); dependency audit; upload fuzzing; log redaction
+- [x] Security review report (`docs/security-review.md`), backup restore runbook
+- [x] Tests: unit 285 (20 new), DB 303 (14 new), browser 157 (3 new)
+- [ ] **Apply migrations 22–23** (with 12–21); set `RATE_LIMIT_SECRET` and, behind Cloudflare, `TRUSTED_IP_HEADER`
+- [ ] Test two-step sign-in live (set up, sign in with a code, remove; a platform account without it is sent to set-up)
+- [ ] Run the prompt-injection eval with the API key; perform the backup restore drill
+- [ ] pdf.js late rejection: find the root cause or move PDF extraction to an isolated worker
+
+
+
+See `docs/roadmap.md` (Phase 17): demo, deployment and launch.
 
 ## Known follow-ups
 
-- [ ] Nonce-based CSP for `/app` and `/platform` (ADR-013)
-- [ ] Remove HSTS `preload` until production domains are final; drop the deprecated `interest-cohort`
+- [x] Nonce-based CSP for `/app` and `/platform` (ADR-013, done in Phase 16)
+- [x] Remove HSTS `preload` until production domains are final; drop the deprecated `interest-cohort` (Phase 16)
 - [ ] Unique landmark ids across retained routes (duplicate `#main` after workspace switch)
 - [x] `robots.txt` and sitemap (marketing pages; workspaces, console, auth and APIs excluded)
 - [ ] Legal review of Privacy Policy and Terms

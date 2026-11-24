@@ -5,18 +5,20 @@ import { redirect } from 'next/navigation'
 import { publicEnv } from '@/lib/env/public'
 import { defaultLocale, isLocale, localizedPath, type Locale } from '@/lib/i18n/config'
 import { logger } from '@/lib/logger'
-import { clientIpFromHeaders, createMemoryRateLimiter } from '@/lib/rate-limit'
+import { clientIpFromHeaders } from '@/lib/rate-limit'
+import { createRateLimiter } from '@/lib/rate-limit-shared'
 import { safeRedirectPath } from '@/lib/safe-redirect'
 import { isSupabaseConfigured } from '@/lib/supabase/config'
 import { createSupabaseServerClient } from '@/lib/supabase/server'
 import { forgotPasswordSchema, resetPasswordSchema, signInSchema, signUpSchema, toFieldErrors } from './schemas'
+import { getMfaState, mfaStep, verifyPath } from './mfa'
 import { mapAuthErrorCode, type AuthActionState } from './state'
 
 const log = logger.child({ module: 'auth' })
 
 // Per-instance limits (see rate-limit.ts). Supabase Auth applies its own limits too.
-const ipLimiter = createMemoryRateLimiter({ limit: 20, windowMs: 10 * 60_000 })
-const emailLimiter = createMemoryRateLimiter({ limit: 5, windowMs: 10 * 60_000 })
+const ipLimiter = createRateLimiter('auth.ip', { limit: 20, windowMs: 10 * 60_000 })
+const emailLimiter = createRateLimiter('auth.email', { limit: 5, windowMs: 10 * 60_000 })
 
 /** Turnstile token from the form (only present when CAPTCHA is configured). */
 function captchaToken(formData: FormData): string | undefined {
@@ -31,8 +33,8 @@ function readLocale(formData: FormData): Locale {
 
 async function isRateLimited(action: string, email?: string): Promise<boolean> {
   const ip = clientIpFromHeaders(await headers())
-  if (!ipLimiter.check(`${action}:ip:${ip}`).allowed) return true
-  if (email && !emailLimiter.check(`${action}:email:${email}`).allowed) return true
+  if (!(await ipLimiter.check(`${action}:ip:${ip}`)).allowed) return true
+  if (email && !(await emailLimiter.check(`${action}:email:${email}`)).allowed) return true
   return false
 }
 
@@ -62,7 +64,10 @@ export async function signIn(_prev: AuthActionState, formData: FormData): Promis
     return { status: 'error', error: key, email }
   }
 
-  redirect(safeRedirectPath(formData.get('next'), localizedPath(locale, '/app')))
+  const next = safeRedirectPath(formData.get('next'), localizedPath(locale, '/app'))
+  // Two-step sign-in set up: the password was the first step, the code comes next (ADR-036).
+  if (mfaStep(await getMfaState(supabase), false) === 'verify') redirect(verifyPath(localizedPath(locale, ''), next))
+  redirect(next)
 }
 
 export async function signUp(_prev: AuthActionState, formData: FormData): Promise<AuthActionState> {

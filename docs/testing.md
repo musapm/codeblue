@@ -277,3 +277,11 @@ Live runs on 2026-11-22 against project "agent":
 - **Unit:** `src/lib/billing/billing.test.ts` (10 tests): currency decimals and amounts, the plan, assignment, payment and limits forms, months, labels, and the plan-limit error message.
 - **Browser (preview):** plans and usage render without data or writes, the month navigation, plan and subscription pages need real data, Arabic and accessibility of both pages. The planned-module test now uses the platform settings page (Phase 16).
 - **Not run:** anything against "agent"; the platform pages with real data (no visual check this phase).
+
+### Security hardening (Phase 16)
+
+- **Database:** `coverage.test.ts` (catalog checks after every migration), `mfa.test.ts` (two-step sign-in in the database), `rate-limits.test.ts` (shared counters). 303 DB tests in total.
+- **Unit:** nonce CSP and header rules (`core.test.ts`), the shared limiter with its fallbacks (`rate-limit-shared.test.ts`), the trusted IP header (`rate-limit.test.ts`), log redaction (`logger.test.ts`), upload fuzzing (`knowledge/fuzz.test.ts`, seeded), secret patterns, two-step rules (`auth/mfa.test.ts`).
+- **Browser:** a fresh nonce per request and the page still working under the strict policy; the account menu's two-step link and page; the code step needs a real session. The whole suite runs under the nonce policy.
+- **Scripts:** `npm run security:secrets` (tracked files and git history), `npm run security:audit`.
+- **Not run:** two-step sign-in against a real Supabase Auth; the prompt-injection eval (needs the API key).

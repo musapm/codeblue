@@ -229,3 +229,11 @@ Chronological log of significant work. For the current snapshot see `PROJECT_STA
 - **App:** platform pages for plans, a university's subscription and the usage report; the plan on the university's settings page.
 - **Found while building:** an update that only changes a plan's features writes no row for the plan itself; the change is audited through its features instead (the test now says so).
 - **Not done on purpose:** online payments and invoices (a provider decision); a scheduled job for the renewal check; a visual check with real data.
+
+## 2026-11-24: Phase 16 (security review and hardening), nothing applied to Supabase
+
+- **Review:** `docs/security-review.md` with the checklist status and 10 findings (2 high, 3 medium, 4 low, 1 info), all fixed or mitigated.
+- **Database:** migration 22 (shared rate limits) and 23 (two-step sign-in in the database); a catalog coverage test that runs after every migration (303 DB tests).
+- **App:** nonce CSP on signed-in pages, shared limiter with HMAC buckets, trusted IP header, two-step sign-in pages, log redaction, upload fuzzing, secret scanner.
+- **Found while testing:** voice input had been blocked since Phase 13 by our own `Permissions-Policy`; the upload fuzzing found a pdf.js promise rejected after a damaged PDF, which Next.js logs but would stop a plain Node worker.
+- **Not done on purpose:** nothing against "agent"; the prompt-injection eval and the backup drill need the owner's key and production project.

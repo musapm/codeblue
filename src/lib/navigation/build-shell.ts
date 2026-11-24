@@ -35,5 +35,6 @@ export function shellLabels(dict: Dictionary, navigation: string) {
     account: dict.workspace.account,
     signedInAs: dict.workspace.signedInAs,
     signOut: dict.common.signOut,
+    twoStep: dict.auth.twoStep.menu,
   }
 }

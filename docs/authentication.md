@@ -14,7 +14,7 @@ with Server Components, Server Actions, Route Handlers, and `proxy.ts`.
 | Magic link / OTP | Later | Same `/auth/confirm` route |
 | Anonymous sessions | 5–6 | Supabase anonymous sign-in for public admissions chat. Gives RLS a `uid` and allows rate limiting per visitor |
 | SSO (SAML / Microsoft Entra / Google Workspace) | Later (Enterprise) | Supabase SSO; mapped to tenants via verified domains |
-| MFA (TOTP) | Phase 16 | Required for platform admins and recommended for tenant admins |
+| MFA (TOTP) | 16 (built, not live) | Two-step sign-in with an authenticator app: `/two-step` to set up, `/login/verify` for the code. Required for platform staff (`PLATFORM_MFA`); enforced by the database for every account that has it (migration 23, ADR-036). **Supabase: Authentication → Multi-Factor must allow TOTP (on by default)** |
 
 ## 2. Flows
 

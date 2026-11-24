@@ -52,12 +52,16 @@ export function createMemoryRateLimiter({ limit, windowMs, maxKeys = 10_000, now
   }
 }
 
-/** Extract a best-effort client IP for rate-limit keys (never used for authorization). */
-export function clientIpFromHeaders(headers: Headers): string {
-  const forwarded = headers.get('x-forwarded-for')
-  if (forwarded) {
-    const first = forwarded.split(',')[0]?.trim()
-    if (first) return first
-  }
-  return headers.get('cf-connecting-ip') ?? headers.get('x-real-ip') ?? 'unknown'
+export const TRUSTED_IP_HEADERS = ['x-forwarded-for', 'x-real-ip', 'cf-connecting-ip'] as const
+
+/**
+ * The client IP for rate-limit keys (never used for authorization). Only the header that the
+ * deployment's own edge sets can be trusted (Phase 16 review): `x-forwarded-for` on Vercel, which
+ * overwrites it; `cf-connecting-ip` behind Cloudflare, where the first `x-forwarded-for` entry is
+ * whatever the client sent and Vercel only sees Cloudflare's addresses. Set TRUSTED_IP_HEADER.
+ */
+export function clientIpFromHeaders(headers: Headers, trusted: string | undefined = process.env.TRUSTED_IP_HEADER): string {
+  const header = (TRUSTED_IP_HEADERS as readonly string[]).includes(trusted ?? '') ? trusted! : 'x-forwarded-for'
+  const value = headers.get(header)?.split(',')[0]?.trim()
+  return value && value.length <= 64 ? value : 'unknown'
 }

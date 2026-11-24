@@ -1,7 +1,9 @@
 import type { NextConfig } from 'next'
-import { buildSecurityHeaders } from './src/lib/security/headers'
+import { buildContentSecurityPolicy, buildSecurityHeaders, STATIC_CSP_SOURCE } from './src/lib/security/headers'
 
 const isDev = process.env.NODE_ENV !== 'production'
+
+const securityOptions = { isDev, supabaseUrl: process.env.NEXT_PUBLIC_SUPABASE_URL, turnstile: Boolean(process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY) }
 
 const nextConfig: NextConfig = {
   // Next.js 16 defaults (see ADR-006): static shells + streaming, partial prefetching.
@@ -27,7 +29,12 @@ const nextConfig: NextConfig = {
     return [
       {
         source: '/:path*',
-        headers: buildSecurityHeaders({ isDev, supabaseUrl: process.env.NEXT_PUBLIC_SUPABASE_URL, turnstile: Boolean(process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY) }),
+        headers: buildSecurityHeaders(securityOptions),
+      },
+      {
+        // Signed-in app and platform pages get a per-request nonce policy from the proxy instead.
+        source: STATIC_CSP_SOURCE,
+        headers: [{ key: 'Content-Security-Policy', value: buildContentSecurityPolicy(securityOptions) }],
       },
     ]
   },

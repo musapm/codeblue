@@ -146,3 +146,9 @@ All of it needs the `campus_assistant` feature:
 - **Plans, subscriptions, payments, the usage report and the renewal check:** platform `owner`, `admin` or `billing` (not `support`).
 - **A university's own plan, status, limits and use:** `tenant.settings.read`; its payments: `tenant.settings.manage`.
 - **Limits** are enforced by the database for everyone, including platform staff acting through the app.
+
+## Two-step sign-in (Phase 16)
+
+- **Anyone** can turn it on for their own account (`/two-step`); turning it off needs a second-step session.
+- **Platform staff** must have it (`PLATFORM_MFA`, default required) before the console opens.
+- **The database** refuses a first-step session of any account that has it: no university data, no own rows, no platform functions (migration 23).

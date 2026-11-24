@@ -5,7 +5,8 @@ import { z } from 'zod'
 import { toFieldErrors, type FieldErrors } from '@/lib/auth/schemas'
 import { getDictionary } from '@/lib/i18n/get-dictionary'
 import { logger } from '@/lib/logger'
-import { clientIpFromHeaders, createMemoryRateLimiter } from '@/lib/rate-limit'
+import { clientIpFromHeaders } from '@/lib/rate-limit'
+import { createRateLimiter } from '@/lib/rate-limit-shared'
 import { createSupabaseServerClient } from '@/lib/supabase/server'
 import { consentFor } from './public'
 import { ensureVisitorSession, getPublicAdmissions, type VisitorSessionError } from './visitor'
@@ -13,7 +14,7 @@ import { ensureVisitorSession, getPublicAdmissions, type VisitorSessionError } f
 /** Public admissions Server Actions (visitors; anonymous sessions allowed). */
 
 const log = logger.child({ module: 'admissions.public' })
-const inquiryLimiter = createMemoryRateLimiter({ limit: 10, windowMs: 10 * 60_000 })
+const inquiryLimiter = createRateLimiter('inquiry.ip', { limit: 10, windowMs: 10 * 60_000 })
 
 function captcha(formData: FormData): string | undefined {
   const v = formData.get('captchaToken')
@@ -91,7 +92,7 @@ export async function submitInquiry(_prev: InquiryState, formData: FormData): Pr
   if (!parsed.success) return fail('invalid', toFieldErrors(parsed.error))
 
   const ip = clientIpFromHeaders(await headers())
-  if (!inquiryLimiter.check(`inquiry:${ip}`).allowed) return fail('rateLimited')
+  if (!(await inquiryLimiter.check(`inquiry:${ip}`)).allowed) return fail('rateLimited')
 
   const page = await getPublicAdmissions(slug.data)
   if (!page) return fail('unavailable')
