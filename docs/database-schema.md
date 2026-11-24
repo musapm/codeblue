@@ -492,6 +492,13 @@ Limits: triggers on `invitations`, `tenant_memberships` and `knowledge_documents
 
 `app.has_membership`, `app.is_tenant_member`, `app.has_permission`, `app.is_platform_admin`, `app.has_support_access`, `app.has_role_permission`, `my_tenant_access`, `my_workspaces` and `my_platform_role` also require `app.mfa_ok()`.
 
+## 3b. Phase 17 — demo (migration 24 `demo`, **written and tested locally, not applied yet**)
+
+| Function | Who | Purpose |
+| --- | --- | --- |
+| `app.demo_seed(tenant)` | trusted sessions, the reset | Fictional content for demo universities only: departments, request categories, 3 programs, 5 campus locations, a course, a published service-request form. Idempotent |
+| `platform_demo_reset(slug)` | platform owner/admin | Demo universities only: deletes demo activity (chats, inquiries, requests, service requests, study aids, drafts, notifications, usage), then `app.demo_seed`; audited as `demo.reset` |
+
 ## 4. Later phases (outline)
 
 | Phase | Tables |

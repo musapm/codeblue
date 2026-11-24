@@ -128,3 +128,15 @@ export async function revokeSupportAccess(_prev: ActionState, formData: FormData
   refresh()
   return successState()
 }
+
+export async function resetDemoAction(_prev: ActionState<{ deleted: number }>, formData: FormData): Promise<ActionState<{ deleted: number }>> {
+  const ctx = await beginAction()
+  if (!isActionContext(ctx)) return ctx
+  const slug = z.string().regex(/^[a-z0-9-]{1,48}$/).safeParse(formData.get('slug'))
+  if (!slug.success) return errorState('invalid')
+  // The database refuses anything but a demo university, and anyone but platform owners and admins.
+  const { data, error } = await ctx.supabase.rpc('platform_demo_reset', { p_slug: slug.data })
+  if (error) return dbFailure('platform_demo_reset', error)
+  refresh()
+  return successState({ deleted: z.object({ deleted: z.number() }).parse(data).deleted })
+}

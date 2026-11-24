@@ -1,6 +1,6 @@
 # Project Status
 
-_Last updated: 2026-11-24 (Phase 16)_
+_Last updated: 2026-11-24 (Phase 17)_
 
 ## Honest summary
 
@@ -95,6 +95,7 @@ Visitors need **anonymous sign-ins enabled** in Supabase Auth (currently disable
 | 14: Notifications & integrations | 🟡 **Built and tested locally** (unit, DB, browser). Migration 20 **not applied**; no email provider and no connectors (need a decision and credentials) |
 | 15: Subscriptions & commercial | 🟡 **Built and tested locally** (unit, DB, browser). Migration 21 **not applied**; payments are recorded by hand; the renewal check is run by hand until a scheduled job exists |
 | 16: Security, QA, production readiness | 🟡 **Review done; fixes built and tested locally** (unit, DB, browser). Migrations 22–23 **not applied**; two-step sign-in not tested live; the prompt-injection eval and the backup restore drill need your resources (docs/security-review.md) |
+| 17: Demo, deployment & launch | 🟡 **Ready to deploy, not deployed.** Demo reset (migration 24, not applied), monitoring, CI, runbooks and demo script built and tested locally. Deployment waits for your approval and the owner actions in `docs/launch-checklist.md` |
 | 14–17 | Not started |
 
 ## Supabase project "agent"
@@ -196,7 +197,7 @@ Real defects found by the live run and fixed:
 - An owner was offered a button to remove their own owner role. It is now hidden; the database already refused it if they were the last owner.
 
 ## Decisions and actions needed from you
-0. **Phases 6–16:** **apply migrations 12 to 23** together when you do the Supabase steps; I can do all twelve in one session. Then:
+0. **Phases 6–17:** **apply migrations 12 to 24** together when you do the Supabase steps; I can do all thirteen in one session. Then:
    - turn on the `ticketing` feature for a university and add categories under Tickets → Categories & routing;
    - give someone the "AI quality reviewer" role if you want reviews done by someone other than the owner;
    - give teaching staff the new "Faculty member" role, create a course under Academic assistant, and assign its instructor;
@@ -425,9 +426,18 @@ Real defects found by the live run and fixed:
 - **Not verified / not done:** two-step sign-in against a real Supabase Auth; the prompt-injection eval (needs the key); the backup restore drill (needs the production project).
 - **For you:** set `RATE_LIMIT_SECRET` (and `TRUSTED_IP_HEADER=cf-connecting-ip` if Cloudflare is in front); keep TOTP enabled in Supabase Auth.
 
+## Phase 17 status (2026-11-24)
+- **Built:**
+  - migration 24 `demo` (3 DB tests, **local only**): demo content and a demo reset limited to demo universities, with a button in the platform console;
+  - monitoring: request-error reports (redacted, optional forwarding), a deep health check with the version;
+  - CI on every push (typecheck, lint, unit, secret scan, audit, database tests, build, browser tests);
+  - `docs/runbooks/deploy.md`, `docs/launch-checklist.md`, `docs/demo-script.md` (English and Arabic), ADR-037.
+- **Verified:** typecheck, lint and build pass, plus unit 289, DB 306 and browser 158; secret scan (files and history) clean.
+- **Not done:** the production deployment (needs your approval, plans, domains and the email provider), and everything in the launch checklist's owner section.
+
 ## Next steps
-1. Go-live for Phases 5–16:
-   - apply migrations 12 to 23;
+1. Go-live for Phases 5–17:
+   - apply migrations 12 to 24;
    - set the API key and run the eval;
    - enable anonymous sign-ins (+ Turnstile);
    - then run live tests against "agent": a student chat, a visitor inquiry and an admissions question, the staff pipeline, a request handled end to end (reply, note, transfer, notifications, AI draft and summary), the analytics and AI quality pages on that real activity, a course end to end (material, join, each study aid, a quiz), the staff assistant (a question with a department filter, a draft, a digest), and a service request end to end (build and publish a form, submit it, ask for information, answer, approve, complete), the campus (add and publish a few locations, search, a campus question), and voice on a phone and a laptop (Arabic and English dictation and read-aloud). Clean up the test data afterwards.

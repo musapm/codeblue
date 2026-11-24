@@ -60,5 +60,8 @@ Secrets are set in each host's environment settings. They are never committed (s
 
 ## 6. Monitoring and backups (Phase 17)
 
+**Built:** `/api/health?deep=1` (Supabase Auth reachability, version), one redacted JSON log line per server error plus optional forwarding (`ERROR_REPORT_URL`), CI on every push. **Runbooks:** `docs/runbooks/deploy.md`, `docs/runbooks/backup-restore.md`, `docs/launch-checklist.md`. Nothing is deployed.
+
+
 Uptime checks on `/api/health`, error tracking (e.g. Sentry; no PII in events), structured logs shipped
 from the host, Supabase PITR + daily logical backups of critical tables, and a documented restore drill.

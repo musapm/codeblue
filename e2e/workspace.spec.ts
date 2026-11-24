@@ -824,6 +824,19 @@ test.describe('two-step sign-in (UI preview mode)', () => {
   })
 })
 
+test.describe('monitoring', () => {
+  test('the health check answers without secrets, and the deep check says what is not configured', async ({ request }) => {
+    const basic = await request.get('/api/health')
+    expect(basic.status()).toBe(200)
+    expect(basic.headers()['cache-control']).toContain('no-store')
+    const body = await basic.json()
+    expect(body).toMatchObject({ status: 'ok', checks: { supabase: 'not_configured' } })
+    expect(Object.keys(body).sort()).toEqual(['checks', 'status', 'time', 'version'])
+    const deep = await (await request.get('/api/health?deep=1')).json()
+    expect(deep.checks).toEqual({ supabase: 'not_configured', auth: 'not_configured' })
+  })
+})
+
 test.describe('workspace on mobile @mobile', () => {
   test('sidebar is available from the menu button', async ({ page }) => {
     await page.goto('/en/app/northbridge')

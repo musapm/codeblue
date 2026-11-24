@@ -523,3 +523,18 @@ Format: **ADR-NNN — Title** · Status · Date · Context → Decision → Cons
 - Signed-in pages cannot be cached at the edge (they already render per request).
 - Two-step sign-in has not been exercised against a real Supabase Auth; `PLATFORM_MFA=optional` is the switch if the platform requirement blocks access before it is.
 - The remaining items (prompt-injection eval with a key, the backup restore drill) need the owner's resources; see docs/security-review.md.
+
+## ADR-037 — Launch readiness without deploying: demo reset in the database, CI, error reports, runbooks
+**Accepted · 2026-11-24**
+
+**Context:** Phase 17 asks for a demo tenant with reset, a production deployment, monitoring, backups and a demo script. Deploying needs the owner's explicit approval, paid plans and decisions (domains, email provider), none of which are available yet.
+
+**Decision:**
+- **Demo content and reset in the database** (migration 24): `app.demo_seed` adds fictional content only to universities marked `is_demo`, idempotently; `platform_demo_reset` (platform owners and admins) deletes demo activity and adds back missing content, keeps members, settings and the knowledge base, and is audited. A real university can never be reset.
+- **Monitoring without a vendor:** `onRequestError` writes one redacted JSON line per server error and can forward it to `ERROR_REPORT_URL`; `/api/health?deep=1` checks Supabase Auth and reports the version. Any uptime service or error tracker can consume these.
+- **CI** (GitHub Actions) runs every check on every push, including the database tests on Postgres with pgvector and the browser tests on a production build. It deploys nothing.
+- **Runbooks instead of a deployment:** `docs/runbooks/deploy.md`, `backup-restore.md`, `docs/launch-checklist.md`, `docs/demo-script.md`.
+
+**Consequences:**
+- The product is ready to deploy but **not deployed**; the launch checklist lists what the owner must do and approve.
+- CI runs on GitHub's runners for this repository (it uses Actions minutes).

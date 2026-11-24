@@ -38,5 +38,10 @@ begin
     (v_tenant, 'academic-affairs', 'Academic Affairs', '{"ar": "الشؤون الأكاديمية"}'),
     (v_tenant, 'library', 'Library', '{"ar": "المكتبة"}')
   on conflict (tenant_id, slug) do nothing;
+
+  -- Demo content (programs, campus, a course, a service-request form…) once migration 24 exists.
+  if to_regprocedure('app.demo_seed(uuid)') is not null then
+    perform app.demo_seed(v_tenant);
+  end if;
 end
 $$;

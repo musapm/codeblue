@@ -14,10 +14,13 @@ const patterns = [...source.matchAll(/\{ name: '([^']+)', pattern: (\/.+\/[a-z]*
 })
 if (patterns.length < 8) throw new Error('could not read the secret patterns')
 
+// Test fixtures that contain fake credentials on purpose (to test the patterns themselves).
+const ALLOWED_FILES = new Set(['src/lib/security/secret-patterns.test.ts'])
+
 const findings = []
 const files = execFileSync('git', ['ls-files', '-z'], { encoding: 'utf8' }).split('\0').filter(Boolean)
 for (const file of files) {
-  if (/\.(png|jpe?g|gif|webp|ico|pdf|docx|woff2?)$/i.test(file)) continue
+  if (ALLOWED_FILES.has(file) || /\.(png|jpe?g|gif|webp|ico|pdf|docx|woff2?)$/i.test(file)) continue
   let text
   try {
     text = readFileSync(file, 'utf8')
@@ -30,9 +33,11 @@ for (const file of files) {
 if (process.argv.includes('--history')) {
   const log = execFileSync('git', ['log', '--all', '-p', '--no-color', '--format=COMMIT %H'], { encoding: 'utf8', maxBuffer: 1024 * 1024 * 1024 })
   let commit = ''
+  let file = ''
   for (const line of log.split('\n')) {
     if (line.startsWith('COMMIT ')) commit = line.slice(7, 19)
-    else if (line.startsWith('+') && !line.startsWith('+++')) for (const p of patterns) if (p.pattern.test(line)) findings.push(`history ${commit}: ${p.name}`)
+    else if (line.startsWith('+++ ')) file = line.replace(/^\+\+\+ (b\/)?/, '')
+    else if (line.startsWith('+') && !ALLOWED_FILES.has(file)) for (const p of patterns) if (p.pattern.test(line)) findings.push(`history ${commit} ${file}: ${p.name}`)
   }
 }
 

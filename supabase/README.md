@@ -43,6 +43,7 @@ Migration file versions match the versions recorded in the project
 | `20261124280000_subscriptions.sql` | Phase 15: plans (features, limits, trial and grace days, optional price), one subscription per university, manual payments that renew, the status sweep, limits enforced by triggers and a plan-wide AI cap added to every AI gate, the usage report (ADR-035). **Written and tested locally (9 DB tests); not applied yet** |
 | `20261124300000_rate_limits.sql` | Phase 16: shared rate-limit counters (private table, HMAC buckets, `public.rate_limit_hit` callable before sign-in); RLS on `app.academic_join_failures` (ADR-036). **Written and tested locally (3 DB tests); not applied yet** |
 | `20261124320000_mfa.sql` | Phase 16: two-step sign-in enforced by the database: `app.mfa_ok()` in the access helpers and self-access functions, and a restrictive `mfa_required` policy on every public table and on storage objects (ADR-036). **Written and tested locally (5 DB tests + the coverage test); not applied yet** |
+| `20261124340000_demo.sql` | Phase 17: demo content for universities marked as demo, and `platform_demo_reset` (demo universities only; activity removed, missing demo content added back, audited) (ADR-037). **Written and tested locally (3 DB tests); not applied yet** |
 
 ## Rules for new migrations
 
@@ -61,7 +62,7 @@ TEST_DATABASE_URL=postgres://postgres:postgres@127.0.0.1:5432/postgres npm run t
 
 ## Seeds
 
-- `seed/demo_northbridge.sql` — fictional demo university (idempotent; applied to "agent").
+- `seed/demo_northbridge.sql` — fictional demo university (idempotent; applied to "agent"). Once migration 24 is applied it also adds the demo content (`app.demo_seed`).
 - `seed/bootstrap_platform_owner.sql` — make yourself the first platform owner after signing up
   (replace the email; run once in the SQL editor). There is intentionally no way to become
   platform owner through the app or API.

@@ -285,3 +285,10 @@ Live runs on 2026-11-22 against project "agent":
 - **Browser:** a fresh nonce per request and the page still working under the strict policy; the account menu's two-step link and page; the code step needs a real session. The whole suite runs under the nonce policy.
 - **Scripts:** `npm run security:secrets` (tracked files and git history), `npm run security:audit`.
 - **Not run:** two-step sign-in against a real Supabase Auth; the prompt-injection eval (needs the API key).
+
+### Launch readiness (Phase 17)
+
+- **Database:** `demo.test.ts` (3): demo content once, refused for real universities; the reset's permissions and effects. 306 DB tests in total.
+- **Unit:** `monitoring/errors.test.ts` (4): error reports without query strings or personal data, the version, forwarding only to https.
+- **Browser:** the health check and its deep mode.
+- **CI:** `.github/workflows/ci.yml` runs all of the above on every push (database tests on `pgvector/pgvector:pg16`). The secret scan skips one file on purpose: `secret-patterns.test.ts` holds fake keys to test the patterns.

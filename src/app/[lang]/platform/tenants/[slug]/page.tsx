@@ -13,7 +13,7 @@ import { Select, Textarea } from '@/components/ui/input'
 import { BILLING_ROLES } from '@/lib/billing/view'
 import { localizedPath } from '@/lib/i18n/config'
 import { getI18n } from '@/lib/i18n/server'
-import { grantSupportAccess, revokeSupportAccess, setTenantFeature, setTenantStatus } from '@/lib/management/platform-actions'
+import { grantSupportAccess, resetDemoAction, revokeSupportAccess, setTenantFeature, setTenantStatus } from '@/lib/management/platform-actions'
 import { getPlatformTenant, listInvitations, listPlatformStaff } from '@/lib/management/queries'
 import { formatDate, formMessages, roleLabel, TENANT_STATUS_VARIANT } from '@/lib/management/view'
 import { revokeInvitation } from '@/lib/management/workspace-actions'
@@ -113,6 +113,16 @@ export default async function PlatformTenantPage({ params }: PageProps<'/[lang]/
                     ))}
                   </Select>
                   <SubmitButton variant="secondary">{d.changeStatus}</SubmitButton>
+                </ActionForm>
+              </div>
+            ) : null}
+
+            {canManage && tenant.isDemo ? (
+              <div className="space-y-2">
+                <h3 className="text-sm font-semibold">{d.demoHeading}</h3>
+                <p className="text-xs text-muted-foreground">{d.demoDescription}</p>
+                <ActionForm action={resetDemoAction} hidden={hidden} messages={messages} confirmMessage={d.demoConfirm} renderSuccess={(r) => d.demoDone(r?.deleted ?? 0)}>
+                  <SubmitButton variant="secondary">{d.demoReset}</SubmitButton>
                 </ActionForm>
               </div>
             ) : null}

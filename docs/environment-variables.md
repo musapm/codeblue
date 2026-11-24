@@ -20,6 +20,8 @@ and they are visible to anyone. Never put secrets here.
 | `RATE_LIMIT_SECRET` | Yes in production (Phase 16) | — | At least 32 random characters. Key for the shared rate-limit counters (migration 22). Unset → limits are per server instance only |
 | `TRUSTED_IP_HEADER` | Yes behind Cloudflare (Phase 16) | `x-forwarded-for` | The one header the hosting edge sets with the client IP: `x-forwarded-for` (Vercel alone), `cf-connecting-ip` (Cloudflare in front, origin reachable only through Cloudflare), `x-real-ip` |
 | `PLATFORM_MFA` | No (Phase 16) | `required` | `optional` lets platform staff into the console without two-step sign-in. Keep `required` in production |
+| `ERROR_REPORT_URL` | No (Phase 17) | — | HTTPS endpoint that receives each redacted server-error report as JSON (log pipeline, incident channel or error tracker ingest). Errors are always written to the log as well |
+| `APP_VERSION` | No (Phase 17) | Vercel's commit SHA | Version shown by `/api/health` when not on Vercel |
 | `NEXT_PUBLIC_PLATFORM_NAME` | No | `UniAgent AI` | Product name shown everywhere (white-label) |
 | `NEXT_PUBLIC_PLATFORM_SHORT_NAME` | No | first word of the name | Compact name |
 | `NEXT_PUBLIC_PLATFORM_ASSISTANT_NAME` | No | `<name> Assistant` | Default assistant name |
