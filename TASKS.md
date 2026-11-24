@@ -248,6 +248,17 @@ Current state: `PROJECT_STATUS.md` · Audit history: `docs/IMPLEMENTATION_AUDIT.
 
 See `docs/roadmap.md` (Phase 17): demo, deployment and launch.
 
+## Phase 17: Demo, deployment & launch 🟡 ready to deploy, not deployed
+
+- [x] Migration 24 `demo`: demo content and a demo reset for demo universities only; Reset demo button. 3 DB tests, local only
+- [x] Monitoring: request-error reports, deep health check with version
+- [x] CI workflow (GitHub Actions)
+- [x] Deployment runbook, launch checklist, demo script (en/ar)
+- [x] Tests: unit 289 (4 new), DB 306 (3 new), browser 158 (1 new)
+- [ ] **Owner:** the owner section of `docs/launch-checklist.md`, then **approve the first production deployment**
+
+All roadmap phases (0–17) are built. What remains is in the owner items above and in `docs/launch-checklist.md`.
+
 ## Known follow-ups
 
 - [x] Nonce-based CSP for `/app` and `/platform` (ADR-013, done in Phase 16)

@@ -237,3 +237,11 @@ Chronological log of significant work. For the current snapshot see `PROJECT_STA
 - **App:** nonce CSP on signed-in pages, shared limiter with HMAC buckets, trusted IP header, two-step sign-in pages, log redaction, upload fuzzing, secret scanner.
 - **Found while testing:** voice input had been blocked since Phase 13 by our own `Permissions-Policy`; the upload fuzzing found a pdf.js promise rejected after a damaged PDF, which Next.js logs but would stop a plain Node worker.
 - **Not done on purpose:** nothing against "agent"; the prompt-injection eval and the backup drill need the owner's key and production project.
+
+## 2026-11-24: Phase 17 (demo, deployment readiness), nothing deployed or applied
+
+- **Database:** migration 24 `demo` (local, 3 DB tests, 306 total): demo content and a reset that refuses any university not marked as demo.
+- **App:** Reset demo in the platform console; request-error reports; deep health check; CI workflow.
+- **Docs:** deployment runbook, launch checklist, demo script in English and Arabic, ADR-037.
+- **Found while building:** the secret scan would have failed CI on its own test fixtures (fake keys) in the git history; that one file is now an explicit exception.
+- **Not done on purpose:** the production deployment, which needs the owner's approval and accounts.
