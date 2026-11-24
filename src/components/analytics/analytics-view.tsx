@@ -32,7 +32,7 @@ export function AnalyticsView({
   days: Period
   /** Workspace root, e.g. /en/app/northbridge */
   base: string
-  links: { knowledge: boolean; leads: boolean; academic?: boolean }
+  links: { knowledge: boolean; leads: boolean; academic?: boolean; workflows?: boolean }
 }) {
   const d = t.dashboard
   const n = (x: number) => formatNumber(locale, x)
@@ -119,6 +119,7 @@ export function AnalyticsView({
         { key: 'admissions', label: d.ai.features.admissions_agent ?? '', spent: ai.month.admissions_agent, budget: ai.budgets.admissions_agent },
         { key: 'academic', label: d.ai.features.academic_agent ?? '', spent: ai.month.academic_agent ?? 0, budget: ai.budgets.academic_agent ?? null },
         { key: 'staff', label: d.ai.features.staff_assistant ?? '', spent: ai.month.staff_assistant ?? 0, budget: ai.budgets.staff_assistant ?? null },
+        { key: 'workflows', label: d.ai.features.workflow_agent ?? '', spent: ai.month.workflow_agent ?? 0, budget: ai.budgets.workflow_agent ?? null },
       ]
     : []
   const q = data.quality
@@ -266,6 +267,39 @@ export function AnalyticsView({
             </Card>
           ) : null}
 
+          {data.workflows ? (
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-base">{d.workflows.title}</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-5">
+                <div className="grid grid-cols-2 gap-3">
+                  <StatTile label={d.workflows.submitted} value={n(data.workflows.submitted)} detail={d.workflows.fromAssistant(n(data.workflows.from_assistant))} />
+                  <StatTile label={d.workflows.completed} value={n(data.workflows.completed)} detail={d.workflows.rejected(n(data.workflows.rejected))} />
+                  <StatTile label={d.workflows.openNow} value={n(data.workflows.open_now)} detail={d.workflows.needsInfo(n(data.workflows.open_by_status.needs_info))} />
+                  <StatTile
+                    label={d.workflows.median}
+                    value={formatMinutes(locale, data.workflows.median_completion_hours === null ? null : data.workflows.median_completion_hours * 60, t.dash)}
+                  />
+                </div>
+                <div>
+                  <h3 className="mb-2 text-sm font-medium">{d.workflows.byForm}</h3>
+                  <BarList
+                    format={n}
+                    emptyLabel={t.dash}
+                    rows={data.workflows.by_form.map((f) => ({ key: f.id, label: (locale === 'ar' && f.title_ar) || f.title, value: f.submitted }))}
+                  />
+                </div>
+                {links.workflows ? (
+                  <Link href={`${base}/workflows`} className={buttonClasses({ variant: 'secondary', size: 'sm' })}>
+                    {d.workflows.open}
+                    <ArrowRight aria-hidden className="rtl:-scale-x-100" />
+                  </Link>
+                ) : null}
+              </CardContent>
+            </Card>
+          ) : null}
+
           {data.academic ? (
             <Card>
               <CardHeader>
@@ -355,8 +389,8 @@ export function AnalyticsView({
                       </div>
                     )
                   })}
-                <dl className="grid grid-cols-2 gap-3 text-sm sm:grid-cols-3 lg:grid-cols-5">
-                  {(['student_assistant', 'admissions_agent', 'ticketing', 'academic_agent', 'staff_assistant'] as const).map((f) => (
+                <dl className="grid grid-cols-2 gap-3 text-sm sm:grid-cols-3">
+                  {(['student_assistant', 'admissions_agent', 'ticketing', 'academic_agent', 'staff_assistant', 'workflow_agent'] as const).map((f) => (
                     <div key={f}>
                       <dt className="text-xs text-muted-foreground">{d.ai.features[f]}</dt>
                       <dd className="font-semibold">{usd(ai.month[f] ?? 0)}</dd>

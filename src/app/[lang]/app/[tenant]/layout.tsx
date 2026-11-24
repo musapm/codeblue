@@ -39,8 +39,8 @@ export default async function WorkspaceLayout({ children, params }: LayoutProps<
     )
   }
 
-  // Ticket notifications (Phase 7): only where the university has ticketing. Fails soft.
-  const showBell = canSeeNavItem({ key: '', segment: '', icon: 'overview', status: 'available', phase: 7, feature: 'ticketing' }, ctx.access)
+  // Notifications (tickets, Phase 7; service requests, Phase 11): only where the university has either. Fails soft.
+  const showBell = canSeeNavItem({ key: '', segment: '', icon: 'overview', status: 'available', phase: 7, feature: ['ticketing', 'workflow_agent'] }, ctx.access)
   const unread = showBell && ctx.tenantId ? await unreadNotificationCount(ctx.tenantId) : null
   const bell = showBell ? (
     <NotificationBell href={`${basePath}/notifications`} count={unread} label={dict.tickets.notifications.bell(unread ?? 0)} />

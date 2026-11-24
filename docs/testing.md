@@ -204,3 +204,20 @@ Live runs on 2026-11-22 against project "agent":
 - **Visual check:** a draft, the ticket digest and the forms were rendered with fictional data through a temporary local-only route (deleted), in English and Arabic. It found a real defect: the digest said "Based on 75 open tickets" when it covered only 60 of them (fixed, with a component test).
 - **Not run:** any live test (migration 16 not applied; the tools need the API key). There is no eval set for the staff tools yet.
 
+### Service request workflows (Phase 11)
+
+- **Database:** `supabase/tests/workflows.test.ts` (20 tests, migration 17, local only). Covered:
+  - who manages forms; key uniqueness; 10 kinds of malformed fields refused; drafts hidden until published;
+  - published versions cannot change; a new draft does not affect requesters; the old version refused after a new one is published (40001), while earlier requests keep theirs;
+  - submission: tracking numbers, normalized answers, 8 kinds of invalid answers, archived forms, other universities;
+  - visibility by requester, department, general queue and university;
+  - the status flow, required messages, the requester's answer returning a request to review;
+  - internal notes and assignments hidden from requesters; assignment rules; nobody processing their own request;
+  - completion, cancellation and closed requests; notifications for both sides; deleting forms only without requests;
+  - the suggestion gate (switch, daily limit, budget); analytics counts and cost; audit; the feature switch.
+  `analytics.test.ts` now expects the workflow cost key.
+- **Unit:** `src/lib/workflows/workflows.test.ts` (12 tests): answer and form rules (the same as the database's), dates, answer formatting in both languages, keys from labels, choices with Arabic labels, required status messages, and the form suggestion with a fake model and database (no call without a key or when the gate refuses; labels mapped to option values; invalid values, unknown keys and checkboxes dropped; required fields still missing listed; no form fits; refusals still book usage). `src/components/workflows/workflows.test.tsx` (2 tests): the review-and-confirm step and an AI pre-filled form. `core.test.ts`: workflows are no longer a placeholder.
+- **Browser (preview):** the services page, the staff queue, forms and settings without data and without writes; navigation; unknown forms and requests "not found"; Arabic; accessibility of 4 pages. The planned-module test now uses the campus module.
+- **Visual check:** the request form (AI pre-filled), its review step, the timeline and the form builder were rendered with fictional data through a temporary local-only route (deleted), in English and Arabic, on a production build (dev mode did not hydrate in this environment). It found two defects, both fixed: answers in a different script were aligned to the wrong side in right-to-left pages, and assignments were labelled "Internal note".
+- **Not run:** any live test (migration 17 not applied; suggestions need the API key). There is no eval set for the form suggestion yet.
+

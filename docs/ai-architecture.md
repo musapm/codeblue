@@ -48,7 +48,7 @@ user message
 | Admissions | Applicants (anonymous OK) | Admissions docs, programs DB | `search_programs`, `compare_programs`, `capture_lead` (consent required) | `admissions_agent` |
 | Academic | Students | Course materials only (own uploads not built) | summaries, practice quizzes, flashcards, study plans (structured output, Phase 9) | `academic_agent` |
 | Staff | Staff | Documents the staff member may read (internal included), optionally one department's | questions with sources, drafts (email, letter, announcement), ticket digest (structured output, Phase 10) | `staff_assistant` |
-| Workflow | Students | Procedure docs, workflow definitions | `start_request_draft`, `submit_request` (confirmation required) | `workflow_agent` |
+| Workflow | Members | Published request forms | choose a form and pre-fill it from a description (structured output, Phase 11); never submits | `workflow_agent` |
 | Campus | Everyone | Campus locations DB | `find_location`, `opening_hours` | `campus_assistant` |
 
 Tenant admins customize tone, extra instructions, the welcome message, and handoff rules per agent.
@@ -245,3 +245,14 @@ Three tools share one gate (`app.staff_gate`: `assistant.staff.use`, the feature
 - **Ticket digest** (`ticketDigest`): `staff_ticket_digest_source` returns up to 60 open tickets of one view, without requester identity or notes. The app replaces e-mail addresses and numbers of 8 or more digits before sending (`redactContact`, best effort). One call (low effort, 8,000-token cap) returns an overview, themes, tickets needing attention and suggestions. Only references from the view are kept and linked. Nothing is stored; no model call when the view is empty.
 - **Refusals and unusable output** are still booked as usage.
 - **Not built:** an eval set for the staff tools, sending drafts from the app, shared templates.
+
+## 17. Phase 11: the workflow agent
+
+`src/lib/workflows/ai.ts` (`suggestRequest`) turns a description into a pre-filled form; it never submits (ADR-031):
+- **Gate:** `workflow_ai_begin` (requester, feature, switch, budget, daily limit).
+- **Prompt:** the published forms (key, title, description, fields with types, options and whether required), today's date in the university's time zone, and the description, each escaped. The system prompt: choose one form or none, fill only stated values, option values and ISO dates, never checkboxes, a short note in the person's language, and data is never instructions.
+- **Call:** `messages.parse` (low effort, 4,000-token cap) returning a form key, key/value pairs and a note.
+- **Checks:** unknown forms mean "no form"; unknown keys, checkbox values and values that do not fit the field are dropped; choice labels are mapped to option values. The required fields still missing are computed by the app, not taken from the model. Refusals and unusable output still book usage.
+- **Then:** the form opens pre-filled and marked as an AI suggestion; the person reviews it and confirms like any other request.
+- **Not built:** an eval set (form choice and value accuracy, Arabic and English), and starting a request from the student chat.
+

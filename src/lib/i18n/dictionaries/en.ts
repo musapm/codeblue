@@ -5,6 +5,7 @@ import { academicEn } from './academic.en'
 import { analyticsEn } from './analytics.en'
 import { ticketsEn } from './tickets.en'
 import { staffEn } from './staff.en'
+import { workflowsEn } from './workflows.en'
 
 /**
  * English UI dictionary (canonical shape). The Arabic dictionary must match this shape
@@ -163,6 +164,12 @@ export const en = (brand: PlatformBranding) => ({
     purposeRequired: 'Describe what it should say in at least 10 characters.',
     purposeTooLong: 'Please keep this under 3,000 characters.',
     dailyLimitInvalid: 'Enter a whole number from 1 to 500.',
+    workflowKey: 'Use 2–48 lowercase letters, digits or hyphens, starting with a letter or digit.',
+    workflowKeyTaken: 'Another form already uses this address.',
+    workflowFields: 'Check the fields: each needs a label, and choice fields need at least one option.',
+    workflowMessageRequired: 'Write a message for the requester (at least 3 characters).',
+    workflowDescribe: 'Describe what you need in at least 10 characters.',
+    dailyLimitWorkflow: 'Enter a whole number from 1 to 200.',
   },
   contactForm: {
     name: 'Full name',
@@ -203,6 +210,7 @@ export const en = (brand: PlatformBranding) => ({
       ask: 'Ask the assistant',
       courses: 'My courses',
       requests: 'My requests',
+      services: 'Service requests',
       notifications: 'Notifications',
       assistant: 'Student assistant',
       admissions: 'Admissions',
@@ -227,6 +235,7 @@ export const en = (brand: PlatformBranding) => ({
       'staff-assistant': 'Internal assistant for staff: search department knowledge, summarize tickets, and draft emails, letters and announcements.',
       tickets: 'Support tickets from chat or forms with AI summaries, department routing, priorities, internal notes and status tracking.',
       knowledge: 'Upload and manage official documents (PDF, DOCX, TXT, CSV) with versions, visibility, departments and processing status.',
+      services: 'Request documents and services from university offices with a form, and track each request by its number.',
       workflows: 'Structured requests such as transcripts, certificates and exam postponements, with confirmation steps and tracking numbers.',
       campus: 'Buildings, offices, rooms and services with opening hours and accessibility information.',
       analytics: 'Conversations, resolution rates, ticket trends, admissions funnel and AI usage, calculated from real stored events only.',
@@ -346,6 +355,7 @@ export const en = (brand: PlatformBranding) => ({
   analytics: analyticsEn,
   academic: academicEn,
   staff: staffEn,
+  workflows: workflowsEn,
 })
 
 export type Dictionary = ReturnType<typeof en>

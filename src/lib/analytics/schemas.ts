@@ -106,8 +106,8 @@ export const OverviewSchema = z.object({
   ai: z
     .object({
       month_since: z.string(),
-      month: z.object({ student_assistant: num, admissions_agent: num, ticketing: num, academic_agent: num.optional(), staff_assistant: num.optional() }),
-      budgets: z.object({ student_assistant: nullableNum, admissions_agent: nullableNum, academic_agent: nullableNum.optional(), staff_assistant: nullableNum.optional() }),
+      month: z.object({ student_assistant: num, admissions_agent: num, ticketing: num, academic_agent: num.optional(), staff_assistant: num.optional(), workflow_agent: num.optional() }),
+      budgets: z.object({ student_assistant: nullableNum, admissions_agent: nullableNum, academic_agent: nullableNum.optional(), staff_assistant: nullableNum.optional(), workflow_agent: nullableNum.optional() }),
       period: z.object({ calls: num, cost_usd: num, input_tokens: num, output_tokens: num }),
     })
     .nullable(),
@@ -120,6 +120,21 @@ export const OverviewSchema = z.object({
       generated: z.object({ summary: num, quiz: num, flashcards: num, study_plan: num }),
       attempts: num,
       people: num,
+    })
+    .nullable()
+    .optional(),
+  // Phase 11 (optional: absent before migration 17).
+  workflows: z
+    .object({
+      submitted: num,
+      from_assistant: num,
+      completed: num,
+      rejected: num,
+      cancelled: num,
+      open_now: num,
+      open_by_status: z.object({ submitted: num, in_review: num, needs_info: num, approved: num }),
+      median_completion_hours: nullableNum,
+      by_form: z.array(z.object({ id: z.string(), title: z.string(), title_ar: z.string().nullable(), submitted: num })).catch([]),
     })
     .nullable()
     .optional(),

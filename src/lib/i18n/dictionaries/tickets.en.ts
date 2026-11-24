@@ -129,6 +129,10 @@ export const ticketsEn = {
       ticket_assigned: (ref: string) => `${ref} was assigned to you`,
       ticket_reply: (ref: string) => `New reply on ${ref}`,
       ticket_status: (ref: string) => `Status update on ${ref}`,
+      request_new: (ref: string) => `New service request ${ref} in your queue`,
+      request_assigned: (ref: string) => `Service request ${ref} was assigned to you`,
+      request_comment: (ref: string) => `New message on ${ref}`,
+      request_status: (ref: string) => `Status update on ${ref}`,
     },
   },
   ai: {

@@ -361,3 +361,45 @@ Format: **ADR-NNN — Title** · Status · Date · Context → Decision → Cons
 - As in ADR-024, ADR-027 and ADR-029, drafts and usage are written with the person's own session. A staff member could store any text in their own drafts, or under-report usage, by calling the API directly. A service-role worker would close this.
 - The digest sends redacted ticket text to the AI provider: universities must cover this in their data-processing terms.
 - **Not built:** sending drafts from the app (needs email integration), shared templates, an eval set for the staff tools, semantic search (embeddings, ADR-021).
+
+## ADR-031 — Service request workflows: versioned forms, a confirmation step, tracking numbers, an AI that only pre-fills
+**Accepted · 2026-11-24**
+
+**Context:** Phase 11 adds structured requests to university offices (an official transcript, an enrollment certificate, a leave of absence). People need the right form, a clear confirmation before anything is sent, a tracking number and status updates. Offices change their forms over time, and a request must still be read against the form its requester saw.
+**Decision:**
+- **Forms are versioned.** A form (`workflow_definitions`) holds its title, description and the department that handles it. Its fields live in versions (`workflow_versions`):
+  - managers edit one draft, then publish it;
+  - a published version never changes (a trigger refuses it) and is retired when the next one is published;
+  - a request keeps the version it was made with, so its answers are always shown with the questions the requester saw;
+  - submitting with an older version is refused (40001), and the app asks the person to review the updated form.
+  Fields: 1–30, of type short or long text, number, date, choice, checkbox or email, with English and Arabic labels and help. Keys are made once from the English label and then kept across versions. The database checks the form (`app.workflow_fields_valid`) and every answer against it (`app.workflow_answers_clean`). The browser applies the same rules only for quick feedback.
+- **Permissions reuse the ticket model** (ADR-027), because a service request is a structured request to an office:
+  - `tickets.create` to submit and `tickets.read_own` to follow one's own requests;
+  - processors need `tickets.update` in the form's department (`tickets.read_department`) or everywhere (`tickets.read_all`); forms without a department go to the general queue;
+  - internal notes need `tickets.notes.read` / `write`, and assigning colleagues needs `tickets.assign`;
+  - managing forms is routing configuration, like ticket categories: `departments.manage`;
+  - everything also needs the `workflow_agent` feature.
+  No new permission keys were added, so existing roles work without changes.
+- **Nobody processes their own request**, even in their own department: they cannot change its status or assignment, and they never see its internal notes.
+- **Confirmation step:** the person fills in the form, then sees exactly what will be sent and the form's confirmation text, and only then submits. A tracking number (`R-00001`, per university) is shown at once.
+- **Status flow:** submitted → in review → needs information → approved / rejected → completed; the requester can cancel while nothing is decided.
+  - "Needs information" and "rejected" require a message for the requester.
+  - When the requester answers a "needs information", the request goes back to review.
+  - Status changes and messages notify the other side in-app; assignment events and notes are never shown to the requester.
+- **The workflow agent only pre-fills:** a person can describe what they need in their own words. One structured-output call (low effort) chooses the published form that fits, or none, and fills only the values the description states.
+  - Values are checked against the form and dropped if they do not fit. Choice labels are mapped to option values. Checkboxes (confirmations) are never ticked by the AI.
+  - The person then reviews, completes and confirms like anyone else. The request is marked as started from a suggestion.
+  - It has its own switch (off by default), monthly budget (10 USD) and daily limit per person (20), set with `assistant.configure`. Usage is booked as `workflow_agent`.
+- **Privacy:** requests, answers and their history are personal data. They are not copied into the audit log. Forms, versions and settings are configuration and are audited. Analytics shows counts only (submitted, completed, open, median time to complete, most requested forms), never who asked.
+
+**Consequences:**
+- The roadmap's acceptance criteria are met and covered by 20 DB tests: versioned definitions, a confirmation step, tracking numbers, and status updates.
+- The notification list now covers tickets and requests. Its page and bell show when a university has either feature.
+- Not built:
+  - attachments (needs storage and scanning);
+  - multi-step approval chains (several approvers in sequence);
+  - deadlines and reminders;
+  - email notifications (Phase 14);
+  - an eval set for the form suggestion.
+- As in earlier ADRs, AI usage is recorded with the person's own session: a person could under-report their own usage by calling the API directly.
+

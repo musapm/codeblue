@@ -24,9 +24,9 @@ test.describe('workspace shell (UI preview mode)', () => {
   })
 
   test('planned modules are labelled honestly', async ({ page }) => {
-    await page.goto('/en/app/northbridge/workflows')
-    await expect(page.getByRole('heading', { level: 1 })).toHaveText('Requests & workflows')
-    await expect(page.getByText('Planned · Phase 11').first()).toBeVisible()
+    await page.goto('/en/app/northbridge/campus')
+    await expect(page.getByRole('heading', { level: 1 })).toHaveText('Campus map')
+    await expect(page.getByText('Planned · Phase 12').first()).toBeVisible()
     await expect(page.getByText('Not built yet')).toBeVisible()
   })
 
@@ -531,6 +531,70 @@ test.describe('staff assistant (UI preview mode)', () => {
   })
 
   for (const path of ['/en/app/northbridge/staff-assistant', '/ar/app/northbridge/staff-assistant/drafts', '/en/app/northbridge/staff-assistant/tickets', '/en/app/northbridge/staff-assistant/settings']) {
+    test(`${path} has no serious accessibility violations`, async ({ page }) => {
+      await page.goto(path)
+      const results = await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa']).analyze()
+      const serious = results.violations.filter((v) => v.impact === 'serious' || v.impact === 'critical')
+      expect(serious.map((v) => `${v.id}: ${v.nodes.length} node(s)`)).toEqual([])
+    })
+  }
+})
+
+test.describe('service request workflows (UI preview mode)', () => {
+  test('requesters see the services page honestly without data and cannot submit', async ({ page }) => {
+    const errors = trackErrors(page)
+    await page.goto('/en/app/northbridge/services')
+    await expect(page.getByRole('heading', { level: 1 })).toHaveText('Service requests')
+    await expect(page.getByText('UI preview mode: nothing can be submitted without a backend.')).toBeVisible()
+    await expect(page.getByText('No request forms are available yet.')).toBeVisible()
+    await expect(page.getByText('You have not made any requests yet.')).toBeVisible()
+    await expect(page.getByRole('button', { name: 'Find the form' })).toHaveCount(0)
+    expect(errors).toEqual([])
+  })
+
+  test('staff see the queue, forms and settings without data and without writes', async ({ page }) => {
+    const errors = trackErrors(page)
+    await page.goto('/en/app/northbridge/workflows')
+    await expect(page.getByRole('heading', { level: 1 })).toHaveText('Service requests')
+    await expect(page.getByText('No requests here.')).toBeVisible()
+    const main = page.getByRole('main')
+    await main.getByRole('link', { name: 'Forms', exact: true }).click()
+    await expect(page).toHaveURL(/\/workflows\/forms$/)
+    await expect(page.getByText('No forms yet.')).toBeVisible()
+    await expect(page.getByRole('button', { name: 'Create form' })).toHaveCount(0)
+    await main.getByRole('link', { name: 'Settings', exact: true }).click()
+    await expect(page).toHaveURL(/\/workflows\/settings$/)
+    await expect(page.getByRole('heading', { name: 'Form suggestions (AI)' })).toBeVisible()
+    await expect(page.getByRole('button', { name: 'Save settings' })).toHaveCount(0)
+    expect(errors).toEqual([])
+  })
+
+  test('navigation lists service requests and the staff module as available', async ({ page }) => {
+    await page.goto('/en/app/northbridge')
+    const nav = page.getByRole('navigation', { name: 'Workspace navigation' }).first()
+    for (const name of [/Service requests/, /Requests & workflows/]) {
+      const link = nav.getByRole('link', { name })
+      await expect(link).toBeVisible()
+      await expect(link).not.toContainText('P11')
+    }
+  })
+
+  test('unknown forms and requests are not found', async ({ page }) => {
+    const id = '00000000-0000-4000-8000-000000000000'
+    for (const path of [`/en/app/northbridge/services/new/${id}`, `/en/app/northbridge/services/${id}`, `/en/app/northbridge/workflows/requests/${id}`, `/en/app/northbridge/workflows/forms/${id}`, '/en/app/northbridge/services/not-a-uuid']) {
+      await page.goto(path)
+      await expect(page.getByRole('heading', { name: 'Page not found' })).toBeVisible()
+    }
+  })
+
+  test('Arabic workflow pages are translated', async ({ page }) => {
+    await page.goto('/ar/app/northbridge/services')
+    await expect(page.getByRole('heading', { level: 1 })).toHaveText('طلبات الخدمات')
+    await page.goto('/ar/app/northbridge/workflows/forms')
+    await expect(page.getByRole('heading', { name: 'نماذج الطلبات' })).toBeVisible()
+  })
+
+  for (const path of ['/en/app/northbridge/services', '/en/app/northbridge/workflows', '/en/app/northbridge/workflows/forms', '/ar/app/northbridge/workflows/settings']) {
     test(`${path} has no serious accessibility violations`, async ({ page }) => {
       await page.goto(path)
       const results = await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa']).analyze()

@@ -105,27 +105,42 @@ export async function listTicketAssignees(slug: string, departmentId: string | n
   return z.array(z.object({ user_id: z.string(), name: z.string() })).catch([]).parse(data)
 }
 
-export type NotificationItem = { id: number; kind: string; created_at: string; read: boolean; ticket_id: string; reference: string; subject: string; mine: boolean }
+export type NotificationItem = {
+  id: number
+  kind: string
+  created_at: string
+  read: boolean
+  /** A ticket (Phase 7) or a service request (Phase 11). */
+  ticket_id?: string
+  request_id?: string
+  reference: string
+  subject: string
+  subject_ar?: string | null
+  mine: boolean
+}
+
+const NotificationSchema = z.object({
+  id: z.number(),
+  kind: z.string(),
+  created_at: z.string(),
+  read: z.boolean(),
+  ticket_id: z.string().optional(),
+  request_id: z.string().optional(),
+  reference: z.string(),
+  subject: z.string(),
+  subject_ar: z.string().nullish(),
+  mine: z.boolean(),
+})
 
 export async function listNotifications(slug: string): Promise<NotificationItem[]> {
   const supabase = await createSupabaseServerClient()
   const { data, error } = await supabase.rpc('my_notifications', { p_tenant_slug: slug, p_limit: 50 })
   if (error) fail('my_notifications', error)
-  return z
-    .array(
-      z.object({
-        id: z.number(),
-        kind: z.string(),
-        created_at: z.string(),
-        read: z.boolean(),
-        ticket_id: z.string(),
-        reference: z.string(),
-        subject: z.string(),
-        mine: z.boolean(),
-      }),
-    )
-    .catch([])
-    .parse(data)
+  // Item by item: one unexpected entry must not hide the others.
+  return (Array.isArray(data) ? data : []).flatMap((item) => {
+    const parsed = NotificationSchema.safeParse(item)
+    return parsed.success && (parsed.data.ticket_id || parsed.data.request_id) ? [parsed.data] : []
+  })
 }
 
 /** Unread notifications for the header bell. Never throws: the bell must not break a page. */

@@ -33,6 +33,7 @@ export type NavIconName =
   | 'staff'
   | 'tickets'
   | 'requests'
+  | 'services'
   | 'courses'
   | 'knowledge'
   | 'workflows'
@@ -57,6 +58,7 @@ export const WORKSPACE_NAV: NavSection[] = [
       { key: 'ask', segment: 'ask', icon: 'assistant', status: 'available', phase: 5, permission: 'assistant.use', feature: 'student_assistant' },
       { key: 'courses', segment: 'courses', icon: 'courses', status: 'available', phase: 9, permission: 'academic.use', feature: 'academic_agent' },
       { key: 'requests', segment: 'requests', icon: 'requests', status: 'available', phase: 7, permission: 'tickets.read_own', feature: 'ticketing' },
+      { key: 'services', segment: 'services', icon: 'services', status: 'available', phase: 11, permission: 'tickets.create', feature: 'workflow_agent' },
     ],
   },
   {
@@ -73,7 +75,7 @@ export const WORKSPACE_NAV: NavSection[] = [
     items: [
       { key: 'tickets', segment: 'tickets', icon: 'tickets', status: 'available', phase: 7, permission: 'tickets.read_department', feature: 'ticketing' },
       { key: 'knowledge', segment: 'knowledge', icon: 'knowledge', status: 'available', phase: 4, permission: 'knowledge.manage', feature: 'knowledge_base' },
-      { key: 'workflows', segment: 'workflows', icon: 'workflows', status: 'planned', phase: 11, permission: 'tickets.update', feature: 'workflow_agent' },
+      { key: 'workflows', segment: 'workflows', icon: 'workflows', status: 'available', phase: 11, permission: 'tickets.update', feature: 'workflow_agent' },
       { key: 'campus', segment: 'campus', icon: 'campus', status: 'planned', phase: 12, permission: 'campus.manage', feature: 'campus_assistant' },
     ],
   },

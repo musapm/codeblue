@@ -127,6 +127,10 @@ export const ticketsAr: TicketsDictionary = {
       ticket_assigned: (ref: string) => `أُسند إليك الطلب ${ref}`,
       ticket_reply: (ref: string) => `رد جديد على ${ref}`,
       ticket_status: (ref: string) => `تحديث حالة ${ref}`,
+      request_new: (ref: string) => `طلب خدمة جديد ${ref} في قائمتك`,
+      request_assigned: (ref: string) => `أُسند إليك طلب الخدمة ${ref}`,
+      request_comment: (ref: string) => `رسالة جديدة على ${ref}`,
+      request_status: (ref: string) => `تحديث الحالة على ${ref}`,
     },
   },
   ai: {

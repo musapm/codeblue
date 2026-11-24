@@ -53,7 +53,7 @@ export default async function AnalyticsPage({ params, searchParams }: PageProps<
           gaps={gaps}
           days={days}
           base={base}
-          links={{ knowledge: hasWorkspacePermission(ctx, 'knowledge.manage') && hasWorkspaceFeature(ctx, 'knowledge_base'), leads: hasWorkspacePermission(ctx, 'leads.read'), academic: hasWorkspacePermission(ctx, 'academic.manage') }}
+          links={{ knowledge: hasWorkspacePermission(ctx, 'knowledge.manage') && hasWorkspaceFeature(ctx, 'knowledge_base'), leads: hasWorkspacePermission(ctx, 'leads.read'), academic: hasWorkspacePermission(ctx, 'academic.manage'), workflows: hasWorkspacePermission(ctx, 'tickets.update') }}
         />
       ) : (
         <Alert variant="info">{d.preview}</Alert>

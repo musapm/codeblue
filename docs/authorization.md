@@ -114,3 +114,11 @@ Inside a course, `course_members.role` is `instructor` or `student`. It does not
 - **What it can read** is never more than the person can read: retrieval runs with their own session (the department filter only narrows it), and the digest takes only tickets they work, never their own requests (ADR-030).
 - **Drafts** are readable only by their author.
 
+## Service request workflows (Phase 11)
+
+All of it needs the `workflow_agent` feature, and it reuses the ticket permissions (ADR-031):
+- **Submit and follow requests:** `tickets.create`, `tickets.read_own`.
+- **Process requests:** `tickets.update` with `tickets.read_department` in the form's department, or `tickets.read_all` (also the general queue); the assignee always. Nobody processes their own request.
+- **Internal notes:** `tickets.notes.read` / `tickets.notes.write`. **Assign colleagues:** `tickets.assign`.
+- **Manage forms:** `departments.manage`. **Form suggestions (AI) settings:** `assistant.configure`.
+

@@ -396,6 +396,30 @@ Functions:
 
 Changed: `search_knowledge` gained `p_department` (narrows the readable set only); `assistant_complete_turn` books staff answers as `staff_assistant`; `analytics_overview` gained the staff agent, its month cost and its budget.
 
+## 2i. Phase 11 — service request workflows (migration 17 `workflows`, **written and tested locally, not applied yet**)
+
+| Table | Contents | Access |
+| --- | --- | --- |
+| `workflow_definitions` | key (address), titles and descriptions en/ar, handling department (null: general queue), status draft/active/archived, current published version | read: members see published forms (active or archived), form managers (`departments.manage`) also drafts; written through functions; audited |
+| `workflow_versions` | version number, fields (1–30, checked by `app.workflow_fields_valid`), instructions and confirmation text en/ar, status draft/published/retired | same as forms; one draft and one published version per form; **published versions never change** (trigger); audited |
+| `workflow_requests` | tracking number `R-00001`, form and version, department, requester (and name), assignee, status, answers (checked by `app.workflow_answers_clean`), source form/assistant, times | read: the requester (`tickets.read_own`) and processors of the department (`tickets.update` + `tickets.read_department`, or `tickets.read_all`, or the assignee); not audited |
+| `workflow_request_events` | submitted, status (from → to, with a message), comment, note, assigned, cancelled; `internal` for notes and assignments | read: as the request, internal events only for processors with `tickets.notes.read`, never the requester |
+| `workflow_settings` | form suggestions on/off (default off), monthly budget (default 10 USD), daily limit per person (default 20) | read: `assistant.configure`; audited |
+| `notifications.request_id` | notifications now point to a ticket or a request (kinds `request_new`, `request_assigned`, `request_comment`, `request_status`) | the person notified |
+
+Functions:
+
+| Function | Who | Purpose |
+| --- | --- | --- |
+| `workflow_save_definition` / `workflow_save_draft` / `workflow_publish` / `workflow_discard_draft` / `workflow_set_status` / `workflow_delete_definition` | form managers | Forms, the draft version, publishing (the previous version is retired), archive/reactivate, delete only without requests (23503) |
+| `workflow_submit(slug, form, version, answers, source)` | `tickets.create` | An active form with the version the person reviewed (40001 if it changed); answers checked; at most 20 a day; tracking number; notifies the queue |
+| `workflow_cancel(request)` / `workflow_comment(request, body, internal)` | requester / requester or processor | Cancel while undecided; messages (answering "needs information" returns the request to review); internal notes for processors |
+| `workflow_update_status(request, status, message)` / `workflow_assign(request, assignee)` / `workflow_assignees(slug, department)` | processors, never on their own request | The status flow (messages required for "needs information" and "rejected"); assignment (others need `tickets.assign` and someone who works the queue) |
+| `workflow_status` / `workflow_update_settings` / `workflow_usage` | members / `assistant.configure` | Feature, submit and suggestion state; settings; this month's figures |
+| `workflow_ai_begin` / `workflow_ai_record` | `tickets.create` | Gate for a form suggestion (switch 55000, budget 53400, daily limit 54000) / book its usage |
+
+Changed: `my_notifications` (tickets and requests), `analytics_overview` (a `workflows` section with counts only, and the suggestions' month cost and budget).
+
 ## 3. Phase 15 — plans, features, subscriptions (planned)
 
 ```
@@ -425,7 +449,7 @@ Effective features = plan features + enabled overrides − disabled overrides, c
 | 8 Analytics | Implemented without rollups, see §2f (migration 14 not applied yet). `daily_tenant_metrics` only if volumes require it |
 | 9 Academic | Implemented, see §2g (migration 15 not applied yet): materials are knowledge documents with `course_id`; study aids in `academic_items`; mastery per material from quiz attempts |
 | 10 Staff assistant | Implemented, see §2h (migration 16 not applied yet): staff conversations in `assistant_conversations`, drafts in `staff_drafts`; ticket digests are not stored |
-| 11 Workflows | `workflow_definitions` (versioned JSON schema of steps/fields), `workflow_requests`, `workflow_request_events` |
+| 11 Workflows | Implemented, see §2i (migration 17 not applied yet): versioned forms, requests with tracking numbers and a status flow. Not built: attachments, multi-step approval chains, deadlines |
 | 12 Campus | `campus_locations` (type, coordinates, hours jsonb, accessibility jsonb), `location_aliases` |
 | 13 Voice | `voice_sessions`, usage in `ai_usage_events` with `modality = 'voice'` |
 | 14 Integrations & notifications | `integrations` (tenant, provider, status, config), `integration_secrets` (Supabase Vault references only), `integration_logs`, `notifications`, `notification_preferences`, `outbound_messages` |

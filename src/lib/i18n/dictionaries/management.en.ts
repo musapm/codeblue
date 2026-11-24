@@ -26,6 +26,8 @@ export const managementEn = {
     joinLimit: 'Too many wrong codes. Please wait an hour and check the code with your instructor.',
     aiNotConfigured: 'AI is not configured in this environment.',
     staffOff: 'The staff assistant is switched off for this university.',
+    formChanged: 'This form was updated while you were filling it in. Please check it again and confirm.',
+    suggestionsOff: 'Form suggestions are switched off for this university.',
     generic: 'Something went wrong. Please try again.',
   },
   saved: 'Saved.',

@@ -33,6 +33,7 @@ export type Database = {
           id: number
           kind: string
           read_at: string | null
+          request_id: string | null
           tenant_id: string
           ticket_id: string | null
           user_id: string
@@ -180,6 +181,100 @@ export type Database = {
           daily_limit: number
           enabled: boolean
           instructions: string | null
+          monthly_budget_usd: number
+          tenant_id: string
+          updated_at: string
+        }
+        Insert: never
+        Update: never
+        Relationships: []
+      }
+      workflow_definitions: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          current_version_id: string | null
+          department_id: string | null
+          description: string | null
+          description_ar: string | null
+          id: string
+          key: string
+          status: string
+          tenant_id: string
+          title: string
+          title_ar: string | null
+          updated_at: string
+        }
+        Insert: never
+        Update: never
+        Relationships: []
+      }
+      workflow_versions: {
+        Row: {
+          confirmation: string | null
+          confirmation_ar: string | null
+          created_at: string
+          created_by: string | null
+          definition_id: string
+          fields: Json
+          id: string
+          instructions: string | null
+          instructions_ar: string | null
+          published_at: string | null
+          published_by: string | null
+          status: string
+          tenant_id: string
+          version_no: number
+        }
+        Insert: never
+        Update: never
+        Relationships: []
+      }
+      workflow_requests: {
+        Row: {
+          answers: Json
+          assignee_id: string | null
+          closed_at: string | null
+          created_at: string
+          definition_id: string
+          department_id: string | null
+          id: string
+          last_activity_at: string
+          reference: string
+          requester_id: string
+          requester_name: string
+          source: string
+          status: string
+          tenant_id: string
+          updated_at: string
+          version_id: string
+        }
+        Insert: never
+        Update: never
+        Relationships: []
+      }
+      workflow_request_events: {
+        Row: {
+          actor_id: string | null
+          actor_name: string | null
+          body: string | null
+          created_at: string
+          from_status: string | null
+          id: number
+          internal: boolean
+          kind: string
+          request_id: string
+          tenant_id: string
+          to_status: string | null
+        }
+        Insert: never
+        Update: never
+        Relationships: []
+      }
+      workflow_settings: {
+        Row: {
+          ai_enabled: boolean
+          daily_limit: number
           monthly_budget_usd: number
           tenant_id: string
           updated_at: string
@@ -1466,6 +1561,45 @@ export type Database = {
       academic_update_progress: { Args: { p_item: string; p_state: Json }; Returns: undefined }
       academic_update_settings: { Args: { p_daily_limit: number; p_monthly_budget_usd: number; p_tenant_slug: string }; Returns: undefined }
       analytics_overview: { Args: { p_days: number; p_tenant_slug: string }; Returns: Json }
+      workflow_save_definition: {
+        Args: {
+          p_definition: string | null
+          p_department: string | null
+          p_description: string | null
+          p_description_ar: string | null
+          p_key: string
+          p_tenant_slug: string
+          p_title: string
+          p_title_ar: string | null
+        }
+        Returns: string
+      }
+      workflow_save_draft: {
+        Args: {
+          p_confirmation: string | null
+          p_confirmation_ar: string | null
+          p_definition: string
+          p_fields: Json
+          p_instructions: string | null
+          p_instructions_ar: string | null
+        }
+        Returns: string
+      }
+      workflow_publish: { Args: { p_definition: string }; Returns: number }
+      workflow_discard_draft: { Args: { p_definition: string }; Returns: undefined }
+      workflow_set_status: { Args: { p_definition: string; p_status: string }; Returns: undefined }
+      workflow_delete_definition: { Args: { p_definition: string }; Returns: undefined }
+      workflow_submit: { Args: { p_answers: Json; p_definition: string; p_source: string; p_tenant_slug: string; p_version: string }; Returns: Json }
+      workflow_cancel: { Args: { p_request: string }; Returns: undefined }
+      workflow_comment: { Args: { p_body: string; p_internal: boolean; p_request: string }; Returns: undefined }
+      workflow_update_status: { Args: { p_message: string | null; p_request: string; p_status: string }; Returns: undefined }
+      workflow_assign: { Args: { p_assignee: string | null; p_request: string }; Returns: undefined }
+      workflow_assignees: { Args: { p_department: string | null; p_tenant_slug: string }; Returns: Json }
+      workflow_status: { Args: { p_tenant_slug: string }; Returns: Json }
+      workflow_update_settings: { Args: { p_ai_enabled: boolean; p_daily_limit: number; p_monthly_budget_usd: number; p_tenant_slug: string }; Returns: undefined }
+      workflow_ai_begin: { Args: { p_tenant_slug: string }; Returns: undefined }
+      workflow_ai_record: { Args: { p_model: string; p_tenant_slug: string; p_usage: Json }; Returns: undefined }
+      workflow_usage: { Args: { p_tenant_slug: string }; Returns: Json }
       staff_ai_begin: { Args: { p_kind: string; p_tenant_slug: string }; Returns: Json }
       staff_assistant_status: { Args: { p_tenant_slug: string }; Returns: Json }
       staff_assistant_update_settings: {

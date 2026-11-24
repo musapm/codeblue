@@ -27,6 +27,8 @@ export const ACTION_ERRORS = [
   'joinLimit',
   'aiNotConfigured',
   'staffOff',
+  'formChanged',
+  'suggestionsOff',
   'generic',
 ] as const
 

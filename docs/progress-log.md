@@ -175,3 +175,22 @@ Chronological log of significant work. For the current snapshot see `PROJECT_STA
   - the digest's coverage line said "Based on 75 open tickets" when it covered 60 of them (fixed; found by the visual check, now a component test);
   - AI errors in two older actions showed "The database is not configured" when the AI key was missing (now "AI is not configured").
 - **Not live yet:** migration 16 waits for the owner's Supabase session; the tools need the API key.
+
+## 2026-11-24: Phase 11 (service request workflows), nothing applied to Supabase
+
+- **Database:** migration 17 `workflows` (local, 20 DB tests, 257 total). It adds:
+  - request forms with drafts and published versions that never change; requests keep their version;
+  - tracking numbers, a status flow with required messages, comments, internal notes and assignment, using the ticket permissions;
+  - request notifications (the notification list now covers tickets and requests);
+  - the form-suggestion settings and gate, and workflow counts in analytics.
+- **Design decision (ADR-031):** a confirmation step before every submission; nobody processes their own request; the AI only chooses and pre-fills a form, never ticks confirmations and never submits.
+- **App:**
+  - Service requests (forms, AI suggestion, form with review step, tracking);
+  - Requests & workflows (queue, request page, form builder, settings);
+  - analytics card.
+- **Found while building:**
+  - the existing notification list parsed all entries at once, so a single request notification would have emptied it (now entry by entry);
+  - right-to-left alignment of answers in another script, and a wrong label on assignment events (both from the visual check);
+  - dev mode did not hydrate in this environment, so the visual check of the review step ran on a production build.
+- **Not live yet:** migration 17 waits for the owner's Supabase session; suggestions need the API key.
+

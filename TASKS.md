@@ -172,9 +172,23 @@ Current state: `PROJECT_STATUS.md` · Audit history: `docs/IMPLEMENTATION_AUDIT.
 - [ ] Send a draft from the app (needs email integration, Phase 14); shared templates
 - [ ] Semantic search (embeddings, ADR-021) for better internal retrieval
 
+## Phase 11: Workflow agents 🟡 built and tested locally; migration 17 not applied
+
+- [x] Migration 17 `workflows`: versioned request forms (drafts, published versions that never change), requests with tracking numbers and answers checked against their version, the status flow, comments and internal notes, assignment, request notifications, form-suggestion settings and gate, analytics counts (ADR-031). 20 DB tests, local only
+- [x] Confirmation step: review exactly what will be sent and the form's confirmation text before submitting; a changed form must be reviewed again
+- [x] Requester pages: available forms, the AI form suggestion (pre-fills only), the form, request tracking with updates, messages and cancellation
+- [x] Staff pages: queue (mine, my departments, unassigned, all), request page (next step with a message, assignment, internal notes), form builder (fields in English and Arabic, choices, order) with drafts, publishing and versions, suggestion settings
+- [x] Notifications for requests in the existing bell and page; service requests in analytics
+- [x] Tests: unit 226 (14 new), DB 257 (20 new), browser 133 (9 new); visual check (en/ar)
+- [ ] **Apply migration 17** (with 12–16), turn on `workflow_agent`, publish the first forms, then a live run of a request end to end (and a form suggestion, with the API key)
+- [ ] Attachments on requests (storage, scanning, quotas)
+- [ ] Multi-step approval chains and deadlines with reminders
+- [ ] Email notifications (Phase 14)
+- [ ] Eval set for the form suggestion; starting a request from the student chat
+
 ## Later phases
 
-See `docs/roadmap.md` (Phases 11–17): workflows, campus, voice, notifications/integrations,
+See `docs/roadmap.md` (Phases 12–17): campus, voice, notifications/integrations,
 subscriptions, security review, launch.
 
 ## Known follow-ups

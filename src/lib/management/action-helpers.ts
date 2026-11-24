@@ -66,6 +66,7 @@ const limiters = {
   study: createMemoryRateLimiter({ limit: 30, windowMs: 10 * 60_000 }),
   join: createMemoryRateLimiter({ limit: 20, windowMs: 10 * 60_000 }),
   staff: createMemoryRateLimiter({ limit: 30, windowMs: 10 * 60_000 }),
+  workflow: createMemoryRateLimiter({ limit: 60, windowMs: 10 * 60_000 }),
 }
 
 export async function isRateLimited(kind: keyof typeof limiters, userId: string): Promise<boolean> {

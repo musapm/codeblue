@@ -4,6 +4,7 @@ import { admissionsAr } from './admissions.ar'
 import { managementAr } from './management.ar'
 import { academicAr } from './academic.ar'
 import { staffAr } from './staff.ar'
+import { workflowsAr } from './workflows.ar'
 import { analyticsAr } from './analytics.ar'
 import { ticketsAr } from './tickets.ar'
 
@@ -161,6 +162,12 @@ export const ar = (brand: PlatformBranding): Dictionary => ({
     purposeRequired: 'صِف ما يجب أن تقوله في 10 أحرف على الأقل.',
     purposeTooLong: 'يرجى ألا يتجاوز النص 3000 حرف.',
     dailyLimitInvalid: 'أدخل عددًا صحيحًا من 1 إلى 500.',
+    workflowKey: 'استخدم من 2 إلى 48 حرفًا إنجليزيًا صغيرًا أو رقمًا أو شرطة، يبدأ بحرف أو رقم.',
+    workflowKeyTaken: 'نموذج آخر يستخدم هذا العنوان.',
+    workflowFields: 'تحقّق من الحقول: لكل حقل عنوان، ولحقول الاختيار خيار واحد على الأقل.',
+    workflowMessageRequired: 'اكتب رسالة لمقدّم الطلب (3 أحرف على الأقل).',
+    workflowDescribe: 'صِف ما تحتاجه في 10 أحرف على الأقل.',
+    dailyLimitWorkflow: 'أدخل عددًا صحيحًا من 1 إلى 200.',
   },
   contactForm: {
     name: 'الاسم الكامل',
@@ -201,6 +208,7 @@ export const ar = (brand: PlatformBranding): Dictionary => ({
       ask: 'اسأل المساعد',
       courses: 'مقرراتي',
       requests: 'طلباتي',
+      services: 'طلبات الخدمات',
       notifications: 'الإشعارات',
       assistant: 'مساعد الطلاب',
       admissions: 'القبول',
@@ -225,6 +233,7 @@ export const ar = (brand: PlatformBranding): Dictionary => ({
       'staff-assistant': 'مساعد داخلي للموظفين: البحث في معرفة القسم، وتلخيص التذاكر، وصياغة الرسائل والخطابات والإعلانات.',
       tickets: 'تذاكر الدعم من المحادثة أو النماذج مع ملخصات ذكية وتوجيه للأقسام وأولويات وملاحظات داخلية وتتبع للحالة.',
       knowledge: 'رفع الوثائق الرسمية وإدارتها (PDF وDOCX وTXT وCSV) مع الإصدارات والصلاحيات والأقسام وحالة المعالجة.',
+      services: 'اطلب الوثائق والخدمات من مكاتب الجامعة عبر نموذج، وتابع كل طلب برقمه.',
       workflows: 'طلبات منظمة مثل كشوف الدرجات والشهادات وتأجيل الامتحانات، مع خطوات تأكيد وأرقام تتبع.',
       campus: 'المباني والمكاتب والقاعات والخدمات مع ساعات العمل ومعلومات إمكانية الوصول.',
       analytics: 'المحادثات ونسب الحل واتجاهات التذاكر ومسار القبول واستخدام الذكاء الاصطناعي، محسوبة من بيانات حقيقية مخزنة فقط.',
@@ -344,4 +353,5 @@ export const ar = (brand: PlatformBranding): Dictionary => ({
   analytics: analyticsAr,
   academic: academicAr,
   staff: staffAr,
+  workflows: workflowsAr,
 })
