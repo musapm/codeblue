@@ -246,8 +246,6 @@ Current state: `PROJECT_STATUS.md` · Audit history: `docs/IMPLEMENTATION_AUDIT.
 
 
 
-See `docs/roadmap.md` (Phase 17): demo, deployment and launch.
-
 ## Phase 17: Demo, deployment & launch 🟡 ready to deploy, not deployed
 
 - [x] Migration 24 `demo`: demo content and a demo reset for demo universities only; Reset demo button. 3 DB tests, local only
