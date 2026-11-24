@@ -209,10 +209,20 @@ Current state: `PROJECT_STATUS.md` · Audit history: `docs/IMPLEMENTATION_AUDIT.
 - [ ] **Decision:** a server speech vendor (only if browser speech is not good enough); then write and test its adapter
 - [ ] Voice in the public admissions assistant; an Arabic dialect setting per university; streaming speech input
 
+## Phase 14: Notifications & integrations 🟡 built and tested locally; migration 20 not applied
+
+- [x] Migration 20 `notifications_integrations`: preferences, the email outbox (references only), notify functions following preferences, integrations with status, log and secret names (ADR-034). 6 DB tests, local only
+- [x] Notification settings page; integrations list, create, edit, status, delete, log; outbox counts
+- [x] Email sender interface and delivery round (tested with fakes)
+- [x] Tests: unit 255 (6 new), DB 280 (6 new), browser 149 (5 new)
+- [ ] **Apply migration 20** (with 12–19), turn on `integrations`, then check preferences live
+- [ ] **Decision:** an email provider and its key; then the adapter and a scheduled worker (service role) that sends the queue; invitation emails can use it too
+- [ ] Connectors (LMS, SIS, SSO, messaging, webhooks) once a university provides credentials; reading secrets from Supabase Vault or the hosting's environment
+- [ ] Digest emails; SMS and push
+
 ## Later phases
 
-See `docs/roadmap.md` (Phases 14–17): notifications/integrations,
-subscriptions, security review, launch.
+See `docs/roadmap.md` (Phases 15–17): subscriptions, security review, launch.
 
 ## Known follow-ups
 

@@ -214,3 +214,10 @@ Chronological log of significant work. For the current snapshot see `PROJECT_STA
   - no vendor adapter: the vendor is a decision for the product owner, and an adapter that could not be called would be untested code;
   - real speech was not tested here (the test browser has no microphone).
 
+## 2026-11-24: Phase 14 (notifications and integrations), nothing applied to Supabase
+
+- **Database:** migration 20 `notifications_integrations` (local, 6 DB tests, 280 total): preferences, the email outbox, notify functions following preferences, integrations and their log.
+- **Design decision (ADR-034):** preferences per person and kind; emails queued as references and rendered at send time; secrets never stored, only their names; no connector without credentials.
+- **App:** notification settings, the integrations pages with the outbox counts, and the email delivery round behind one sender interface.
+- **Found while building:** a failed send was first marked "skipped", which is final in the database, so retries would never happen; failures now stay queued until the fifth attempt.
+- **Not done on purpose:** no email provider (a decision for the product owner) and no connectors (they need real systems and credentials to be tested).

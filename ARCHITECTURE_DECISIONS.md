@@ -471,3 +471,18 @@ Format: **ADR-NNN — Title** · Status · Date · Context → Decision → Cons
   - streaming speech input;
   - an Arabic dialect setting (`ar-SA` for now).
 
+## ADR-034 — Notifications by preference, an email outbox of references, integrations without stored secrets
+**Accepted · 2026-11-24**
+
+**Context:** Phase 14 asks for in-app and email notifications with preferences, and an integration framework (status, logs, vault secrets), with real connectors only once credentials exist. No email provider has been chosen and no university has given credentials.
+
+**Decision:**
+- **Preferences per person and kind** (`notification_preferences`): in-app on by default, email off. `app.notify` and `app.notify_request` follow them; nothing changes for people who never open the settings.
+- **Email outbox of references:** a notification chosen for email is queued in `outbound_messages` with the ticket or request it is about, never its text or address. A sender renders the email at send time, so access that has since been removed means "skipped", not a stale email. No member can read the queue; administrators see counts only (`outbox_summary`).
+- **One sender interface** (`EmailSender`) and one delivery round (`deliverQueued`): sent; skipped when it can no longer be rendered; failures stay queued and are marked failed on the fifth attempt. `getEmailSender()` returns null until a provider is chosen; the pages say so.
+- **Integrations** (`integrations.manage`, feature `integrations`): a fixed catalog of kinds (email, LMS, SIS, messaging, webhook, SSO), non-secret settings, a status (draft, active, paused, error) and a log. **No secret is ever stored:** only the NAME of a secret kept in the server's secret store (`secret_ref`); settings whose names look like secrets are refused by the app and by the database. Activating needs a secret name; only a connector may set "error". Changes are audited and logged.
+- **No connector is built.** Each needs a real system and credentials to be tested; until then an integration record only keeps settings ready.
+
+**Consequences:**
+- **Not built:** an email provider and the scheduled worker (service role) that runs `deliverQueued`; any connector; reading secrets from Supabase Vault (the name scheme fits either Vault or the hosting's environment); digest emails; SMS or push.
+- **Testing:** 6 DB tests and unit tests of the delivery round with fakes; nothing was sent.

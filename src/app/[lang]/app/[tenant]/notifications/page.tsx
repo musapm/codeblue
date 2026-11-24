@@ -1,7 +1,8 @@
 import Link from 'next/link'
-import { Bell, CheckCheck } from 'lucide-react'
+import { Bell, CheckCheck, Settings2 } from 'lucide-react'
 import { PageHeader } from '@/components/app-shell/page-header'
 import { ActionButton } from '@/components/management/action-form'
+import { buttonClasses } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { EmptyState } from '@/components/ui/misc'
 import { localizedPath } from '@/lib/i18n/config'
@@ -32,9 +33,15 @@ export default async function NotificationsPage({ params }: PageProps<'/[lang]/a
       <PageHeader
         title={t.title}
         actions={
-          canWrite && unread ? (
-            <ActionButton action={markNotificationsRead} hidden={{ tenant: slug }} messages={formMessages(dict)} label={t.markAll} icon={<CheckCheck aria-hidden />} />
-          ) : undefined
+          <span className="flex flex-wrap gap-2">
+            <Link href={localizedPath(locale, `/app/${slug}/notifications/settings`)} className={buttonClasses({ variant: 'ghost' })}>
+              <Settings2 aria-hidden />
+              {dict.integrations.preferences.link}
+            </Link>
+            {canWrite && unread ? (
+              <ActionButton action={markNotificationsRead} hidden={{ tenant: slug }} messages={formMessages(dict)} label={t.markAll} icon={<CheckCheck aria-hidden />} />
+            ) : null}
+          </span>
         }
       />
       <Card>

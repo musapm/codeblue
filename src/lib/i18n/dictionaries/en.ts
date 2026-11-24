@@ -8,6 +8,7 @@ import { staffEn } from './staff.en'
 import { workflowsEn } from './workflows.en'
 import { campusEn } from './campus.en'
 import { voiceEn } from './voice.en'
+import { integrationsEn } from './integrations.en'
 
 /**
  * English UI dictionary (canonical shape). The Arabic dictionary must match this shape
@@ -180,6 +181,8 @@ export const en = (brand: PlatformBranding) => ({
     campusQuestion: 'Write a question of at least 3 characters.',
     voicePrice: 'Enter a price from 0 to 100 USD, or leave it empty.',
     voiceMinutes: 'Enter a whole number of minutes from 1 to 600.',
+    integrationConfig: 'Use one “name = value” per line (up to 30). Names that look like secrets (password, token, key…) are not allowed: put the secret in the server’s secret store and enter its name below.',
+    integrationSecretRef: 'Use the secret’s name in capitals, digits and underscores, such as MOODLE_TOKEN.',
   },
   contactForm: {
     name: 'Full name',
@@ -370,6 +373,7 @@ export const en = (brand: PlatformBranding) => ({
   workflows: workflowsEn,
   campus: campusEn,
   voice: voiceEn,
+  integrations: integrationsEn,
 })
 
 export type Dictionary = ReturnType<typeof en>

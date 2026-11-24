@@ -1,0 +1,72 @@
+/**
+ * English strings for Phase 14: notification preferences and the integration framework.
+ * The Arabic module must match this shape (`IntegrationsDictionary`).
+ */
+export const integrationsEn = {
+  preferences: {
+    title: 'Notification settings',
+    subtitle: 'Choose what you are told about, in the app and by email.',
+    link: 'Notification settings',
+    kinds: {
+      ticket_new: 'New requests in my queue',
+      ticket_assigned: 'Requests assigned to me',
+      ticket_reply: 'Replies on requests',
+      ticket_status: 'Status changes on my requests',
+      request_new: 'New service requests in my queue',
+      request_assigned: 'Service requests assigned to me',
+      request_comment: 'Messages on service requests',
+      request_status: 'Status changes on my service requests',
+    } as Record<string, string>,
+    inApp: 'In the app',
+    email: 'By email',
+    saved: 'Saved',
+    emailNotConnected: 'Email delivery is not connected yet. Emails you choose wait in the university’s outbox and are sent once it is.',
+  },
+  title: 'Integrations',
+  subtitle: 'Connections to the university’s other systems. Each has a status and a log. Secrets are never stored here: only the name of a secret kept on the server.',
+  kinds: { email: 'Email', lms: 'Learning management (LMS)', sis: 'Student information (SIS)', messaging: 'Messaging (SMS, WhatsApp)', webhook: 'Webhook', sso: 'Single sign-on (SSO)' } as Record<string, string>,
+  kindHints: {
+    email: 'Sends the notification emails people choose.',
+    lms: 'Courses and enrollment, for the academic assistant.',
+    sis: 'Student records and programs.',
+    messaging: 'Text messages for urgent updates.',
+    webhook: 'Tells another system when something happens.',
+    sso: 'Sign-in with the university’s accounts.',
+  } as Record<string, string>,
+  statuses: { draft: 'Draft', active: 'Active', paused: 'Paused', error: 'Error' } as Record<string, string>,
+  notBuilt: 'No connector of this kind runs yet: it is built once a university provides its credentials. Saving it keeps the settings ready.',
+  catalog: 'Kinds of integration',
+  empty: 'No integrations yet.',
+  create: 'Add an integration',
+  createSubmit: 'Create',
+  back: 'All integrations',
+  fields: {
+    kind: 'Kind',
+    name: 'Name',
+    config: 'Settings (not secret)',
+    configHint: 'One “name = value” per line, for example base_url = https://lms.example.edu',
+    secretRef: 'Secret name',
+    secretRefHint: 'The name of the secret in the server’s secret store (for example MOODLE_TOKEN). The secret itself is never entered here.',
+  } as Record<string, string>,
+  save: 'Save',
+  activate: 'Activate',
+  pause: 'Pause',
+  draft: 'Back to draft',
+  activateNeedsSecret: 'Enter a secret name before activating.',
+  delete: 'Delete integration',
+  confirmDelete: 'Delete this integration and its log?',
+  log: 'Log',
+  logEmpty: 'Nothing logged yet.',
+  lastOk: (date: string) => `Last success: ${date}`,
+  lastError: (date: string) => `Last error: ${date}`,
+  outbox: {
+    title: 'Email outbox',
+    subtitle: 'Notification emails waiting to be sent. Only counts are shown.',
+    queued: 'Waiting',
+    sent: 'Sent (30 days)',
+    failed: 'Failed (30 days)',
+    notConnected: 'No email provider is connected, so emails stay waiting. Connecting one needs a provider decision and its key.',
+  },
+}
+
+export type IntegrationsDictionary = typeof integrationsEn

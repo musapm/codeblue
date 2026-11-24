@@ -8,7 +8,7 @@ import { parsePublicEnv } from './env/public'
 import { parseServerEnv } from './env/server'
 import { AppError, toPublicError } from './errors'
 import { FEATURES } from './features/catalog'
-import { canSeeNavItem, filterNav, plannedSegments, WORKSPACE_NAV } from './navigation/workspace-nav'
+import { canSeeNavItem, filterNav, plannedSegments, PLATFORM_NAV, WORKSPACE_NAV } from './navigation/workspace-nav'
 import { isPermissionKey, PERMISSION_KEYS } from './permissions/catalog'
 import { buildContentSecurityPolicy, buildSecurityHeaders } from './security/headers'
 
@@ -152,7 +152,8 @@ describe('navigation model', () => {
   })
 
   it('exposes planned module segments for placeholder routes', () => {
-    expect(plannedSegments(WORKSPACE_NAV)).toContain('integrations')
+    expect(plannedSegments(WORKSPACE_NAV)).toEqual([]) // every workspace module is built (integrations in Phase 14)
+    expect(plannedSegments(PLATFORM_NAV)).toContain('plans')
     expect(plannedSegments(WORKSPACE_NAV)).not.toContain('campus') // built in Phase 12
     expect(plannedSegments(WORKSPACE_NAV)).not.toContain('workflows') // built in Phase 11
     expect(plannedSegments(WORKSPACE_NAV)).not.toContain('academic') // built in Phase 9

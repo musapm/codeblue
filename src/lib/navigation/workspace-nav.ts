@@ -93,7 +93,7 @@ export const WORKSPACE_NAV: NavSection[] = [
     items: [
       { key: 'members', segment: 'members', icon: 'members', status: 'available', phase: 3, permission: 'members.read' },
       { key: 'departments', segment: 'departments', icon: 'departments', status: 'available', phase: 3, permission: 'departments.manage' },
-      { key: 'integrations', segment: 'integrations', icon: 'integrations', status: 'planned', phase: 14, permission: 'integrations.manage', feature: 'integrations' },
+      { key: 'integrations', segment: 'integrations', icon: 'integrations', status: 'available', phase: 14, permission: 'integrations.manage', feature: 'integrations' },
       { key: 'audit', segment: 'audit', icon: 'audit', status: 'available', phase: 3, permission: 'audit.read' },
       { key: 'settings', segment: 'settings', icon: 'settings', status: 'available', phase: 1, permission: 'tenant.settings.read' },
     ],

@@ -456,6 +456,17 @@ Functions:
 
 Changed: `analytics_overview` (a `voice` section: minutes, characters, people; costs and budget only with `analytics.ai_costs.view`).
 
+## 2l. Phase 14 — notifications and integrations (migration 20 `notifications_integrations`, **written and tested locally, not applied yet**)
+
+| Table | Contents | Access |
+| --- | --- | --- |
+| `notification_preferences` | per member and kind (8 ticket and request kinds): in-app (default on), email (default off) | own rows through `my_notification_preferences` / `set_notification_preference` |
+| `outbound_messages` | email queue: person, kind, the ticket or request referenced (no text, no address), status queued/sent/failed/skipped, attempts, last error | **no direct reads**; counts through `outbox_summary` (`integrations.manage`) |
+| `integrations` | kind (email, lms, sis, messaging, webhook, sso), name, status (draft, active, paused, error), non-secret settings (checked by `app.integration_config_safe`), `secret_ref` (a secret's NAME only), last success/error | `integrations.manage` + feature `integrations`; audited |
+| `integration_logs` | level, event, message (bounded) | same as the integration |
+
+Functions: `integration_save`, `integration_set_status` (active needs a secret name; "error" is not settable by people), `integration_delete`. Changed: `app.notify` and `app.notify_request` follow the preferences and queue emails.
+
 ## 3. Phase 15 — plans, features, subscriptions (planned)
 
 ```
@@ -488,7 +499,7 @@ Effective features = plan features + enabled overrides − disabled overrides, c
 | 11 Workflows | Implemented, see §2i (migration 17 not applied yet): versioned forms, requests with tracking numbers and a status flow. Not built: attachments, multi-step approval chains, deadlines |
 | 12 Campus | Implemented, see §2j (migration 18 not applied yet): `campus_locations` with hours, accessibility and other names; no map tiles. Not built: routes, holiday calendars, public access |
 | 13 Voice | Implemented, see §2k (migration 19 not applied yet): `voice_settings`, `voice_usage_events` (separate from AI tokens). Not built: a vendor adapter, voice sessions |
-| 14 Integrations & notifications | `integrations` (tenant, provider, status, config), `integration_secrets` (Supabase Vault references only), `integration_logs`, `notifications`, `notification_preferences`, `outbound_messages` |
+| 14 Integrations & notifications | Implemented, see §2l (migration 20 not applied yet). Secrets are referenced by name only. Not built: an email provider and worker, connectors |
 | 23 Cost control | `model_prices` (provider, model, unit prices, effective_from), `tenant_ai_budgets`, `usage_counters` (tenant, period, requests, tokens, cost_micros) |
 
 ## 5. Data retention (initial policy, configurable per tenant)

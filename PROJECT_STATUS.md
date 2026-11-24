@@ -1,6 +1,6 @@
 # Project Status
 
-_Last updated: 2026-11-24 (Phase 13)_
+_Last updated: 2026-11-24 (Phase 14)_
 
 ## Honest summary
 
@@ -62,7 +62,12 @@ Visitors need **anonymous sign-ins enabled** in Supabase Auth (currently disable
 - speech input (fills the message box) and read-aloud in the student and staff chats, switched on per university (off by default);
 - the browser's own speech features as the working provider, with a privacy notice;
 - a server provider interface with endpoints, a budget and a daily limit, but **no speech vendor connected** (a decision and a key are needed, docs/voice.md);
-- usage tracked separately (minutes, characters, people; no audio or text), priced with the university's own contract prices. Invitations are not emailed yet: the link is shown once to copy and send.
+- usage tracked separately (minutes, characters, people; no audio or text), priced with the university's own contract prices.
+
+**Notifications and integrations (Phase 14):** built and tested locally; **migration 20 is not applied** yet. It includes:
+- notification settings for each person (per kind: in the app, by email), followed when notifying;
+- an email outbox that keeps references only, with a sender interface, but **no email provider connected** (a decision and a key are needed);
+- an integrations page: a catalog of kinds, settings without secrets (only a secret's name), status, a log; **no connector built** (each needs a university's credentials). Invitations are not emailed yet: the link is shown once to copy and send.
 
 | Phase | Status |
 | --- | --- |
@@ -80,6 +85,7 @@ Visitors need **anonymous sign-ins enabled** in Supabase Auth (currently disable
 | 11: Workflow agents | 🟡 **Built and tested locally** (unit, DB, browser, visual check of the form, review step, timeline and form builder). Migration 17 **not applied**; form suggestions need `ANTHROPIC_API_KEY` |
 | 12: Campus map & assistant | 🟡 **Built and tested locally** (unit, DB, browser, visual check of the map and location form). Migration 18 **not applied**; campus answers need `ANTHROPIC_API_KEY` |
 | 13: Voice | 🟡 **Built and tested locally** (unit, DB, browser, visual check). Migration 19 **not applied**; browser speech works; no server speech vendor chosen or connected |
+| 14: Notifications & integrations | 🟡 **Built and tested locally** (unit, DB, browser). Migration 20 **not applied**; no email provider and no connectors (need a decision and credentials) |
 | 14–17 | Not started |
 
 ## Supabase project "agent"
@@ -130,19 +136,20 @@ Visitors need **anonymous sign-ins enabled** in Supabase Auth (currently disable
 ### 2. Implemented but not connected to a real backend
 - **Student assistant** (chat, settings page, answer pipeline, budget): tested with a local database and a fake model. Its tables and functions are live on "agent". It needs an API key before it can answer anyone.
 - **Public admissions (inquiry form and admissions assistant):** live database, but visitors cannot get a session until anonymous sign-ins are enabled; the page then shows programs and says honestly that it cannot receive inquiries yet. Staff pages (inquiries, programs, analytics, settings) work with a normal account.
-- **Tickets & handoff (Phase 7):** pages, actions and database are tested locally (26 DB tests), but migration 13 is not on "agent", so the pages would fail against it until it is applied. Email notifications are not built (in-app only).
+- **Tickets & handoff (Phase 7):** pages, actions and database are tested locally (26 DB tests), but migration 13 is not on "agent", so the pages would fail against it until it is applied. Email notifications are queued by preference (Phase 14) but not sent: no email provider yet.
 - **Academic assistant (Phase 9):** tested locally (28 DB tests); migration 15 is not on "agent", so these pages would fail there until it is applied. Study aids also need the API key.
 - **Staff assistant (Phase 10):** tested locally (16 DB tests); migration 16 is not on "agent", so these pages would fail there until it is applied. All three tools need the API key.
 - **Service request workflows (Phase 11):** tested locally (20 DB tests); migration 17 is not on "agent", so these pages would fail there until it is applied. Forms and requests work without the API key; only suggestions need it.
 - **Campus (Phase 12):** tested locally (9 DB tests); migration 18 is not on "agent", so these pages would fail there until it is applied. The directory works without the API key; only campus answers need it.
 - **Voice (Phase 13):** tested locally (8 DB tests) and with fake speech APIs; migration 19 is not on "agent". The server provider has no vendor connected, and real speech in a real browser was not tested here (no microphone in the test browser).
+- **Notifications and integrations (Phase 14):** tested locally (6 DB tests) and with a fake email sender; migration 20 is not on "agent". Emails stay queued until a provider and a worker exist; integrations keep settings only.
 - **Analytics & AI quality (Phase 8):** tested locally (25 DB tests); migration 14 is not on "agent", so these pages would fail there until it is applied. The overview fails soft (it shows that figures are unavailable).
 - **Contact/demo form:** validates; not stored (`platform_inquiries` not built).
 - **Rate limiting:** in-memory per instance (now also on invitations, uploads, university creation).
 
 ### 3. UI-only / placeholder
 Module pages for
-integrations; platform plans/usage/AI/settings (labelled "Planned · Phase N").
+platform plans/usage/AI/settings (labelled "Planned · Phase N").
 Chat previews on the marketing site (static, labelled). Privacy/Terms drafts.
 
 ### 4. Planned but not implemented
@@ -179,7 +186,7 @@ Real defects found by the live run and fixed:
 - An owner was offered a button to remove their own owner role. It is now hidden; the database already refused it if they were the last owner.
 
 ## Decisions and actions needed from you
-0. **Phases 6–13:** **apply migrations 12 to 19** together when you do the Supabase steps; I can do all eight in one session. Then:
+0. **Phases 6–14:** **apply migrations 12 to 20** together when you do the Supabase steps; I can do all nine in one session. Then:
    - turn on the `ticketing` feature for a university and add categories under Tickets → Categories & routing;
    - give someone the "AI quality reviewer" role if you want reviews done by someone other than the owner;
    - give teaching staff the new "Faculty member" role, create a course under Academic assistant, and assign its instructor;
@@ -366,9 +373,25 @@ Real defects found by the live run and fixed:
   - any server vendor (none chosen);
   - anything against "agent" (migration 19 not applied).
 
+## Phase 14 status (2026-11-24)
+- **Built:**
+  - migration 20 `notifications_integrations` (6 DB tests, **local only**);
+  - notification settings per person and kind, followed by in-app notifications and email queueing;
+  - the email outbox (references only), the `EmailSender` interface and the delivery round; no provider connected;
+  - the integrations pages: catalog, create, edit, status, delete, log, outbox counts; secrets by name only;
+  - ADR-034.
+- **Verified:**
+  - typecheck, lint and build pass, plus unit 255, DB 280 and browser 149;
+  - the roadmap criteria: in-app and email notifications with preferences (email queued, not sent); the integration framework with status, logs and secret references; no connector without credentials.
+- **Not verified:**
+  - any email sent (no provider, no worker);
+  - any connector (none built);
+  - anything against "agent" (migration 20 not applied).
+- **Decisions needed:** an email provider (and its key), and where the sending worker runs (a scheduled job with the service role).
+
 ## Next steps
-1. Go-live for Phases 5–13:
-   - apply migrations 12 to 19;
+1. Go-live for Phases 5–14:
+   - apply migrations 12 to 20;
    - set the API key and run the eval;
    - enable anonymous sign-ins (+ Turnstile);
    - then run live tests against "agent": a student chat, a visitor inquiry and an admissions question, the staff pipeline, a request handled end to end (reply, note, transfer, notifications, AI draft and summary), the analytics and AI quality pages on that real activity, a course end to end (material, join, each study aid, a quiz), the staff assistant (a question with a department filter, a draft, a digest), and a service request end to end (build and publish a form, submit it, ask for information, answer, approve, complete), the campus (add and publish a few locations, search, a campus question), and voice on a phone and a laptop (Arabic and English dictation and read-aloud). Clean up the test data afterwards.

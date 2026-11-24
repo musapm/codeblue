@@ -264,3 +264,9 @@ Live runs on 2026-11-22 against project "agent":
   - any server vendor (none connected);
   - anything against "agent" (migration 19 not applied).
 
+### Notifications and integrations (Phase 14)
+
+- **Database:** `supabase/tests/notifications.test.ts` (6 tests, migration 20, local only): preferences and their defaults; notifications and email queueing follow them; the outbox is unreadable and its counts need `integrations.manage`; integrations, their settings checks, statuses, log and audit; other universities, `anon` and the feature switch.
+- **Unit:** `src/lib/integrations/integrations.test.ts` (6 tests): settings lines and secret-like names, the form, preferences, no email provider yet, and the delivery round with a fake sender (sent, skipped, retried, failed after five attempts, limit).
+- **Browser (preview):** notification settings (every kind, defaults, no writes), integrations (catalog, outbox notice, no writes), an integration page needs real data, Arabic and accessibility of both pages. The planned-module test now uses the platform's plans page, since every workspace module is built.
+- **Not run:** any email sent (no provider) or connector (none built); anything against "agent".

@@ -189,6 +189,37 @@ export type Database = {
         Update: never
         Relationships: []
       }
+      notification_preferences: {
+        Row: { email: boolean; in_app: boolean; kind: string; tenant_id: string; updated_at: string; user_id: string }
+        Insert: never
+        Update: never
+        Relationships: []
+      }
+      integrations: {
+        Row: {
+          config: Json
+          created_at: string
+          created_by: string | null
+          id: string
+          kind: string
+          last_error_at: string | null
+          last_ok_at: string | null
+          name: string
+          secret_ref: string | null
+          status: string
+          tenant_id: string
+          updated_at: string
+        }
+        Insert: never
+        Update: never
+        Relationships: []
+      }
+      integration_logs: {
+        Row: { actor_id: string | null; created_at: string; event: string; id: number; integration_id: string; level: string; message: string | null; tenant_id: string }
+        Insert: never
+        Update: never
+        Relationships: []
+      }
       voice_settings: {
         Row: {
           daily_input_seconds: number
@@ -1625,6 +1656,12 @@ export type Database = {
       academic_update_progress: { Args: { p_item: string; p_state: Json }; Returns: undefined }
       academic_update_settings: { Args: { p_daily_limit: number; p_monthly_budget_usd: number; p_tenant_slug: string }; Returns: undefined }
       analytics_overview: { Args: { p_days: number; p_tenant_slug: string }; Returns: Json }
+      my_notification_preferences: { Args: { p_tenant_slug: string }; Returns: Json }
+      set_notification_preference: { Args: { p_email: boolean; p_in_app: boolean; p_kind: string; p_tenant_slug: string }; Returns: undefined }
+      outbox_summary: { Args: { p_tenant_slug: string }; Returns: Json }
+      integration_save: { Args: { p_config: Json; p_integration: string | null; p_kind: string; p_name: string; p_secret_ref: string | null; p_tenant_slug: string }; Returns: string }
+      integration_set_status: { Args: { p_integration: string; p_status: string }; Returns: undefined }
+      integration_delete: { Args: { p_integration: string }; Returns: undefined }
       voice_status: { Args: { p_surface: string; p_tenant_slug: string }; Returns: Json }
       voice_update_settings: {
         Args: {

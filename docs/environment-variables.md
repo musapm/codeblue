@@ -16,6 +16,7 @@ and they are visible to anyone. Never put secrets here.
 | `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | Phase 2+ | — | Supabase publishable key. `NEXT_PUBLIC_SUPABASE_ANON_KEY` is accepted as a fallback |
 | `NEXT_PUBLIC_TURNSTILE_SITE_KEY` | Recommended with public admissions | — | Cloudflare Turnstile site key (public). Shows the check on sign-in, sign-up, reset and visitor sessions, and allows Cloudflare in the CSP. Set it together with CAPTCHA protection in Supabase Auth (docs/authentication.md step 8) |
 | `VOICE_PROVIDER` | No (Phase 13) | — | Server speech vendor for voice. No adapter is registered yet, so any value leaves the server provider "not configured" (docs/voice.md). The vendor's key will be a separate secret |
+| `EMAIL_PROVIDER` | No (Phase 14) | — | Email provider for notification emails. No adapter is registered yet, so emails stay queued. The provider's key will be a separate secret, and a worker with the service role will send the queue |
 | `NEXT_PUBLIC_PLATFORM_NAME` | No | `UniAgent AI` | Product name shown everywhere (white-label) |
 | `NEXT_PUBLIC_PLATFORM_SHORT_NAME` | No | first word of the name | Compact name |
 | `NEXT_PUBLIC_PLATFORM_ASSISTANT_NAME` | No | `<name> Assistant` | Default assistant name |

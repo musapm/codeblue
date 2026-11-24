@@ -7,6 +7,7 @@ import { staffAr } from './staff.ar'
 import { workflowsAr } from './workflows.ar'
 import { campusAr } from './campus.ar'
 import { voiceAr } from './voice.ar'
+import { integrationsAr } from './integrations.ar'
 import { analyticsAr } from './analytics.ar'
 import { ticketsAr } from './tickets.ar'
 
@@ -178,6 +179,8 @@ export const ar = (brand: PlatformBranding): Dictionary => ({
     campusQuestion: 'اكتب سؤالًا من 3 أحرف على الأقل.',
     voicePrice: 'أدخل سعرًا من 0 إلى 100 دولار، أو اتركه فارغًا.',
     voiceMinutes: 'أدخل عددًا صحيحًا من الدقائق من 1 إلى 600.',
+    integrationConfig: 'اكتب «الاسم = القيمة» في كل سطر (حتى 30). لا تُقبل الأسماء التي تشبه الأسرار (كلمة مرور، رمز، مفتاح…): ضع السر في مخزن الأسرار على الخادم واكتب اسمه أدناه.',
+    integrationSecretRef: 'اكتب اسم السر بأحرف إنجليزية كبيرة وأرقام وشرطات سفلية، مثل MOODLE_TOKEN.',
   },
   contactForm: {
     name: 'الاسم الكامل',
@@ -368,4 +371,5 @@ export const ar = (brand: PlatformBranding): Dictionary => ({
   workflows: workflowsAr,
   campus: campusAr,
   voice: voiceAr,
+  integrations: integrationsAr,
 })

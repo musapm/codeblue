@@ -135,3 +135,8 @@ All of it needs the `campus_assistant` feature:
 - **Voice settings and usage figures:** `assistant.configure`.
 - **Usage rows** are not readable by anyone directly; only aggregates are shown.
 
+## Notifications and integrations (Phase 14)
+
+- **Notification settings:** each member, for themselves only (with the ticketing or workflow feature).
+- **Integrations and the email outbox counts:** `integrations.manage` and the `integrations` feature.
+- **The outbox rows** are not readable by anyone directly; secrets are never stored, only their names.

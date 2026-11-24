@@ -24,9 +24,9 @@ test.describe('workspace shell (UI preview mode)', () => {
   })
 
   test('planned modules are labelled honestly', async ({ page }) => {
-    await page.goto('/en/app/northbridge/integrations')
-    await expect(page.getByRole('heading', { level: 1 })).toHaveText('Integrations')
-    await expect(page.getByText('Planned · Phase 14').first()).toBeVisible()
+    await page.goto('/en/platform/plans')
+    await expect(page.getByRole('heading', { level: 1 })).toHaveText('Plans & subscriptions')
+    await expect(page.getByText('Planned · Phase 15').first()).toBeVisible()
     await expect(page.getByText('Not built yet')).toBeVisible()
   })
 
@@ -694,6 +694,51 @@ test.describe('voice (UI preview mode)', () => {
     const serious = results.violations.filter((v) => v.impact === 'serious' || v.impact === 'critical')
     expect(serious.map((v) => `${v.id}: ${v.nodes.length} node(s)`)).toEqual([])
   })
+})
+
+test.describe('notifications and integrations (UI preview mode)', () => {
+  test('notification settings list every kind, default to in-app only and offer no writes', async ({ page }) => {
+    const errors = trackErrors(page)
+    await page.goto('/en/app/northbridge/notifications')
+    await page.getByRole('link', { name: 'Notification settings' }).click()
+    await expect(page).toHaveURL(/\/notifications\/settings$/)
+    await expect(page.getByRole('heading', { level: 1 })).toHaveText('Notification settings')
+    await expect(page.getByText(/Email delivery is not connected yet/)).toBeVisible()
+    const inApp = page.getByRole('checkbox', { name: 'Requests assigned to me: In the app', exact: true })
+    await expect(inApp).toBeChecked()
+    await expect(inApp).toBeDisabled()
+    await expect(page.getByRole('checkbox', { name: 'Requests assigned to me: By email', exact: true })).not.toBeChecked()
+    await expect(page.getByRole('checkbox')).toHaveCount(16)
+    expect(errors).toEqual([])
+  })
+
+  test('integrations show the catalog and the outbox honestly, without data or writes', async ({ page }) => {
+    const errors = trackErrors(page)
+    await page.goto('/en/app/northbridge/integrations')
+    await expect(page.getByRole('heading', { level: 1 })).toHaveText('Integrations')
+    await expect(page.getByText('No integrations yet.')).toBeVisible()
+    await expect(page.getByText('Learning management (LMS)')).toBeVisible()
+    await expect(page.getByText(/No connector of this kind runs yet/)).toBeVisible()
+    await expect(page.getByText(/No email provider is connected/)).toBeVisible()
+    await expect(page.getByText('Planned · Phase 14')).toHaveCount(0)
+    await expect(page.getByRole('button', { name: 'Create' })).toHaveCount(0)
+    expect(errors).toEqual([])
+  })
+
+  test('an integration page needs real data', async ({ page }) => {
+    await page.goto('/en/app/northbridge/integrations/00000000-0000-4000-8000-000000000001')
+    await expect(page.getByRole('heading', { name: 'Page not found' })).toBeVisible()
+  })
+
+  for (const path of ['/ar/app/northbridge/integrations', '/ar/app/northbridge/notifications/settings']) {
+    test(`${path} is translated and has no serious accessibility violations`, async ({ page }) => {
+      await page.goto(path)
+      await expect(page.getByRole('heading', { level: 1 })).toHaveText(/التكامل|إعدادات الإشعارات/)
+      const results = await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa']).analyze()
+      const serious = results.violations.filter((v) => v.impact === 'serious' || v.impact === 'critical')
+      expect(serious.map((v) => `${v.id}: ${v.nodes.length} node(s)`)).toEqual([])
+    })
+  }
 })
 
 test.describe('workspace on mobile @mobile', () => {
