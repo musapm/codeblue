@@ -106,8 +106,8 @@ export const OverviewSchema = z.object({
   ai: z
     .object({
       month_since: z.string(),
-      month: z.object({ student_assistant: num, admissions_agent: num, ticketing: num, academic_agent: num.optional(), staff_assistant: num.optional(), workflow_agent: num.optional() }),
-      budgets: z.object({ student_assistant: nullableNum, admissions_agent: nullableNum, academic_agent: nullableNum.optional(), staff_assistant: nullableNum.optional(), workflow_agent: nullableNum.optional() }),
+      month: z.object({ student_assistant: num, admissions_agent: num, ticketing: num, academic_agent: num.optional(), staff_assistant: num.optional(), workflow_agent: num.optional(), campus_assistant: num.optional() }),
+      budgets: z.object({ student_assistant: nullableNum, admissions_agent: nullableNum, academic_agent: nullableNum.optional(), staff_assistant: nullableNum.optional(), workflow_agent: nullableNum.optional(), campus_assistant: nullableNum.optional() }),
       period: z.object({ calls: num, cost_usd: num, input_tokens: num, output_tokens: num }),
     })
     .nullable(),

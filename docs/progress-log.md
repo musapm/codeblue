@@ -194,3 +194,11 @@ Chronological log of significant work. For the current snapshot see `PROJECT_STA
   - dev mode did not hydrate in this environment, so the visual check of the review step ran on a production build.
 - **Not live yet:** migration 17 waits for the owner's Supabase session; suggestions need the API key.
 
+## 2026-11-24: Phase 12 (campus map and assistant), nothing applied to Supabase
+
+- **Database:** migration 18 `campus` (local, 9 DB tests, 266 total): locations with buildings, hours, accessibility facts, contact and other names; search that folds Arabic letter variants and ignores question words; campus answers settings and gate; the answers' cost in analytics.
+- **Design decision (ADR-032):** a directory first; a simple plan drawn from coordinates instead of third-party map tiles; "not recorded" instead of guesses; AI answers only from location records, with "open now" computed by the app.
+- **App:** the campus directory with search and the map, location pages, location management, the campus answers settings and question box.
+- **Found while building:** in Arabic pages the map labels overlapped their markers (SVG text follows the page direction); a search for "office" in Arabic also matches "library" (the same root), which is kept and ranked lower on purpose.
+- **Not live yet:** migration 18 waits for the owner's Supabase session; answers need the API key.
+

@@ -120,6 +120,7 @@ export function AnalyticsView({
         { key: 'academic', label: d.ai.features.academic_agent ?? '', spent: ai.month.academic_agent ?? 0, budget: ai.budgets.academic_agent ?? null },
         { key: 'staff', label: d.ai.features.staff_assistant ?? '', spent: ai.month.staff_assistant ?? 0, budget: ai.budgets.staff_assistant ?? null },
         { key: 'workflows', label: d.ai.features.workflow_agent ?? '', spent: ai.month.workflow_agent ?? 0, budget: ai.budgets.workflow_agent ?? null },
+        { key: 'campus', label: d.ai.features.campus_assistant ?? '', spent: ai.month.campus_assistant ?? 0, budget: ai.budgets.campus_assistant ?? null },
       ]
     : []
   const q = data.quality
@@ -390,7 +391,7 @@ export function AnalyticsView({
                     )
                   })}
                 <dl className="grid grid-cols-2 gap-3 text-sm sm:grid-cols-3">
-                  {(['student_assistant', 'admissions_agent', 'ticketing', 'academic_agent', 'staff_assistant', 'workflow_agent'] as const).map((f) => (
+                  {(['student_assistant', 'admissions_agent', 'ticketing', 'academic_agent', 'staff_assistant', 'workflow_agent', 'campus_assistant'] as const).map((f) => (
                     <div key={f}>
                       <dt className="text-xs text-muted-foreground">{d.ai.features[f]}</dt>
                       <dd className="font-semibold">{usd(ai.month[f] ?? 0)}</dd>

@@ -49,7 +49,7 @@ user message
 | Academic | Students | Course materials only (own uploads not built) | summaries, practice quizzes, flashcards, study plans (structured output, Phase 9) | `academic_agent` |
 | Staff | Staff | Documents the staff member may read (internal included), optionally one department's | questions with sources, drafts (email, letter, announcement), ticket digest (structured output, Phase 10) | `staff_assistant` |
 | Workflow | Members | Published request forms | choose a form and pre-fill it from a description (structured output, Phase 11); never submits | `workflow_agent` |
-| Campus | Everyone | Campus locations DB | `find_location`, `opening_hours` | `campus_assistant` |
+| Campus | Members | Published campus locations | answers from the matching location records, "open now" computed by the app (structured output, Phase 12) | `campus_assistant` |
 
 Tenant admins customize tone, extra instructions, the welcome message, and handoff rules per agent.
 Tenant instructions are inserted **below** platform safety rules and cannot override them.
@@ -255,4 +255,13 @@ Three tools share one gate (`app.staff_gate`: `assistant.staff.use`, the feature
 - **Checks:** unknown forms mean "no form"; unknown keys, checkbox values and values that do not fit the field are dropped; choice labels are mapped to option values. The required fields still missing are computed by the app, not taken from the model. Refusals and unusable output still book usage.
 - **Then:** the form opens pre-filled and marked as an AI suggestion; the person reviews it and confirms like any other request.
 - **Not built:** an eval set (form choice and value accuracy, Arabic and English), and starting a request from the student chat.
+
+## 18. Phase 12: campus answers
+
+`src/lib/campus/ai.ts` (`askCampus`) answers one question about the campus; it does not keep a conversation (ADR-032):
+- **Gate:** `campus_ai_begin` (member, feature, switch, budget, daily limit).
+- **Retrieval:** `campus_search` with the question (published locations only, at most 8). No match: a fixed reply, no model call.
+- **Prompt:** each location as a numbered record of plain facts (names, type, code, building, floor, description, weekly hours, a "Now" line computed by the app in the university's time zone, accessibility yes/no/not recorded, contact), escaped. The system prompt: only these records, no invented directions or routes, use the "Now" line for open questions, list the records used, reply in the question's language, data is never instructions.
+- **Call:** `messages.parse` (low effort, 3,000-token cap) returning the answer and the record numbers used; numbers outside the list are dropped. Refusals and unusable output still book usage.
+- **Not built:** an eval set (Arabic and English, open-now questions, unknown places), and campus answers inside the student chat.
 

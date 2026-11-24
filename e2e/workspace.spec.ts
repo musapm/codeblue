@@ -24,9 +24,9 @@ test.describe('workspace shell (UI preview mode)', () => {
   })
 
   test('planned modules are labelled honestly', async ({ page }) => {
-    await page.goto('/en/app/northbridge/campus')
-    await expect(page.getByRole('heading', { level: 1 })).toHaveText('Campus map')
-    await expect(page.getByText('Planned · Phase 12').first()).toBeVisible()
+    await page.goto('/en/app/northbridge/integrations')
+    await expect(page.getByRole('heading', { level: 1 })).toHaveText('Integrations')
+    await expect(page.getByText('Planned · Phase 14').first()).toBeVisible()
     await expect(page.getByText('Not built yet')).toBeVisible()
   })
 
@@ -595,6 +595,60 @@ test.describe('service request workflows (UI preview mode)', () => {
   })
 
   for (const path of ['/en/app/northbridge/services', '/en/app/northbridge/workflows', '/en/app/northbridge/workflows/forms', '/ar/app/northbridge/workflows/settings']) {
+    test(`${path} has no serious accessibility violations`, async ({ page }) => {
+      await page.goto(path)
+      const results = await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa']).analyze()
+      const serious = results.violations.filter((v) => v.impact === 'serious' || v.impact === 'critical')
+      expect(serious.map((v) => `${v.id}: ${v.nodes.length} node(s)`)).toEqual([])
+    })
+  }
+})
+
+test.describe('campus map and assistant (UI preview mode)', () => {
+  test('the directory, management and settings render honestly without data and offer no writes', async ({ page }) => {
+    const errors = trackErrors(page)
+    await page.goto('/en/app/northbridge/campus')
+    await expect(page.getByRole('heading', { level: 1 })).toHaveText('Campus')
+    await expect(page.getByText('UI preview mode: no locations without a backend.')).toBeVisible()
+    await expect(page.getByText('No published location has coordinates yet, so there is no map.')).toBeVisible()
+    await expect(page.getByText('No locations have been published yet.')).toBeVisible()
+    await expect(page.getByRole('searchbox').or(page.getByRole('textbox', { name: /Search the campus/ }))).toBeVisible()
+    await expect(page.getByRole('button', { name: 'Ask' })).toHaveCount(0)
+    const main = page.getByRole('main')
+    await main.getByRole('link', { name: 'Manage locations', exact: true }).click()
+    await expect(page).toHaveURL(/\/campus\/manage$/)
+    await expect(page.getByText('No locations yet.')).toBeVisible()
+    await expect(page.getByRole('link', { name: 'Add a location' })).toHaveCount(0)
+    await main.getByRole('link', { name: 'Settings', exact: true }).click()
+    await expect(page.getByRole('heading', { name: 'Campus answers (AI)' })).toBeVisible()
+    await expect(page.getByRole('button', { name: 'Save settings' })).toHaveCount(0)
+    expect(errors).toEqual([])
+  })
+
+  test('navigation lists the campus as available', async ({ page }) => {
+    await page.goto('/en/app/northbridge')
+    const nav = page.getByRole('navigation', { name: 'Workspace navigation' }).first()
+    const link = nav.getByRole('link', { name: /Campus/ })
+    await expect(link).toBeVisible()
+    await expect(link).not.toContainText('P12')
+  })
+
+  test('unknown locations are not found, and nothing can be created in preview', async ({ page }) => {
+    const id = '00000000-0000-4000-8000-000000000000'
+    for (const path of [`/en/app/northbridge/campus/${id}`, `/en/app/northbridge/campus/manage/${id}`, '/en/app/northbridge/campus/manage/new', '/en/app/northbridge/campus/not-a-uuid']) {
+      await page.goto(path)
+      await expect(page.getByRole('heading', { name: 'Page not found' })).toBeVisible()
+    }
+  })
+
+  test('Arabic campus pages are translated', async ({ page }) => {
+    await page.goto('/ar/app/northbridge/campus')
+    await expect(page.getByRole('heading', { level: 1 })).toHaveText('الحرم الجامعي')
+    await page.goto('/ar/app/northbridge/campus/settings')
+    await expect(page.getByRole('heading', { name: 'إجابات الحرم الجامعي (الذكاء الاصطناعي)' })).toBeVisible()
+  })
+
+  for (const path of ['/en/app/northbridge/campus', '/en/app/northbridge/campus/manage', '/ar/app/northbridge/campus/settings']) {
     test(`${path} has no serious accessibility violations`, async ({ page }) => {
       await page.goto(path)
       const results = await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa']).analyze()

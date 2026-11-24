@@ -85,7 +85,7 @@ export const analyticsAr: AnalyticsDictionary = {
       noBudget: 'لا توجد ميزانية',
       over: 'بلغت الميزانية: يتوقف المساعد عن الإجابة حتى الشهر القادم أو رفع الميزانية',
       warning: 'تجاوز 80٪ من الميزانية',
-      features: { student_assistant: 'مساعد الطلاب', admissions_agent: 'مساعد القبول', ticketing: 'مسودات الطلبات وملخصاتها', academic_agent: 'أدوات المذاكرة', staff_assistant: 'مساعد الموظفين', workflow_agent: 'اقتراح النماذج' },
+      features: { student_assistant: 'مساعد الطلاب', admissions_agent: 'مساعد القبول', ticketing: 'مسودات الطلبات وملخصاتها', academic_agent: 'أدوات المذاكرة', staff_assistant: 'مساعد الموظفين', workflow_agent: 'اقتراح النماذج', campus_assistant: 'إجابات الحرم الجامعي' },
       sharedBudget: 'يشمل مسودات الطلبات وملخصاتها، وهي تشترك في هذه الميزانية.',
       period: 'في هذه الفترة',
       calls: 'استدعاءات النموذج',

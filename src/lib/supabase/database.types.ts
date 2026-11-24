@@ -189,6 +189,53 @@ export type Database = {
         Update: never
         Relationships: []
       }
+      campus_locations: {
+        Row: {
+          accessibility: Json
+          accessibility_note: string | null
+          accessibility_note_ar: string | null
+          aliases: string[]
+          code: string | null
+          created_at: string
+          created_by: string | null
+          department_id: string | null
+          description: string | null
+          description_ar: string | null
+          email: string | null
+          floor: string | null
+          hours_note: string | null
+          hours_note_ar: string | null
+          id: string
+          kind: string
+          latitude: number | null
+          longitude: number | null
+          name: string
+          name_ar: string | null
+          opening_hours: Json | null
+          parent_id: string | null
+          phone: string | null
+          published: boolean
+          search_text: string
+          tenant_id: string
+          updated_at: string
+          url: string | null
+        }
+        Insert: never
+        Update: never
+        Relationships: []
+      }
+      campus_settings: {
+        Row: {
+          ai_enabled: boolean
+          daily_limit: number
+          monthly_budget_usd: number
+          tenant_id: string
+          updated_at: string
+        }
+        Insert: never
+        Update: never
+        Relationships: []
+      }
       workflow_definitions: {
         Row: {
           created_at: string
@@ -1561,6 +1608,15 @@ export type Database = {
       academic_update_progress: { Args: { p_item: string; p_state: Json }; Returns: undefined }
       academic_update_settings: { Args: { p_daily_limit: number; p_monthly_budget_usd: number; p_tenant_slug: string }; Returns: undefined }
       analytics_overview: { Args: { p_days: number; p_tenant_slug: string }; Returns: Json }
+      campus_save_location: { Args: { p_data: Json; p_location: string | null; p_tenant_slug: string }; Returns: string }
+      campus_set_published: { Args: { p_location: string; p_published: boolean }; Returns: undefined }
+      campus_delete_location: { Args: { p_location: string }; Returns: undefined }
+      campus_search: { Args: { p_kind: string | null; p_limit: number; p_query: string; p_tenant_slug: string }; Returns: Json }
+      campus_status: { Args: { p_tenant_slug: string }; Returns: Json }
+      campus_update_settings: { Args: { p_ai_enabled: boolean; p_daily_limit: number; p_monthly_budget_usd: number; p_tenant_slug: string }; Returns: undefined }
+      campus_ai_begin: { Args: { p_tenant_slug: string }; Returns: undefined }
+      campus_ai_record: { Args: { p_model: string; p_tenant_slug: string; p_usage: Json }; Returns: undefined }
+      campus_usage: { Args: { p_tenant_slug: string }; Returns: Json }
       workflow_save_definition: {
         Args: {
           p_definition: string | null

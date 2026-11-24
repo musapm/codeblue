@@ -420,6 +420,24 @@ Functions:
 
 Changed: `my_notifications` (tickets and requests), `analytics_overview` (a `workflows` section with counts only, and the suggestions' month cost and budget).
 
+## 2j. Phase 12 — campus map and assistant (migration 18 `campus`, **written and tested locally, not applied yet**)
+
+| Table | Contents | Access |
+| --- | --- | --- |
+| `campus_locations` | kind (14 kinds), names en/ar, code, descriptions en/ar, building (`parent_id`, buildings only, one level), floor, department, latitude/longitude (both or neither), weekly hours (`app.campus_hours_valid`), hours note en/ar, accessibility facts (`app.campus_access_valid`), note en/ar, phone, email, https URL, other names (≤ 20), published, `search_text` (folded, kept by a trigger) | read: members with the feature see published ones, `campus.manage` all; written through functions; audited |
+| `campus_settings` | campus answers on/off (default off), monthly budget (default 5 USD), daily limit per person (default 30) | read: `assistant.configure`; audited |
+
+Functions:
+
+| Function | Who | Purpose |
+| --- | --- | --- |
+| `campus_save_location(slug, location, data)` / `campus_set_published` / `campus_delete_location` | `campus.manage` | Create or update from a JSON object (building rules checked, 22023); publish; delete (what was inside stays, without a building) |
+| `campus_search(slug, query, kind, limit)` | members | Published locations ranked by matching words (folded text, question words ignored, exact name or code first) |
+| `campus_status` / `campus_update_settings` / `campus_usage` | members / `assistant.configure` | Feature and answer state; settings; locations, published, questions and cost this month |
+| `campus_ai_begin` / `campus_ai_record` | members | Gate for a campus answer (switch 55000, budget 53400, daily limit 54000) / book its usage |
+
+Changed: `analytics_overview` (the campus answers' month cost and budget).
+
 ## 3. Phase 15 — plans, features, subscriptions (planned)
 
 ```
@@ -450,7 +468,7 @@ Effective features = plan features + enabled overrides − disabled overrides, c
 | 9 Academic | Implemented, see §2g (migration 15 not applied yet): materials are knowledge documents with `course_id`; study aids in `academic_items`; mastery per material from quiz attempts |
 | 10 Staff assistant | Implemented, see §2h (migration 16 not applied yet): staff conversations in `assistant_conversations`, drafts in `staff_drafts`; ticket digests are not stored |
 | 11 Workflows | Implemented, see §2i (migration 17 not applied yet): versioned forms, requests with tracking numbers and a status flow. Not built: attachments, multi-step approval chains, deadlines |
-| 12 Campus | `campus_locations` (type, coordinates, hours jsonb, accessibility jsonb), `location_aliases` |
+| 12 Campus | Implemented, see §2j (migration 18 not applied yet): `campus_locations` with hours, accessibility and other names; no map tiles. Not built: routes, holiday calendars, public access |
 | 13 Voice | `voice_sessions`, usage in `ai_usage_events` with `modality = 'voice'` |
 | 14 Integrations & notifications | `integrations` (tenant, provider, status, config), `integration_secrets` (Supabase Vault references only), `integration_logs`, `notifications`, `notification_preferences`, `outbound_messages` |
 | 23 Cost control | `model_prices` (provider, model, unit prices, effective_from), `tenant_ai_budgets`, `usage_counters` (tenant, period, requests, tokens, cost_micros) |

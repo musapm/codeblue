@@ -403,3 +403,40 @@ Format: **ADR-NNN — Title** · Status · Date · Context → Decision → Cons
   - an eval set for the form suggestion.
 - As in earlier ADRs, AI usage is recorded with the person's own session: a person could under-report their own usage by calling the API directly.
 
+## ADR-032 — Campus map and assistant: a directory first, a plan without map tiles, answers only from location records
+**Accepted · 2026-11-24**
+
+**Context:** Phase 12 asks for a locations admin, search, a simple map, opening hours and accessibility. People mostly need "where is it, is it open, can I get in". Embedding a street map means loading tiles from a third party on every view, sending location and IP data to it, and loosening the content security policy.
+**Decision:**
+- **Locations** (`campus_locations`) cover buildings and what is inside them (offices, rooms, services, gates, parking): English and Arabic names and descriptions, a code, the building and floor, the department behind it, coordinates, weekly hours, accessibility facts, contact details and other names for search.
+  - Only buildings contain locations, and buildings are not inside anything (one level, no cycles).
+  - Deleting a building keeps what was inside it.
+  - New locations stay hidden until published.
+  - Managing needs `campus.manage`; members of a university with the `campus_assistant` feature see published locations.
+  - Locations are not personal data and are audited.
+- **Hours** are weekly ranges per day (at most 3, `HH:MM`, a day left out is closed), plus a note for holidays. "No hours given" is kept apart from "closed".
+  - The app computes "open now" and the next opening in the university's time zone.
+  - Pages show the week starting on Saturday in Arabic and Monday in English.
+- **Accessibility** facts (step-free entrance, elevator, accessible toilet and parking, hearing loop, Braille signage) are yes, no or not recorded. The directory says "not recorded" rather than guessing.
+- **Search** runs in the database. It folds case, Arabic letter variants, diacritics and punctuation, ignores common question words in both languages, and ranks by how many query words a location contains (names, code, other names, description). An exact name or code ranks first. Substring matching is deliberate: it is forgiving with Arabic word forms, at the cost of some partial matches ranking lower in the list.
+- **The map is a simple plan**, not a street map: published locations with coordinates are projected onto a box (north up, proportions kept) and drawn as an SVG.
+  - Nothing is loaded from third parties.
+  - Every point is a link with an accessible name; the list beside it carries the same information.
+  - The plan stays left-to-right in Arabic pages because it is geometry; labels still shape right-to-left.
+  - Each location page offers an "Open in OpenStreetMap" link, which leaves the site only when clicked.
+- **Campus answers (AI, off by default):**
+  - The question is matched against published locations (at most 8). If none match, the person gets a fixed reply and no model is called.
+  - Otherwise one structured-output call (low effort) answers only from those records and lists the records it used, which link to their pages.
+  - "Open now" is given to the model as a fact computed by the app; the model never computes times.
+  - Nothing is stored. Usage is booked as `campus_assistant`, with its own switch, monthly budget (5 USD) and daily limit per person (30), set with `assistant.configure`.
+
+**Consequences:**
+- The roadmap criteria (locations admin, search, simple map, hours, accessibility) are covered by 9 DB tests and the app's unit tests.
+- Not built:
+  - a drawn campus plan image or real map tiles (possible later with a tile provider and a policy decision);
+  - routes and indoor directions;
+  - holiday calendars and exceptions beyond a note;
+  - public (visitor) access to the directory;
+  - campus answers inside the student chat;
+  - an eval set for campus answers.
+

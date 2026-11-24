@@ -122,3 +122,10 @@ All of it needs the `workflow_agent` feature, and it reuses the ticket permissio
 - **Internal notes:** `tickets.notes.read` / `tickets.notes.write`. **Assign colleagues:** `tickets.assign`.
 - **Manage forms:** `departments.manage`. **Form suggestions (AI) settings:** `assistant.configure`.
 
+## Campus (Phase 12)
+
+All of it needs the `campus_assistant` feature:
+- **See the directory, map and location pages, and ask campus questions:** any member (published locations only).
+- **Manage locations** (create, edit, publish, delete; see unpublished ones): `campus.manage` (owners and administrators by default).
+- **Campus answers (AI) settings:** `assistant.configure`.
+

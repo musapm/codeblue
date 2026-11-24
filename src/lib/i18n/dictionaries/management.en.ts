@@ -28,6 +28,7 @@ export const managementEn = {
     staffOff: 'The staff assistant is switched off for this university.',
     formChanged: 'This form was updated while you were filling it in. Please check it again and confirm.',
     suggestionsOff: 'Form suggestions are switched off for this university.',
+    campusOff: 'Campus answers are switched off for this university.',
     generic: 'Something went wrong. Please try again.',
   },
   saved: 'Saved.',

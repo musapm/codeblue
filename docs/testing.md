@@ -221,3 +221,19 @@ Live runs on 2026-11-22 against project "agent":
 - **Visual check:** the request form (AI pre-filled), its review step, the timeline and the form builder were rendered with fictional data through a temporary local-only route (deleted), in English and Arabic, on a production build (dev mode did not hydrate in this environment). It found two defects, both fixed: answers in a different script were aligned to the wrong side in right-to-left pages, and assignments were labelled "Internal note".
 - **Not run:** any live test (migration 17 not applied; suggestions need the API key). There is no eval set for the form suggestion yet.
 
+### Campus map and assistant (Phase 12)
+
+- **Database:** `supabase/tests/campus.test.ts` (9 tests, migration 18, local only). Covered:
+  - who manages locations; saving and updating (email lower-cased, hours cleared);
+  - 14 kinds of invalid data refused (kind, name, hours keys, order, format and count, accessibility keys and values, phone, email, http URL, half coordinates, out-of-range latitude, long aliases);
+  - building rules (only buildings contain locations, buildings are not inside anything, a location with rooms stays a building, other universities);
+  - drafts hidden from members; other universities and `anon`;
+  - search in both languages with Arabic letter variants, question words ignored, aliases, codes and descriptions, kind filter, drafts excluded, ranking;
+  - deleting a building keeps what was inside;
+  - the answers' gate (switch, daily limit, budget), usage, analytics cost, audit, the feature switch.
+  `analytics.test.ts` now expects the campus cost key.
+- **Unit:** `src/lib/campus/campus.test.ts` (9 tests): typed hours, weekday and time in the university's time zone (including an invalid zone), open until / opens at / unknown, the map projection (north up, inside the box, a single point centred), the location form (stored shape, the same refusals as the database), and campus answers with a fake model and database (facts given to the model, including "open now" computed by the app and escaped text; the gate; no model call without matching records; records used mapped to locations; refusals still book usage). `core.test.ts`: the campus is no longer a placeholder.
+- **Browser (preview):** the directory, management and settings without data and without writes; navigation; unknown locations and the "new" page "not found" in preview; Arabic; accessibility of 3 pages. The planned-module test now uses integrations.
+- **Visual check:** the map, the open/closed labels and the location form were rendered with fictional data through a temporary local-only route (deleted), in English and Arabic, on a production build, including keyboard focus on a map point. It found a real defect: in Arabic pages the map labels overlapped their markers, because SVG text anchors follow the page direction. Fixed by keeping the plan left-to-right. A placeholder that looked like real hours for a closed day was removed.
+- **Not run:** any live test (migration 18 not applied; answers need the API key). There is no eval set for campus answers yet.
+

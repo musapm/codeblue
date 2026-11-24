@@ -29,6 +29,7 @@ export const ACTION_ERRORS = [
   'staffOff',
   'formChanged',
   'suggestionsOff',
+  'campusOff',
   'generic',
 ] as const
 

@@ -1,6 +1,6 @@
 # Project Status
 
-_Last updated: 2026-11-24 (Phase 11)_
+_Last updated: 2026-11-24 (Phase 12)_
 
 ## Honest summary
 
@@ -52,7 +52,11 @@ Visitors need **anonymous sign-ins enabled** in Supabase Auth (currently disable
 - a status flow (in review, needs information, approved, rejected, completed, or cancelled by the requester), with messages, internal notes, assignment, and notifications for both sides;
 - an optional AI form suggestion: people describe what they need, and the right form opens pre-filled for them to check and confirm (off by default; never submits).
 
-**Not built yet:** the campus assistant. Invitations are not emailed yet: the link is shown once to copy and send.
+**Campus map and assistant (Phase 12):** built and tested locally; **migration 18 is not applied** yet. It includes:
+- a campus directory with search in English and Arabic, and a simple map drawn from coordinates (no third-party map tiles);
+- location pages with the building and floor, weekly opening hours with "open now" in the university's time zone, accessibility facts (yes, no or not recorded) and contact details;
+- location management for campus managers (drafts until published);
+- optional AI campus answers from the directory only (off by default). Invitations are not emailed yet: the link is shown once to copy and send.
 
 | Phase | Status |
 | --- | --- |
@@ -68,7 +72,8 @@ Visitors need **anonymous sign-ins enabled** in Supabase Auth (currently disable
 | 9: Academic assistant | 🟡 **Built and tested locally** (unit, DB, browser, visual check of the study components). Migration 15 **not applied**; generation needs `ANTHROPIC_API_KEY` |
 | 10: Staff assistant | 🟡 **Built and tested locally** (unit, DB, browser, visual check of a draft and the digest). Migration 16 **not applied**; the tools need `ANTHROPIC_API_KEY` |
 | 11: Workflow agents | 🟡 **Built and tested locally** (unit, DB, browser, visual check of the form, review step, timeline and form builder). Migration 17 **not applied**; form suggestions need `ANTHROPIC_API_KEY` |
-| 12–17 | Not started |
+| 12: Campus map & assistant | 🟡 **Built and tested locally** (unit, DB, browser, visual check of the map and location form). Migration 18 **not applied**; campus answers need `ANTHROPIC_API_KEY` |
+| 13–17 | Not started |
 
 ## Supabase project "agent"
 
@@ -76,7 +81,7 @@ Visitors need **anonymous sign-ins enabled** in Supabase Auth (currently disable
 | --- | --- |
 | Ref / URL | `zijruhuvzxtuudsvnwgy` · `https://zijruhuvzxtuudsvnwgy.supabase.co` |
 | Region / plan | eu-central-1 (Frankfurt) · **Free** (no backups) |
-| Schema | 32 tables + private tables, all with RLS. **11 migrations applied**, byte-identical to git (`supabase/README.md`). Migrations 12 (admissions maintenance), 13 (tickets), 14 (analytics), 15 (academic), 16 (staff) and 17 (workflows) are in git only, not applied. pgvector 0.8.2. Buckets `tenant-assets` (public logos) and `tenant-documents` (private originals) |
+| Schema | 32 tables + private tables, all with RLS. **11 migrations applied**, byte-identical to git (`supabase/README.md`). Migrations 12 (admissions maintenance), 13 (tickets), 14 (analytics), 15 (academic), 16 (staff), 17 (workflows) and 18 (campus) are in git only, not applied. pgvector 0.8.2. Buckets `tenant-assets` (public logos) and `tenant-documents` (private originals) |
 | Data | 1 fictional demo university ("Northbridge"). The Phase 3 live run's temporary accounts and test universities: see "Cleanup" below |
 | Advisors | Only documented, intended findings (`supabase/README.md`) |
 | Auth settings | **Not configured yet:** Site URL, redirect URLs, SMTP, email templates (owner action, `docs/authentication.md`) |
@@ -122,18 +127,19 @@ Visitors need **anonymous sign-ins enabled** in Supabase Auth (currently disable
 - **Academic assistant (Phase 9):** tested locally (28 DB tests); migration 15 is not on "agent", so these pages would fail there until it is applied. Study aids also need the API key.
 - **Staff assistant (Phase 10):** tested locally (16 DB tests); migration 16 is not on "agent", so these pages would fail there until it is applied. All three tools need the API key.
 - **Service request workflows (Phase 11):** tested locally (20 DB tests); migration 17 is not on "agent", so these pages would fail there until it is applied. Forms and requests work without the API key; only suggestions need it.
+- **Campus (Phase 12):** tested locally (9 DB tests); migration 18 is not on "agent", so these pages would fail there until it is applied. The directory works without the API key; only campus answers need it.
 - **Analytics & AI quality (Phase 8):** tested locally (25 DB tests); migration 14 is not on "agent", so these pages would fail there until it is applied. The overview fails soft (it shows that figures are unavailable).
 - **Contact/demo form:** validates; not stored (`platform_inquiries` not built).
 - **Rate limiting:** in-memory per instance (now also on invitations, uploads, university creation).
 
 ### 3. UI-only / placeholder
-Module pages for campus,
+Module pages for
 integrations; platform plans/usage/AI/settings (labelled "Planned · Phase N").
 Chat previews on the marketing site (static, labelled). Privacy/Terms drafts.
 
 ### 4. Planned but not implemented
 Invitation emails (needs transactional email) · custom roles editor · sign-up domain rules and
-self-service join · campus assistant · request attachments, multi-step approvals and deadlines · sending staff drafts from the app, shared templates and an eval set for the staff tools · students' own uploads and instructor-shared quizzes · lead export for access requests, retention rules · ticket attachments, SLAs and assignment rules · analytics rollups, CSV export and email digests · AI clustering of gap questions · email notifications · subscriptions and plans · voice · integrations · backups · CI, monitoring.
+self-service join · campus routes, holiday calendars and public access to the directory · request attachments, multi-step approvals and deadlines · sending staff drafts from the app, shared templates and an eval set for the staff tools · students' own uploads and instructor-shared quizzes · lead export for access requests, retention rules · ticket attachments, SLAs and assignment rules · analytics rollups, CSV export and email digests · AI clustering of gap questions · email notifications · subscriptions and plans · voice · integrations · backups · CI, monitoring.
 
 ### 5. Broken or incomplete
 | Issue | Severity |
@@ -154,9 +160,9 @@ self-service join · campus assistant · request attachments, multi-step approva
 | Suite | Result |
 | --- | --- |
 | Typecheck / lint / build | ✅ |
-| Unit + component (`npm test`) | ✅ 226/226 (incl. both assistants, the ticket AI, the study aids, the staff tools and the form suggestion with a fake database and fake model, contact redaction, request form rules and the review step, analytics helpers) |
-| Database isolation (`npm run test:db`) | ✅ 257/257 (local PostgreSQL 16; migrations 10–17, anonymous visitors, 26 ticket, 25 analytics, 28 academic, 16 staff and 20 workflow tests) |
-| Browser e2e, preview mode (`npm run test:e2e`) | ✅ 133/133 (incl. the service request and workflow pages, the staff assistant pages and endpoint, course and academic pages, analytics and AI quality pages, ticket, request and notification pages, admissions staff pages, all three answer endpoints refusing cross-site requests, robots/sitemap, accessibility) |
+| Unit + component (`npm test`) | ✅ 235/235 (incl. campus hours, open-now and the map projection, both assistants, the ticket AI, the study aids, the staff tools and the form suggestion with a fake database and fake model, contact redaction, request form rules and the review step, analytics helpers) |
+| Database isolation (`npm run test:db`) | ✅ 266/266 (local PostgreSQL 16; migrations 10–18, anonymous visitors, 26 ticket, 25 analytics, 28 academic, 16 staff, 20 workflow and 9 campus tests) |
+| Browser e2e, preview mode (`npm run test:e2e`) | ✅ 140/140 (incl. the campus pages, the service request and workflow pages, the staff assistant pages and endpoint, course and academic pages, analytics and AI quality pages, ticket, request and notification pages, admissions staff pages, all three answer endpoints refusing cross-site requests, robots/sitemap, accessibility) |
 | Live AI eval (`npm run test:eval`, 13 student + 10 admissions cases) | ⏸ Not run: needs `ANTHROPIC_API_KEY` and your approval to spend (~USD 0.15–0.50 per run) |
 | **Live e2e against "agent"** (`e2e/live`, opt-in) | ✅ Phase 3 onboarding path 9/9: steps 1–7 in one run, then 8–9 after a test-selector fix and the support-access fix below. Phase 2 regression 4/4 (the 2 owner cases need a demo-tenant owner and were skipped, see `docs/testing.md`) |
 
@@ -165,12 +171,13 @@ Real defects found by the live run and fixed:
 - An owner was offered a button to remove their own owner role. It is now hidden; the database already refused it if they were the last owner.
 
 ## Decisions and actions needed from you
-0. **Phases 6–11:** **apply migrations 12 to 17** together when you do the Supabase steps; I can do all six in one session. Then:
+0. **Phases 6–12:** **apply migrations 12 to 18** together when you do the Supabase steps; I can do all seven in one session. Then:
    - turn on the `ticketing` feature for a university and add categories under Tickets → Categories & routing;
    - give someone the "AI quality reviewer" role if you want reviews done by someone other than the owner;
    - give teaching staff the new "Faculty member" role, create a course under Academic assistant, and assign its instructor;
    - turn on the `staff_assistant` feature for a university, then switch the assistant on under Staff assistant → Settings (it is off by default);
-   - turn on the `workflow_agent` feature, build and publish the first request forms under Requests & workflows → Forms, and switch on form suggestions under its Settings if wanted (off by default).
+   - turn on the `workflow_agent` feature, build and publish the first request forms under Requests & workflows → Forms, and switch on form suggestions under its Settings if wanted (off by default);
+   - turn on the `campus_assistant` feature, add and publish campus locations under Campus → Manage locations, and switch on campus answers under its Settings if wanted (off by default).
    **Data processing:** the staff ticket digest sends ticket text to the AI provider (contact details removed, best effort). Please confirm this is covered by your terms with universities (ADR-030).
    **Privacy notice:** both assistants now tell people that unanswered and rated questions may be reviewed without their identity (ADR-028). Please confirm this matches your privacy policy, and add it to the university's own notice before launch.
    **Phase 6:**
@@ -317,11 +324,28 @@ Real defects found by the live run and fixed:
   - form suggestions with a real model (no key; no eval set yet);
   - the full pages with real data. They were checked only through their parts.
 
+## Phase 12 status (2026-11-24)
+- **Built:**
+  - migration 18 `campus` (9 DB tests, **local only**);
+  - the campus directory with search, the simple map and location pages (hours, open now, accessibility, contact, what is inside a building);
+  - location management (drafts, publish, delete) and the campus answers settings;
+  - AI campus answers from the directory only;
+  - the rules in ADR-032.
+- **Verified:**
+  - typecheck, lint and build pass, plus unit 235, DB 266 and browser 140;
+  - the roadmap criteria: locations admin, search, simple map, hours and accessibility;
+  - a visual check (en/ar) of the map and the location form with fictional data, on a production build.
+- **Found and fixed:** map labels overlapped their markers in Arabic pages (SVG text follows the page direction); a placeholder that looked like real hours for a closed day.
+- **Not verified:**
+  - anything against "agent" (migration 18 not applied);
+  - campus answers with a real model (no key; no eval set yet);
+  - the full pages with real data. They were checked only through their parts.
+
 ## Next steps
-1. Go-live for Phases 5–11:
-   - apply migrations 12 to 17;
+1. Go-live for Phases 5–12:
+   - apply migrations 12 to 18;
    - set the API key and run the eval;
    - enable anonymous sign-ins (+ Turnstile);
-   - then run live tests against "agent": a student chat, a visitor inquiry and an admissions question, the staff pipeline, a request handled end to end (reply, note, transfer, notifications, AI draft and summary), the analytics and AI quality pages on that real activity, a course end to end (material, join, each study aid, a quiz), the staff assistant (a question with a department filter, a draft, a digest), and a service request end to end (build and publish a form, submit it, ask for information, answer, approve, complete). Clean up the test data afterwards.
+   - then run live tests against "agent": a student chat, a visitor inquiry and an admissions question, the staff pipeline, a request handled end to end (reply, note, transfer, notifications, AI draft and summary), the analytics and AI quality pages on that real activity, a course end to end (material, join, each study aid, a quiz), the staff assistant (a question with a department filter, a draft, a digest), and a service request end to end (build and publish a form, submit it, ask for information, answer, approve, complete), and the campus (add and publish a few locations, search, a campus question). Clean up the test data afterwards.
 2. Phase 3 follow-ups: invitation email (after the provider decision), custom roles editor, sign-up domains.
 3. Operational: CI pipeline (`check` + `test:db` + e2e), error tracking, shared rate limiting, inquiry storage.

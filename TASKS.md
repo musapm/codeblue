@@ -186,9 +186,21 @@ Current state: `PROJECT_STATUS.md` · Audit history: `docs/IMPLEMENTATION_AUDIT.
 - [ ] Email notifications (Phase 14)
 - [ ] Eval set for the form suggestion; starting a request from the student chat
 
+## Phase 12: Campus map & assistant 🟡 built and tested locally; migration 18 not applied
+
+- [x] Migration 18 `campus`: locations (buildings and what is inside them, coordinates, weekly hours, accessibility facts, contact, other names), search in both languages, campus answers settings and gate, the answers' cost in analytics (ADR-032). 9 DB tests, local only
+- [x] Locations admin: create, edit, publish, delete (drafts hidden from members)
+- [x] Search, a simple map from coordinates (no map tiles; keyboard accessible), location pages with hours and open now in the university's time zone, accessibility (yes / no / not recorded) and contact
+- [x] AI campus answers from the matching location records only ("open now" computed by the app), off by default
+- [x] Tests: unit 235 (9 new), DB 266 (9 new), browser 140 (7 new); visual check (en/ar)
+- [ ] **Apply migration 18** (with 12–17), turn on `campus_assistant`, publish the first locations, then a live run (search, a campus question with the API key)
+- [ ] A drawn campus plan or real map tiles (needs a provider and a privacy decision); routes and indoor directions
+- [ ] Holiday calendars and exceptions; public access to the directory for visitors
+- [ ] Campus answers inside the student chat; eval set for campus answers
+
 ## Later phases
 
-See `docs/roadmap.md` (Phases 12–17): campus, voice, notifications/integrations,
+See `docs/roadmap.md` (Phases 13–17): voice, notifications/integrations,
 subscriptions, security review, launch.
 
 ## Known follow-ups

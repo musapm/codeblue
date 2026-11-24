@@ -5,6 +5,7 @@ import { managementAr } from './management.ar'
 import { academicAr } from './academic.ar'
 import { staffAr } from './staff.ar'
 import { workflowsAr } from './workflows.ar'
+import { campusAr } from './campus.ar'
 import { analyticsAr } from './analytics.ar'
 import { ticketsAr } from './tickets.ar'
 
@@ -168,6 +169,12 @@ export const ar = (brand: PlatformBranding): Dictionary => ({
     workflowMessageRequired: 'اكتب رسالة لمقدّم الطلب (3 أحرف على الأقل).',
     workflowDescribe: 'صِف ما تحتاجه في 10 أحرف على الأقل.',
     dailyLimitWorkflow: 'أدخل عددًا صحيحًا من 1 إلى 200.',
+    campusHours: 'استخدم أوقاتًا مثل 08:00-12:00، 13:00-16:00 (3 فترات يوميًا كحد أقصى)، أو اتركه فارغًا للإغلاق.',
+    campusCoordinates: 'أدخل خط العرض وخط الطول معًا بالدرجات العشرية، مثل 15.5912 و32.5341.',
+    campusCode: 'استخدم حتى 20 حرفًا إنجليزيًا أو رقمًا أو مسافة أو نقطة أو شرطة.',
+    campusAliases: 'استخدم 20 اسمًا آخر كحد أقصى، لا يتجاوز كل منها 80 حرفًا.',
+    campusBuilding: 'اختر مبنى (لا يكون المبنى داخل موقع آخر، والموقع الذي يحتوي على غرف يبقى مبنى).',
+    campusQuestion: 'اكتب سؤالًا من 3 أحرف على الأقل.',
   },
   contactForm: {
     name: 'الاسم الكامل',
@@ -354,4 +361,5 @@ export const ar = (brand: PlatformBranding): Dictionary => ({
   academic: academicAr,
   staff: staffAr,
   workflows: workflowsAr,
+  campus: campusAr,
 })

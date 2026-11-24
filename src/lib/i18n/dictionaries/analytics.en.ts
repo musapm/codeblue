@@ -86,7 +86,7 @@ export const analyticsEn = {
       noBudget: 'No budget set',
       over: 'Budget reached: the assistant stops answering until next month or a higher budget',
       warning: 'Over 80 % of the budget',
-      features: { student_assistant: 'Student assistant', admissions_agent: 'Admissions assistant', ticketing: 'Request drafts and summaries', academic_agent: 'Study tools', staff_assistant: 'Staff assistant', workflow_agent: 'Form suggestions' } as Record<string, string>,
+      features: { student_assistant: 'Student assistant', admissions_agent: 'Admissions assistant', ticketing: 'Request drafts and summaries', academic_agent: 'Study tools', staff_assistant: 'Staff assistant', workflow_agent: 'Form suggestions', campus_assistant: 'Campus answers' } as Record<string, string>,
       sharedBudget: 'Includes request drafts and summaries, which share this budget.',
       period: 'In this period',
       calls: 'Model calls',

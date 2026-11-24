@@ -6,6 +6,7 @@ import { analyticsEn } from './analytics.en'
 import { ticketsEn } from './tickets.en'
 import { staffEn } from './staff.en'
 import { workflowsEn } from './workflows.en'
+import { campusEn } from './campus.en'
 
 /**
  * English UI dictionary (canonical shape). The Arabic dictionary must match this shape
@@ -170,6 +171,12 @@ export const en = (brand: PlatformBranding) => ({
     workflowMessageRequired: 'Write a message for the requester (at least 3 characters).',
     workflowDescribe: 'Describe what you need in at least 10 characters.',
     dailyLimitWorkflow: 'Enter a whole number from 1 to 200.',
+    campusHours: 'Use times like 08:00-12:00, 13:00-16:00 (at most 3 a day), or leave empty for closed.',
+    campusCoordinates: 'Give both latitude and longitude as decimal degrees, such as 15.5912 and 32.5341.',
+    campusCode: 'Use up to 20 letters, digits, spaces, dots, slashes or dashes.',
+    campusAliases: 'Use at most 20 other names of up to 80 characters each.',
+    campusBuilding: 'Choose a building (buildings cannot be inside another location, and a location with rooms must stay a building).',
+    campusQuestion: 'Write a question of at least 3 characters.',
   },
   contactForm: {
     name: 'Full name',
@@ -356,6 +363,7 @@ export const en = (brand: PlatformBranding) => ({
   academic: academicEn,
   staff: staffEn,
   workflows: workflowsEn,
+  campus: campusEn,
 })
 
 export type Dictionary = ReturnType<typeof en>
