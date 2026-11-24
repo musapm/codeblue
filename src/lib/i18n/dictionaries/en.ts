@@ -8,6 +8,7 @@ import { staffEn } from './staff.en'
 import { workflowsEn } from './workflows.en'
 import { campusEn } from './campus.en'
 import { voiceEn } from './voice.en'
+import { billingEn } from './billing.en'
 import { integrationsEn } from './integrations.en'
 
 /**
@@ -181,6 +182,13 @@ export const en = (brand: PlatformBranding) => ({
     campusQuestion: 'Write a question of at least 3 characters.',
     voicePrice: 'Enter a price from 0 to 100 USD, or leave it empty.',
     voiceMinutes: 'Enter a whole number of minutes from 1 to 600.',
+    planKey: 'Use 2–40 lowercase letters, digits, - or _, starting with a letter.',
+    planCurrency: 'Enter a three-letter currency code, for example USD or SAR.',
+    planAmount: 'Enter an amount with no more decimals than the currency uses.',
+    planDays: 'Enter a whole number of days in the allowed range.',
+    planLimitValue: 'Enter a whole number, or leave empty for no limit.',
+    planMonths: 'Enter a whole number of months (up to 36).',
+    planDate: 'Enter a date.',
     integrationConfig: 'Use one “name = value” per line (up to 30). Names that look like secrets (password, token, key…) are not allowed: put the secret in the server’s secret store and enter its name below.',
     integrationSecretRef: 'Use the secret’s name in capitals, digits and underscores, such as MOODLE_TOKEN.',
   },
@@ -374,6 +382,7 @@ export const en = (brand: PlatformBranding) => ({
   campus: campusEn,
   voice: voiceEn,
   integrations: integrationsEn,
+  billing: billingEn,
 })
 
 export type Dictionary = ReturnType<typeof en>

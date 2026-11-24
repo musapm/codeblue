@@ -220,9 +220,20 @@ Current state: `PROJECT_STATUS.md` · Audit history: `docs/IMPLEMENTATION_AUDIT.
 - [ ] Connectors (LMS, SIS, SSO, messaging, webhooks) once a university provides credentials; reading secrets from Supabase Vault or the hosting's environment
 - [ ] Digest emails; SMS and push
 
+## Phase 15: Subscriptions & commercial 🟡 built and tested locally; migration 21 not applied
+
+- [x] Migration 21 `subscriptions`: plans, one subscription per university, manual payments that renew, the status sweep, limits by triggers and a plan-wide AI cap in every AI gate, the usage report (ADR-035). 9 DB tests, local only
+- [x] Platform pages: plans, a university's subscription and payments, the monthly usage report with the renewal check
+- [x] The plan on the university's settings page; "plan limit reached" message
+- [x] Tests: unit 265 (10 new), DB 289 (9 new), browser 154 (5 new)
+- [ ] **Apply migration 21** (with 12–20), create the first plans, assign them, and run the renewal check live
+- [ ] A scheduled renewal check (service role); reminders before a trial or period ends (needs the email provider)
+- [ ] **Decision:** online payments and invoices (a provider), proration, storage limits
+- [ ] Visual check of the platform billing pages with real data
+
 ## Later phases
 
-See `docs/roadmap.md` (Phases 15–17): subscriptions, security review, launch.
+See `docs/roadmap.md` (Phases 16–17): security review and production readiness, then launch.
 
 ## Known follow-ups
 

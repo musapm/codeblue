@@ -106,11 +106,11 @@ export const PLATFORM_NAV: NavSection[] = [
     items: [
       { key: 'overview', segment: '', icon: 'overview', status: 'available', phase: 1 },
       { key: 'tenants', segment: 'tenants', icon: 'tenants', status: 'available', phase: 3 },
-      { key: 'plans', segment: 'plans', icon: 'plans', status: 'planned', phase: 15 },
-      { key: 'usage', segment: 'usage', icon: 'usage', status: 'planned', phase: 15 },
-      { key: 'ai', segment: 'ai', icon: 'ai', status: 'planned', phase: 5 },
+      { key: 'plans', segment: 'plans', icon: 'plans', status: 'available', phase: 15 },
+      { key: 'usage', segment: 'usage', icon: 'usage', status: 'available', phase: 15 },
+      { key: 'ai', segment: 'ai', icon: 'ai', status: 'planned', phase: 16 },
       { key: 'audit', segment: 'audit', icon: 'audit', status: 'available', phase: 3 },
-      { key: 'settings', segment: 'settings', icon: 'settings', status: 'planned', phase: 15 },
+      { key: 'settings', segment: 'settings', icon: 'settings', status: 'planned', phase: 16 },
     ],
   },
 ]

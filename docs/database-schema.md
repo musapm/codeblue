@@ -467,23 +467,19 @@ Changed: `analytics_overview` (a `voice` section: minutes, characters, people; c
 
 Functions: `integration_save`, `integration_set_status` (active needs a secret name; "error" is not settable by people), `integration_delete`. Changed: `app.notify` and `app.notify_request` follow the preferences and queue emails.
 
-## 3. Phase 15 — plans, features, subscriptions (planned)
+## 3. Phase 15 — plans and subscriptions (migration 21 `subscriptions`, **written and tested locally, not applied yet**)
 
-```
-features            (key pk, name, description, category)             -- catalog
-plans               (id, key, name, description, is_active, limits jsonb, sort_order)
-plan_features       (plan_id, feature_key)
-plan_prices         (plan_id, currency, amount_minor, interval, effective_from)  -- no hardcoded prices
-tenant_subscriptions(id, tenant_id, plan_id, status [trial|active|past_due|suspended|expired|cancelled],
-                     starts_at, ends_at, renews_at, trial_ends_at, payment_status, billing_notes)
-tenant_feature_overrides (tenant_id, feature_key, enabled, reason, set_by, set_at)
-tenant_limits       (tenant_id, key, value)                            -- overrides plan limits
-payment_records     (id, tenant_id, amount_minor, currency, method, reference, recorded_by, paid_at)
-platform_settings   (singleton: branding jsonb, defaults jsonb)
-```
+| Table | Contents | Access |
+| --- | --- | --- |
+| `plans` | key (fixed), names, description, active, optional price (currency + minor units, per month or year), trial days, grace days, limits (members, documents, monthly AI USD; null: none) | read: platform owner/admin/billing; written through functions; audited |
+| `plan_features` | the features a plan includes | same; audited |
+| `tenant_subscriptions` | one per university: plan, status (trial, active, past_due, suspended, expired, cancelled), trial end, paid-until, per-university limit overrides, internal billing notes | same; audited |
+| `subscription_events` | plan assigned, status changed (by people or the sweep), renewed, limits changed, payment recorded | same |
+| `payment_records` | amount (minor units), currency, method, reference, date paid, months added, note, who recorded it | same; audited |
 
-Effective features = plan features + enabled overrides − disabled overrides, computed by
-`app.tenant_has_feature()` and checked server-side on every gated action.
+Functions (platform owner/admin/billing unless noted): `platform_plan_save`, `platform_plans`, `platform_plan_delete` (refused while in use), `platform_assign_plan`, `platform_set_subscription_status`, `platform_set_limits`, `platform_record_payment`, `subscription_sweep` (also a trusted backend), `platform_subscription`, `platform_usage_report`; `tenant_subscription` (members with `tenant.settings.read`).
+
+Limits: triggers on `invitations`, `tenant_memberships` and `knowledge_documents` (54000 "plan limit reached"), and `app.plan_ai_check` in every AI gate (53400). Effective features remain in `tenant_features`; assigning a plan rewrites them from the plan.
 
 ## 4. Later phases (outline)
 
@@ -500,6 +496,7 @@ Effective features = plan features + enabled overrides − disabled overrides, c
 | 12 Campus | Implemented, see §2j (migration 18 not applied yet): `campus_locations` with hours, accessibility and other names; no map tiles. Not built: routes, holiday calendars, public access |
 | 13 Voice | Implemented, see §2k (migration 19 not applied yet): `voice_settings`, `voice_usage_events` (separate from AI tokens). Not built: a vendor adapter, voice sessions |
 | 14 Integrations & notifications | Implemented, see §2l (migration 20 not applied yet). Secrets are referenced by name only. Not built: an email provider and worker, connectors |
+| 15 Subscriptions | Implemented, see §3 (migration 21 not applied yet). Not built: online payments, invoices, a scheduled sweep |
 | 23 Cost control | `model_prices` (provider, model, unit prices, effective_from), `tenant_ai_budgets`, `usage_counters` (tenant, period, requests, tokens, cost_micros) |
 
 ## 5. Data retention (initial policy, configurable per tenant)

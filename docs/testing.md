@@ -270,3 +270,10 @@ Live runs on 2026-11-22 against project "agent":
 - **Unit:** `src/lib/integrations/integrations.test.ts` (6 tests): settings lines and secret-like names, the form, preferences, no email provider yet, and the delivery round with a fake sender (sent, skipped, retried, failed after five attempts, limit).
 - **Browser (preview):** notification settings (every kind, defaults, no writes), integrations (catalog, outbox notice, no writes), an integration page needs real data, Arabic and accessibility of both pages. The planned-module test now uses the platform's plans page, since every workspace module is built.
 - **Not run:** any email sent (no provider) or connector (none built); anything against "agent".
+
+### Plans and subscriptions (Phase 15)
+
+- **Database:** `supabase/tests/subscriptions.test.ts` (9 tests, migration 21, local only): who manages plans and the value checks; assigning a plan (features, status, the university's own view); member, invitation and document limits with overrides; the monthly AI cap and its presence in every AI gate; the next-status rules; the sweep (trial end, past due, grace, cancelled); payments that renew; history and audit; the usage report.
+- **Unit:** `src/lib/billing/billing.test.ts` (10 tests): currency decimals and amounts, the plan, assignment, payment and limits forms, months, labels, and the plan-limit error message.
+- **Browser (preview):** plans and usage render without data or writes, the month navigation, plan and subscription pages need real data, Arabic and accessibility of both pages. The planned-module test now uses the platform settings page (Phase 16).
+- **Not run:** anything against "agent"; the platform pages with real data (no visual check this phase).

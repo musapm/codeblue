@@ -17,6 +17,7 @@ export const managementEn = {
     rateLimited: 'Too many requests. Wait a few minutes and try again.',
     inUse: 'This item is still in use (for example, a program that has inquiries). Archive it instead.',
     closed: 'This request is closed. Open a new request if you need more help.',
+    planLimit: 'The university’s plan limit has been reached. Ask the university’s administrator to change the plan.',
     dailyLimit: 'You have reached today’s limit. Please try again tomorrow.',
     aiBudget: 'The university’s AI budget for this month has been reached. Please write it yourself.',
     aiRefused: 'The AI could not help with this. Please write it yourself.',

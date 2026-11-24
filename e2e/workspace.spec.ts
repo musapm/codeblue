@@ -24,9 +24,9 @@ test.describe('workspace shell (UI preview mode)', () => {
   })
 
   test('planned modules are labelled honestly', async ({ page }) => {
-    await page.goto('/en/platform/plans')
-    await expect(page.getByRole('heading', { level: 1 })).toHaveText('Plans & subscriptions')
-    await expect(page.getByText('Planned · Phase 15').first()).toBeVisible()
+    await page.goto('/en/platform/settings')
+    await expect(page.getByRole('heading', { level: 1 })).toHaveText('Platform settings')
+    await expect(page.getByText('Planned · Phase 16').first()).toBeVisible()
     await expect(page.getByText('Not built yet')).toBeVisible()
   })
 
@@ -734,6 +734,52 @@ test.describe('notifications and integrations (UI preview mode)', () => {
     test(`${path} is translated and has no serious accessibility violations`, async ({ page }) => {
       await page.goto(path)
       await expect(page.getByRole('heading', { level: 1 })).toHaveText(/التكامل|إعدادات الإشعارات/)
+      const results = await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa']).analyze()
+      const serious = results.violations.filter((v) => v.impact === 'serious' || v.impact === 'critical')
+      expect(serious.map((v) => `${v.id}: ${v.nodes.length} node(s)`)).toEqual([])
+    })
+  }
+})
+
+test.describe('plans, subscriptions and usage (UI preview mode)', () => {
+  test('plans render without data and without writes, and are no longer labelled planned', async ({ page }) => {
+    const errors = trackErrors(page)
+    await page.goto('/en/platform/plans')
+    await expect(page.getByRole('heading', { level: 1 })).toHaveText('Plans & subscriptions')
+    await expect(page.getByText(/none are built into the product/)).toBeVisible()
+    await expect(page.getByText('No plans yet. Universities without a plan work without limits.')).toBeVisible()
+    await expect(page.getByText('Planned · Phase 15')).toHaveCount(0)
+    await expect(page.getByRole('button', { name: 'Create plan' })).toHaveCount(0)
+    const nav = page.getByRole('navigation', { name: 'Platform console' }).first()
+    await expect(nav.getByRole('link', { name: /Usage & AI costs/ })).toBeVisible()
+    expect(errors).toEqual([])
+  })
+
+  test('the usage report moves between months and shows no data in preview', async ({ page }) => {
+    const errors = trackErrors(page)
+    await page.goto('/en/platform/usage?month=2026-03')
+    await expect(page.getByRole('heading', { level: 1 })).toHaveText('Usage & AI costs')
+    await expect(page.getByRole('heading', { name: 'March 2026' })).toBeVisible()
+    await expect(page.getByText('There is no data in preview mode.')).toBeVisible()
+    await page.getByRole('link', { name: 'Next month' }).click()
+    await expect(page).toHaveURL(/month=2026-04$/)
+    await page.goto('/en/platform/usage?month=2026-13')
+    await expect(page.getByRole('heading', { level: 1 })).toHaveText('Usage & AI costs') // invalid month: the current one
+    await expect(page.getByRole('button', { name: 'Check renewals now' })).toHaveCount(0)
+    expect(errors).toEqual([])
+  })
+
+  test('plan and subscription pages need real data', async ({ page }) => {
+    for (const path of ['/en/platform/plans/00000000-0000-4000-8000-000000000001', '/en/platform/tenants/northbridge/subscription']) {
+      await page.goto(path)
+      await expect(page.getByRole('heading', { name: 'Page not found' })).toBeVisible()
+    }
+  })
+
+  for (const path of ['/ar/platform/plans', '/ar/platform/usage']) {
+    test(`${path} is translated and has no serious accessibility violations`, async ({ page }) => {
+      await page.goto(path)
+      await expect(page.getByRole('heading', { level: 1 })).toHaveText(/الخطط والاشتراكات|الاستخدام وتكاليف الذكاء الاصطناعي/)
       const results = await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa']).analyze()
       const serious = results.violations.filter((v) => v.impact === 'serious' || v.impact === 'critical')
       expect(serious.map((v) => `${v.id}: ${v.nodes.length} node(s)`)).toEqual([])

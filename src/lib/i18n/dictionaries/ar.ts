@@ -7,6 +7,7 @@ import { staffAr } from './staff.ar'
 import { workflowsAr } from './workflows.ar'
 import { campusAr } from './campus.ar'
 import { voiceAr } from './voice.ar'
+import { billingAr } from './billing.ar'
 import { integrationsAr } from './integrations.ar'
 import { analyticsAr } from './analytics.ar'
 import { ticketsAr } from './tickets.ar'
@@ -179,6 +180,13 @@ export const ar = (brand: PlatformBranding): Dictionary => ({
     campusQuestion: 'اكتب سؤالًا من 3 أحرف على الأقل.',
     voicePrice: 'أدخل سعرًا من 0 إلى 100 دولار، أو اتركه فارغًا.',
     voiceMinutes: 'أدخل عددًا صحيحًا من الدقائق من 1 إلى 600.',
+    planKey: 'استخدم من 2 إلى 40 حرفًا لاتينيًا صغيرًا أو رقمًا أو - أو _، تبدأ بحرف.',
+    planCurrency: 'أدخل رمز العملة من ثلاثة أحرف، مثل USD أو SAR.',
+    planAmount: 'أدخل مبلغًا لا تزيد خاناته العشرية عما تستخدمه العملة.',
+    planDays: 'أدخل عددًا صحيحًا من الأيام ضمن النطاق المسموح.',
+    planLimitValue: 'أدخل عددًا صحيحًا، أو اتركه فارغًا بلا حد.',
+    planMonths: 'أدخل عددًا صحيحًا من الأشهر (حتى 36).',
+    planDate: 'أدخل تاريخًا.',
     integrationConfig: 'اكتب «الاسم = القيمة» في كل سطر (حتى 30). لا تُقبل الأسماء التي تشبه الأسرار (كلمة مرور، رمز، مفتاح…): ضع السر في مخزن الأسرار على الخادم واكتب اسمه أدناه.',
     integrationSecretRef: 'اكتب اسم السر بأحرف إنجليزية كبيرة وأرقام وشرطات سفلية، مثل MOODLE_TOKEN.',
   },
@@ -372,4 +380,5 @@ export const ar = (brand: PlatformBranding): Dictionary => ({
   campus: campusAr,
   voice: voiceAr,
   integrations: integrationsAr,
+  billing: billingAr,
 })

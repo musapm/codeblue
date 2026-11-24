@@ -1659,6 +1659,40 @@ export type Database = {
       my_notification_preferences: { Args: { p_tenant_slug: string }; Returns: Json }
       set_notification_preference: { Args: { p_email: boolean; p_in_app: boolean; p_kind: string; p_tenant_slug: string }; Returns: undefined }
       outbox_summary: { Args: { p_tenant_slug: string }; Returns: Json }
+      platform_plan_save: {
+        Args: {
+          p_ai_monthly_usd: number | null
+          p_currency: string | null
+          p_description: string | null
+          p_features: string[]
+          p_grace_days: number
+          p_interval: string
+          p_is_active: boolean
+          p_key: string
+          p_max_documents: number | null
+          p_max_members: number | null
+          p_name: string
+          p_name_ar: string | null
+          p_plan: string | null
+          p_price_minor: number | null
+          p_sort_order?: number
+          p_trial_days: number
+        }
+        Returns: string
+      }
+      platform_plans: { Args: Record<PropertyKey, never>; Returns: Json }
+      platform_plan_delete: { Args: { p_plan: string }; Returns: undefined }
+      platform_assign_plan: { Args: { p_months: number | null; p_note?: string | null; p_plan_key: string; p_tenant_slug: string; p_trial: boolean }; Returns: undefined }
+      platform_set_subscription_status: { Args: { p_note?: string | null; p_status: string; p_tenant_slug: string }; Returns: undefined }
+      platform_set_limits: { Args: { p_ai_monthly_usd: number | null; p_billing_notes: string | null; p_max_documents: number | null; p_max_members: number | null; p_tenant_slug: string }; Returns: undefined }
+      platform_record_payment: {
+        Args: { p_amount_minor: number; p_currency: string; p_extends_months: number; p_method: string; p_note?: string | null; p_paid_on: string; p_reference: string | null; p_tenant_slug: string }
+        Returns: string
+      }
+      subscription_sweep: { Args: Record<PropertyKey, never>; Returns: Json }
+      platform_subscription: { Args: { p_tenant_slug: string }; Returns: Json }
+      platform_usage_report: { Args: { p_month: string }; Returns: Json }
+      tenant_subscription: { Args: { p_tenant_slug: string }; Returns: Json }
       integration_save: { Args: { p_config: Json; p_integration: string | null; p_kind: string; p_name: string; p_secret_ref: string | null; p_tenant_slug: string }; Returns: string }
       integration_set_status: { Args: { p_integration: string; p_status: string }; Returns: undefined }
       integration_delete: { Args: { p_integration: string }; Returns: undefined }

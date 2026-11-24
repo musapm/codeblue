@@ -76,7 +76,7 @@ Tenant admins can create **custom roles** from the catalog. Permission keys cann
 | `owner` | Everything on the platform: tenants, plans, features, global AI config, platform settings |
 | `admin` | Tenant lifecycle and configuration (not ownership transfer) |
 | `support` | Tenant metadata and health. Tenant content only through a time-boxed, audited `support_access_grant` |
-| `billing` | Subscriptions, payment records, usage reports |
+| `billing` | Plans, subscriptions, payment records, usage reports (owners and admins can do the same; Phase 15) |
 
 **No platform role, including `owner`, can read university content** (members, profiles, roles,
 departments, invitations, and later tickets, documents and conversations) without an active,
@@ -140,3 +140,9 @@ All of it needs the `campus_assistant` feature:
 - **Notification settings:** each member, for themselves only (with the ticketing or workflow feature).
 - **Integrations and the email outbox counts:** `integrations.manage` and the `integrations` feature.
 - **The outbox rows** are not readable by anyone directly; secrets are never stored, only their names.
+
+## Plans and subscriptions (Phase 15)
+
+- **Plans, subscriptions, payments, the usage report and the renewal check:** platform `owner`, `admin` or `billing` (not `support`).
+- **A university's own plan, status, limits and use:** `tenant.settings.read`; its payments: `tenant.settings.manage`.
+- **Limits** are enforced by the database for everyone, including platform staff acting through the app.

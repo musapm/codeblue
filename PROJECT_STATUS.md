@@ -1,6 +1,6 @@
 # Project Status
 
-_Last updated: 2026-11-24 (Phase 14)_
+_Last updated: 2026-11-24 (Phase 15)_
 
 ## Honest summary
 
@@ -67,7 +67,14 @@ Visitors need **anonymous sign-ins enabled** in Supabase Auth (currently disable
 **Notifications and integrations (Phase 14):** built and tested locally; **migration 20 is not applied** yet. It includes:
 - notification settings for each person (per kind: in the app, by email), followed when notifying;
 - an email outbox that keeps references only, with a sender interface, but **no email provider connected** (a decision and a key are needed);
-- an integrations page: a catalog of kinds, settings without secrets (only a secret's name), status, a log; **no connector built** (each needs a university's credentials). Invitations are not emailed yet: the link is shown once to copy and send.
+- an integrations page: a catalog of kinds, settings without secrets (only a secret's name), status, a log; **no connector built** (each needs a university's credentials).
+
+**Plans and subscriptions (Phase 15):** built and tested locally; **migration 21 is not applied** yet. It includes:
+- plans entered by the platform team (features, limits, trial and grace days, an optional price in any currency; no prices built in);
+- a subscription per university: trial, paid period, past due, suspended, expired, cancelled; manual payments that renew;
+- limits enforced by the database (members, documents, monthly AI spending across all AI features);
+- a monthly usage report per university, and the plan on each university's settings page;
+- a renewal check run from the console (**no scheduled job yet**; no online payments). Invitations are not emailed yet: the link is shown once to copy and send.
 
 | Phase | Status |
 | --- | --- |
@@ -86,6 +93,7 @@ Visitors need **anonymous sign-ins enabled** in Supabase Auth (currently disable
 | 12: Campus map & assistant | 🟡 **Built and tested locally** (unit, DB, browser, visual check of the map and location form). Migration 18 **not applied**; campus answers need `ANTHROPIC_API_KEY` |
 | 13: Voice | 🟡 **Built and tested locally** (unit, DB, browser, visual check). Migration 19 **not applied**; browser speech works; no server speech vendor chosen or connected |
 | 14: Notifications & integrations | 🟡 **Built and tested locally** (unit, DB, browser). Migration 20 **not applied**; no email provider and no connectors (need a decision and credentials) |
+| 15: Subscriptions & commercial | 🟡 **Built and tested locally** (unit, DB, browser). Migration 21 **not applied**; payments are recorded by hand; the renewal check is run by hand until a scheduled job exists |
 | 14–17 | Not started |
 
 ## Supabase project "agent"
@@ -143,13 +151,14 @@ Visitors need **anonymous sign-ins enabled** in Supabase Auth (currently disable
 - **Campus (Phase 12):** tested locally (9 DB tests); migration 18 is not on "agent", so these pages would fail there until it is applied. The directory works without the API key; only campus answers need it.
 - **Voice (Phase 13):** tested locally (8 DB tests) and with fake speech APIs; migration 19 is not on "agent". The server provider has no vendor connected, and real speech in a real browser was not tested here (no microphone in the test browser).
 - **Notifications and integrations (Phase 14):** tested locally (6 DB tests) and with a fake email sender; migration 20 is not on "agent". Emails stay queued until a provider and a worker exist; integrations keep settings only.
+- **Plans and subscriptions (Phase 15):** tested locally (9 DB tests); migration 21 is not on "agent". Until a plan is assigned, universities keep working without limits, as today.
 - **Analytics & AI quality (Phase 8):** tested locally (25 DB tests); migration 14 is not on "agent", so these pages would fail there until it is applied. The overview fails soft (it shows that figures are unavailable).
 - **Contact/demo form:** validates; not stored (`platform_inquiries` not built).
 - **Rate limiting:** in-memory per instance (now also on invitations, uploads, university creation).
 
 ### 3. UI-only / placeholder
 Module pages for
-platform plans/usage/AI/settings (labelled "Planned · Phase N").
+platform AI configuration and platform settings (labelled "Planned · Phase 16").
 Chat previews on the marketing site (static, labelled). Privacy/Terms drafts.
 
 ### 4. Planned but not implemented
@@ -186,7 +195,7 @@ Real defects found by the live run and fixed:
 - An owner was offered a button to remove their own owner role. It is now hidden; the database already refused it if they were the last owner.
 
 ## Decisions and actions needed from you
-0. **Phases 6–14:** **apply migrations 12 to 20** together when you do the Supabase steps; I can do all nine in one session. Then:
+0. **Phases 6–15:** **apply migrations 12 to 21** together when you do the Supabase steps; I can do all ten in one session. Then:
    - turn on the `ticketing` feature for a university and add categories under Tickets → Categories & routing;
    - give someone the "AI quality reviewer" role if you want reviews done by someone other than the owner;
    - give teaching staff the new "Faculty member" role, create a course under Academic assistant, and assign its instructor;
@@ -389,9 +398,23 @@ Real defects found by the live run and fixed:
   - anything against "agent" (migration 20 not applied).
 - **Decisions needed:** an email provider (and its key), and where the sending worker runs (a scheduled job with the service role).
 
+## Phase 15 status (2026-11-24)
+- **Built:**
+  - migration 21 `subscriptions` (9 DB tests, **local only**), including the plan's AI cap added to the seven AI gate functions;
+  - platform pages: plans (create, edit, delete when unused), a university's subscription (assign, suspend, reactivate, cancel, limits, payments, history), the monthly usage report with the renewal check;
+  - the plan card on each university's settings page; the "plan limit reached" message on invitations and uploads;
+  - ADR-035.
+- **Verified:**
+  - typecheck, lint and build pass, plus unit 265, DB 289 and browser 154;
+  - the roadmap criteria: plans, trials, renewals, suspension, limits, manual payments, usage reports.
+- **Not verified:**
+  - the platform pages with real data (no visual check this phase);
+  - anything against "agent" (migration 21 not applied).
+- **Decisions needed:** whether to add online payments (a provider) and invoices; where the scheduled renewal check runs; the first plans and their prices.
+
 ## Next steps
-1. Go-live for Phases 5–14:
-   - apply migrations 12 to 20;
+1. Go-live for Phases 5–15:
+   - apply migrations 12 to 21;
    - set the API key and run the eval;
    - enable anonymous sign-ins (+ Turnstile);
    - then run live tests against "agent": a student chat, a visitor inquiry and an admissions question, the staff pipeline, a request handled end to end (reply, note, transfer, notifications, AI draft and summary), the analytics and AI quality pages on that real activity, a course end to end (material, join, each study aid, a quiz), the staff assistant (a question with a department filter, a draft, a digest), and a service request end to end (build and publish a form, submit it, ask for information, answer, approve, complete), the campus (add and publish a few locations, search, a campus question), and voice on a phone and a laptop (Arabic and English dictation and read-aloud). Clean up the test data afterwards.

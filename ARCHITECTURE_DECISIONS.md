@@ -486,3 +486,23 @@ Format: **ADR-NNN — Title** · Status · Date · Context → Decision → Cons
 **Consequences:**
 - **Not built:** an email provider and the scheduled worker (service role) that runs `deliverQueued`; any connector; reading secrets from Supabase Vault (the name scheme fits either Vault or the hosting's environment); digest emails; SMS or push.
 - **Testing:** 6 DB tests and unit tests of the delivery round with fakes; nothing was sent.
+
+## ADR-035 — Plans and subscriptions: entered prices, manual payments, limits in the database, a sweep for dates
+**Accepted · 2026-11-24**
+
+**Context:** Phase 15 asks for plans, trials, renewals, suspension, limits, manual payments and usage reports. Prices may not be hard-coded, no payment provider has been chosen, and universities already work without any plan.
+
+**Decision:**
+- **Plans are data.** Platform owners, admins and billing staff enter each plan: features, limits (members, knowledge documents, monthly AI spending in USD), trial and grace days, and an optional price in any currency (none means "by quote"). Amounts are kept in the currency's minor unit, with the number of decimals taken from the currency itself.
+- **One subscription per university** (`tenant_subscriptions`), with statuses trial, active, past due, suspended, expired and cancelled. Assigning a plan sets the university's features to the plan's features; single features can still be switched afterwards on the university page. **A university without a subscription keeps working without limits**, so nothing changes for existing universities until a plan is assigned.
+- **Access follows the status:** trial → trial, suspended and expired → the university is suspended (the existing Phase 3 lifecycle, which already blocks data access), everything else → active. Archived universities are never changed.
+- **Manual payments** (`payment_records`): bank transfer, cash, cheque, card taken outside the product, other. A payment can add months, which is the renewal: the period runs on from its end, or from today if it has already ended, and access is restored.
+- **Dates are applied by a sweep** (`subscription_sweep`): trial over → expired; paid period over → past due; past due beyond the grace days → suspended; cancelled at the end of its period → expired. Platform staff run it from the usage page; a scheduled job with the service role can call the same function. Nothing runs it automatically yet.
+- **Limits are enforced by the database:** triggers on invitations and memberships (members plus open invitations), on new knowledge documents (archived ones do not count), and a plan-wide monthly AI cap checked in every AI gate (`app.plan_ai_check`, the same "budget reached" error as the feature budgets). The seven AI gate functions were re-created unchanged except for that one line.
+- **Usage report** per university and month: members, documents, storage, AI calls and estimated cost, voice cost, chats, requests, and payments; counts and sums only, no personal data.
+- **The university's own view** (settings page): plan, status, dates, limits and use, readable with `tenant.settings.read` (also while suspended, at the database level); payments only with `tenant.settings.manage`.
+
+**Consequences:**
+- **Not built:** online card payments and invoices (a provider decision); a scheduled sweep; reminders before a trial or period ends (needs the email provider from ADR-034); proration; storage limits (storage is reported, not enforced); a plan-wide voice cap (voice keeps its own budget).
+- A suspended university's members see the suspended page, not the plan card; the platform team explains why.
+- **Testing:** 9 DB tests and unit tests of the forms and money rules; nothing ran against "agent".

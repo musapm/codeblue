@@ -40,6 +40,7 @@ Migration file versions match the versions recorded in the project
 | `20261124220000_campus.sql` | Phase 12: campus locations (buildings and what is inside them, coordinates, weekly hours, accessibility facts, contact, other names) with search in both languages, campus answers settings and gate, the answers' cost in `analytics_overview` (ADR-032). **Written and tested locally (9 DB tests); not applied yet** |
 | `20261124240000_voice.sql` | Phase 13: voice settings (off by default; input and read-aloud; browser or server provider; the university's prices, budget, daily input limit), `voice_usage_events` (separate, no direct reads, no audio or text), the server gate, usage figures and voice use in `analytics_overview` (ADR-033). **Written and tested locally (8 DB tests); not applied yet** |
 | `20261124260000_notifications_integrations.sql` | Phase 14: notification preferences (in-app on, email off by default), the email outbox (references only, no direct reads), `app.notify`/`app.notify_request` following preferences, integrations with non-secret settings, a secret NAME only, status and log (ADR-034). **Written and tested locally (6 DB tests); not applied yet** |
+| `20261124280000_subscriptions.sql` | Phase 15: plans (features, limits, trial and grace days, optional price), one subscription per university, manual payments that renew, the status sweep, limits enforced by triggers and a plan-wide AI cap added to every AI gate, the usage report (ADR-035). **Written and tested locally (9 DB tests); not applied yet** |
 
 ## Rules for new migrations
 

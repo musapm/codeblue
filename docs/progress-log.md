@@ -221,3 +221,11 @@ Chronological log of significant work. For the current snapshot see `PROJECT_STA
 - **App:** notification settings, the integrations pages with the outbox counts, and the email delivery round behind one sender interface.
 - **Found while building:** a failed send was first marked "skipped", which is final in the database, so retries would never happen; failures now stay queued until the fifth attempt.
 - **Not done on purpose:** no email provider (a decision for the product owner) and no connectors (they need real systems and credentials to be tested).
+
+## 2026-11-24: Phase 15 (plans and subscriptions), nothing applied to Supabase
+
+- **Database:** migration 21 `subscriptions` (local, 9 DB tests, 289 total): plans, subscriptions, manual payments, the status sweep, limits and the usage report.
+- **Design decision (ADR-035):** prices are data; one subscription per university; access follows its status through the existing suspension; limits in the database, including a plan-wide AI cap added to each AI gate; dates applied by a sweep.
+- **App:** platform pages for plans, a university's subscription and the usage report; the plan on the university's settings page.
+- **Found while building:** an update that only changes a plan's features writes no row for the plan itself; the change is audited through its features instead (the test now says so).
+- **Not done on purpose:** online payments and invoices (a provider decision); a scheduled job for the renewal check; a visual check with real data.

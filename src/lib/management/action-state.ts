@@ -30,6 +30,7 @@ export const ACTION_ERRORS = [
   'formChanged',
   'suggestionsOff',
   'campusOff',
+  'planLimit',
   'generic',
 ] as const
 
@@ -65,7 +66,7 @@ export function mapDbError(error: DbError): ActionErrorKey {
     case '55000':
       return 'closed'
     case '54000':
-      return 'dailyLimit'
+      return /plan limit/i.test(message) ? 'planLimit' : 'dailyLimit'
     case '53400':
       return 'aiBudget'
     default:

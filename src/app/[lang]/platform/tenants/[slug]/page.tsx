@@ -1,6 +1,6 @@
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
-import { ArrowLeft, ExternalLink } from 'lucide-react'
+import { ArrowLeft, CreditCard, ExternalLink } from 'lucide-react'
 import { PageHeader } from '@/components/app-shell/page-header'
 import { SubmitButton } from '@/components/forms/submit-button'
 import { ActionButton, ActionForm } from '@/components/management/action-form'
@@ -10,6 +10,7 @@ import { Badge } from '@/components/ui/badge'
 import { buttonClasses } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Select, Textarea } from '@/components/ui/input'
+import { BILLING_ROLES } from '@/lib/billing/view'
 import { localizedPath } from '@/lib/i18n/config'
 import { getI18n } from '@/lib/i18n/server'
 import { grantSupportAccess, revokeSupportAccess, setTenantFeature, setTenantStatus } from '@/lib/management/platform-actions'
@@ -57,12 +58,20 @@ export default async function PlatformTenantPage({ params }: PageProps<'/[lang]/
           </>
         }
         actions={
-          isMember ? (
-            <Link href={localizedPath(locale, `/app/${tenant.slug}`)} className={buttonClasses({ variant: 'secondary', size: 'sm' })}>
-              <ExternalLink aria-hidden />
-              {d.openWorkspace}
-            </Link>
-          ) : undefined
+          <span className="flex flex-wrap gap-2">
+            {BILLING_ROLES.includes(role ?? '') ? (
+              <Link href={localizedPath(locale, `/platform/tenants/${tenant.slug}/subscription`)} className={buttonClasses({ variant: 'secondary', size: 'sm' })}>
+                <CreditCard aria-hidden />
+                {dict.billing.subscription.link}
+              </Link>
+            ) : null}
+            {isMember ? (
+              <Link href={localizedPath(locale, `/app/${tenant.slug}`)} className={buttonClasses({ variant: 'secondary', size: 'sm' })}>
+                <ExternalLink aria-hidden />
+                {d.openWorkspace}
+              </Link>
+            ) : null}
+          </span>
         }
       />
 

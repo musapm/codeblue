@@ -153,7 +153,7 @@ describe('navigation model', () => {
 
   it('exposes planned module segments for placeholder routes', () => {
     expect(plannedSegments(WORKSPACE_NAV)).toEqual([]) // every workspace module is built (integrations in Phase 14)
-    expect(plannedSegments(PLATFORM_NAV)).toContain('plans')
+    expect(plannedSegments(PLATFORM_NAV)).toEqual(['ai', 'settings']) // plans and usage built in Phase 15
     expect(plannedSegments(WORKSPACE_NAV)).not.toContain('campus') // built in Phase 12
     expect(plannedSegments(WORKSPACE_NAV)).not.toContain('workflows') // built in Phase 11
     expect(plannedSegments(WORKSPACE_NAV)).not.toContain('academic') // built in Phase 9
