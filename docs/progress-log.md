@@ -156,3 +156,22 @@ Chronological log of significant work. For the current snapshot see `PROJECT_STA
 - **Checked:** all Phase 4 knowledge tests still pass after the read and manage helpers gained a course branch. Two lint findings (reading the clock during render) were fixed by computing the dates outside the components.
 - **Not live yet:** migration 15 waits for the owner's Supabase session; generation needs the API key.
 
+## 2026-11-24: Phase 10 (staff assistant), nothing applied to Supabase
+
+- **Database:** migration 16 `staff` (local, 16 DB tests, 237 total). It adds:
+  - staff assistant settings (off by default, guidance, monthly budget, daily limit per person);
+  - `staff` conversations and private drafts;
+  - a ticket-digest source that returns only tickets the caller works, without requester identity or notes;
+  - a department filter on `search_knowledge` that only narrows what the person may read.
+- **Design decision (ADR-030):** the grounded pipeline for staff; the AI never sends anything; ticket text is redacted before it goes to the model; staff conversations stay out of the AI quality review.
+- **App:**
+  - the staff chat with a department filter and its own endpoint;
+  - drafts (form, list, draft page with copy buttons, missing details and sources);
+  - the ticket digest;
+  - the settings page;
+  - the staff card and budget in analytics.
+- **Found while building:**
+  - a CHECK constraint that evaluates to NULL passes, so a draft without a body was accepted (fixed with `coalesce`, DB test);
+  - the digest's coverage line said "Based on 75 open tickets" when it covered 60 of them (fixed; found by the visual check, now a component test);
+  - AI errors in two older actions showed "The database is not configured" when the AI key was missing (now "AI is not configured").
+- **Not live yet:** migration 16 waits for the owner's Supabase session; the tools need the API key.

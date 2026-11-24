@@ -107,3 +107,10 @@ Inside a course, `course_members.role` is `instructor` or `student`. It does not
 - **Study in a course** (published materials, study tools when on): `student` in that course, with `academic.use`, while the course is active.
 - Course materials are readable only through these rules, never through knowledge-base permissions (ADR-029).
 
+## Staff assistant (Phase 10)
+
+- **Use it** (questions, drafts, ticket digest): `assistant.staff.use` with the `staff_assistant` feature, while the university has switched it on. The ticket digest also needs `ticketing` and `tickets.read_department` or `tickets.read_all`; the "all departments" view needs `tickets.read_all`.
+- **Configure it** (switch, guidance, budget, daily limit, usage): `assistant.configure` with the feature.
+- **What it can read** is never more than the person can read: retrieval runs with their own session (the department filter only narrows it), and the digest takes only tickets they work, never their own requests (ADR-030).
+- **Drafts** are readable only by their author.
+

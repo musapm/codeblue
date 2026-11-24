@@ -138,7 +138,7 @@ export async function joinCourse(_prev: ActionState, formData: FormData): Promis
 }
 
 const STUDY_ERRORS: Record<StudyAidError, ActionErrorKey> = {
-  notConfigured: 'notConfigured',
+  notConfigured: 'aiNotConfigured',
   aiBudget: 'studyBudget',
   dailyLimit: 'dailyLimit',
   forbidden: 'forbidden',

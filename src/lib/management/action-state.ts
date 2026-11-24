@@ -25,6 +25,8 @@ export const ACTION_ERRORS = [
   'studyBudget',
   'studyRefused',
   'joinLimit',
+  'aiNotConfigured',
+  'staffOff',
   'generic',
 ] as const
 

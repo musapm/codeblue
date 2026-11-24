@@ -175,6 +175,36 @@ export type Database = {
         Update: never
         Relationships: []
       }
+      staff_assistant_settings: {
+        Row: {
+          daily_limit: number
+          enabled: boolean
+          instructions: string | null
+          monthly_budget_usd: number
+          tenant_id: string
+          updated_at: string
+        }
+        Insert: never
+        Update: never
+        Relationships: []
+      }
+      staff_drafts: {
+        Row: {
+          content: Json
+          created_at: string
+          id: string
+          kind: string
+          language: string
+          model: string
+          sources: Json
+          tenant_id: string
+          title: string
+          user_id: string
+        }
+        Insert: never
+        Update: never
+        Relationships: []
+      }
       ai_quality_reviews: {
         Row: {
           message_id: string
@@ -1436,6 +1466,21 @@ export type Database = {
       academic_update_progress: { Args: { p_item: string; p_state: Json }; Returns: undefined }
       academic_update_settings: { Args: { p_daily_limit: number; p_monthly_budget_usd: number; p_tenant_slug: string }; Returns: undefined }
       analytics_overview: { Args: { p_days: number; p_tenant_slug: string }; Returns: Json }
+      staff_ai_begin: { Args: { p_kind: string; p_tenant_slug: string }; Returns: Json }
+      staff_assistant_status: { Args: { p_tenant_slug: string }; Returns: Json }
+      staff_assistant_update_settings: {
+        Args: { p_daily_limit: number; p_enabled: boolean; p_instructions: string | null; p_monthly_budget_usd: number; p_tenant_slug: string }
+        Returns: undefined
+      }
+      staff_assistant_usage: { Args: { p_tenant_slug: string }; Returns: Json }
+      staff_begin_turn: { Args: { p_conversation: string | null; p_question: string; p_tenant_slug: string }; Returns: Json }
+      staff_delete_draft: { Args: { p_draft: string }; Returns: undefined }
+      staff_record_usage: { Args: { p_model: string; p_tenant_slug: string; p_usage: Json }; Returns: undefined }
+      staff_save_draft: {
+        Args: { p_content: Json; p_kind: string; p_language: string; p_model: string; p_sources: Json; p_tenant_slug: string; p_title: string; p_usage: Json }
+        Returns: string
+      }
+      staff_ticket_digest_source: { Args: { p_department: string | null; p_scope: string; p_tenant_slug: string }; Returns: Json }
       quality_flagged: {
         Args: { p_agent: string | null; p_days: number; p_kind: string; p_limit: number; p_state: string; p_tenant_slug: string }
         Returns: Json
@@ -1473,6 +1518,7 @@ export type Database = {
       publish_branding: { Args: { p_tenant_slug: string }; Returns: undefined }
       search_knowledge: {
         Args: {
+          p_department?: string | null
           p_embedding?: string
           p_embedding_model?: string
           p_limit?: number

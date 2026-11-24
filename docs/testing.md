@@ -189,3 +189,18 @@ Live runs on 2026-11-22 against project "agent":
 - **Visual check:** the study-tool form, the quiz, flashcards and study plan were rendered with fictional data through a temporary local-only route (deleted), in English and Arabic.
 - **Not run:** any live test (migration 15 not applied; generation needs the API key). The pages with real course data have been checked only through their parts.
 
+### Staff assistant (Phase 10)
+
+- **Database:** `supabase/tests/staff.test.ts` (16 tests, migration 16, local only). Covered:
+  - the gate: permission, feature, switch, budget and daily limit, with their error codes; settings only with `assistant.configure` (and audited);
+  - staff conversations kept apart from student ones (neither can continue the other);
+  - department-scoped search: the filter narrows, never widens (restricted documents stay hidden);
+  - drafts: validation (a body is required), private to the author, deletion by the author only;
+  - the ticket digest: scopes (mine, my departments, one department, all only with `tickets.read_all`), never other departments' tickets or the caller's own requests, no requester identity or notes, invalid scopes refused;
+  - usage booked as `staff_assistant`, the usage figures, and the staff agent and budget in analytics.
+  `analytics.test.ts` now expects the staff agent and its cost key.
+- **Unit:** `src/lib/staff/staff.test.ts` (18 tests): contact redaction (e-mail addresses, phone numbers and ids in Latin and Arabic-Indic digits; dates and ticket references kept), form input, and both tools with a fake model and database (no call without a key or when the gate refuses, the department filter passed to the search, passages escaped, only used sources saved, effort and token caps, refusals, unusable output and failed saves still book usage, ticket text redacted, unknown ticket references dropped). It also checks the staff prompt profile. `src/components/staff/staff.test.tsx` (3 tests): the digest's coverage line, labels and ticket links.
+- **Browser (preview):** the four staff pages without data and without writes; navigation; unknown drafts "not found"; Arabic; the staff endpoint refusing cross-site requests; accessibility of 4 pages.
+- **Visual check:** a draft, the ticket digest and the forms were rendered with fictional data through a temporary local-only route (deleted), in English and Arabic. It found a real defect: the digest said "Based on 75 open tickets" when it covered only 60 of them (fixed, with a component test).
+- **Not run:** any live test (migration 16 not applied; the tools need the API key). There is no eval set for the staff tools yet.
+

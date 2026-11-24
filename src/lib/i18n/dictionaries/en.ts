@@ -4,6 +4,7 @@ import { managementEn } from './management.en'
 import { academicEn } from './academic.en'
 import { analyticsEn } from './analytics.en'
 import { ticketsEn } from './tickets.en'
+import { staffEn } from './staff.en'
 
 /**
  * English UI dictionary (canonical shape). The Arabic dictionary must match this shape
@@ -158,6 +159,10 @@ export const en = (brand: PlatformBranding) => ({
     courseCodeTaken: 'A course with this code already exists for this term.',
     chooseMaterials: 'Choose 1 to 10 materials.',
     joinCode: 'Enter the 8-character code from your instructor.',
+    audienceRequired: 'Say who it is for.',
+    purposeRequired: 'Describe what it should say in at least 10 characters.',
+    purposeTooLong: 'Please keep this under 3,000 characters.',
+    dailyLimitInvalid: 'Enter a whole number from 1 to 500.',
   },
   contactForm: {
     name: 'Full name',
@@ -340,6 +345,7 @@ export const en = (brand: PlatformBranding) => ({
   tickets: ticketsEn,
   analytics: analyticsEn,
   academic: academicEn,
+  staff: staffEn,
 })
 
 export type Dictionary = ReturnType<typeof en>

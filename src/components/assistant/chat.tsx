@@ -67,6 +67,7 @@ export function AssistantChat({
   programHref,
   onConversation,
   handoff,
+  extraBody,
 }: {
   tenant: string
   locale: 'en' | 'ar'
@@ -86,6 +87,8 @@ export function AssistantChat({
   onConversation?: (id: string) => void
   /** "Ask a person" (Phase 7): link to a new request; `?c=<conversation>` is added once there is one. */
   handoff?: { href: string; label: string; hint: string }
+  /** Extra JSON fields sent with each question (staff assistant: the department filter). */
+  extraBody?: Record<string, string | null>
 }) {
   const router = useRouter()
   const sourceOptions: SourceOptions = { documentLinks, programHref }
@@ -119,7 +122,7 @@ export function AssistantChat({
       response = await fetch(endpoint ?? `/api/assistant/${encodeURIComponent(tenant)}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ question, conversationId, locale }),
+        body: JSON.stringify({ ...extraBody, question, conversationId, locale }),
       })
     } catch {
       setStage(null)

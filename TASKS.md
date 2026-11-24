@@ -159,9 +159,22 @@ Current state: `PROJECT_STATUS.md` · Audit history: `docs/IMPLEMENTATION_AUDIT.
 - [ ] Students' own uploads (storage, scanning, quotas)
 - [ ] Enrollment from the student information system (Phase 14)
 
+## Phase 10: Staff assistant 🟡 built and tested locally; migration 16 not applied
+
+- [x] Migration 16 `staff`: staff assistant settings (switch, guidance, budget, daily limit), `staff` conversations, private drafts, the staff gate, drafting and ticket-digest functions, `search_knowledge` with a department filter, staff usage in analytics (ADR-030). 16 DB tests, local only
+- [x] Department-scoped internal search: the staff chat with an optional department filter that only narrows what the person may read; staff conversations kept apart from student ones
+- [x] Drafting tools: emails, letters and announcements grounded in readable documents, with [placeholders] for missing details, their sources, copy buttons and deletion; private to the author; never sent by the AI
+- [x] Ticket summaries: an AI digest of the open tickets the person works (mine, my departments, all), with contact details redacted before sending, references checked and linked; not stored
+- [x] Settings page (switch, guidance, budget, daily limit, this month's use); analytics staff card, cost and budget
+- [x] Permission tests: DB (gate, settings, conversations, department-scoped search, drafts, digest scope, usage, audit), unit 212 (21 new), browser 124 (9 new); visual check of a draft and the digest (en/ar)
+- [ ] **Apply migration 16** (with 12–15), turn on the `staff_assistant` feature and the switch, then a live run: a question with and without a department filter, a draft in each language, a digest per view (needs the API key)
+- [ ] Eval set for the staff tools (grounding of drafts, digest faithfulness, Arabic and English)
+- [ ] Send a draft from the app (needs email integration, Phase 14); shared templates
+- [ ] Semantic search (embeddings, ADR-021) for better internal retrieval
+
 ## Later phases
 
-See `docs/roadmap.md` (Phases 10–17): academic, staff, workflows, campus, voice, notifications/integrations,
+See `docs/roadmap.md` (Phases 11–17): workflows, campus, voice, notifications/integrations,
 subscriptions, security review, launch.
 
 ## Known follow-ups

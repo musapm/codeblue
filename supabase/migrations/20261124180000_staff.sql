@@ -408,6 +408,7 @@ begin
     limit 60
   )
   select coalesce(jsonb_agg(jsonb_build_object(
+    'id', t.id,
     'reference', t.reference,
     'subject', t.subject,
     'status', t.status,

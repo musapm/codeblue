@@ -61,13 +61,14 @@ export async function getAssistantStatus(slug: string): Promise<{ canUse: boolea
   return { canUse: !!s.can_use, feature: !!s.feature, enabled: !!s.enabled, withinBudget: !!s.within_budget }
 }
 
-/** The caller's own recent conversations in this university. */
-export async function listConversations(tenantId: string, limit = 30): Promise<ConversationSummary[]> {
+/** The caller's own recent conversations in this university, with one assistant. */
+export async function listConversations(tenantId: string, limit = 30, agent: 'student' | 'staff' = 'student'): Promise<ConversationSummary[]> {
   const supabase = await createSupabaseServerClient()
   const { data, error } = await supabase
     .from('assistant_conversations')
     .select('id, title, updated_at')
     .eq('tenant_id', tenantId)
+    .eq('agent', agent)
     .order('updated_at', { ascending: false })
     .limit(limit)
   if (error) fail('assistant_conversations', error)
@@ -75,10 +76,14 @@ export async function listConversations(tenantId: string, limit = 30): Promise<C
 }
 
 /** Messages of one of the caller's conversations (null when it is not theirs or does not exist). */
-export async function getConversation(tenantId: string, conversationId: string): Promise<{ id: string; title: string; messages: ChatMessage[] } | null> {
+export async function getConversation(
+  tenantId: string,
+  conversationId: string,
+  agent: 'student' | 'staff' = 'student',
+): Promise<{ id: string; title: string; messages: ChatMessage[] } | null> {
   if (!z.uuid().safeParse(conversationId).success) return null
   const supabase = await createSupabaseServerClient()
-  const conversation = await supabase.from('assistant_conversations').select('id, title').eq('tenant_id', tenantId).eq('id', conversationId).maybeSingle()
+  const conversation = await supabase.from('assistant_conversations').select('id, title').eq('tenant_id', tenantId).eq('id', conversationId).eq('agent', agent).maybeSingle()
   if (conversation.error) fail('assistant_conversation', conversation.error)
   if (!conversation.data) return null
 

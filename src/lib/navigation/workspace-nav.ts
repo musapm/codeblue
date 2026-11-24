@@ -65,7 +65,7 @@ export const WORKSPACE_NAV: NavSection[] = [
       { key: 'assistant', segment: 'assistant', icon: 'ai', status: 'available', phase: 5, permission: 'assistant.configure', feature: 'student_assistant' },
       { key: 'admissions', segment: 'admissions', icon: 'admissions', status: 'available', phase: 6, permission: 'leads.read', feature: 'admissions_agent' },
       { key: 'academic', segment: 'academic', icon: 'academic', status: 'available', phase: 9, permission: 'academic.manage', feature: 'academic_agent' },
-      { key: 'staff-assistant', segment: 'staff-assistant', icon: 'staff', status: 'planned', phase: 10, permission: 'assistant.staff.use', feature: 'staff_assistant' },
+      { key: 'staff-assistant', segment: 'staff-assistant', icon: 'staff', status: 'available', phase: 10, permission: 'assistant.staff.use', feature: 'staff_assistant' },
     ],
   },
   {

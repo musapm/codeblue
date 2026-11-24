@@ -225,7 +225,7 @@ describe('the ticket digest covers only tickets the person works', () => {
     const r = await rpc(user(U.registrar), `public.staff_ticket_digest_source('uni-a', 'mine', null)`)
     expect(r.total).toBe(1)
     const t = r.tickets[0]
-    expect(Object.keys(t).sort()).toEqual(['assigned', 'assigned_to_me', 'category', 'created_at', 'department', 'first_message', 'last_activity_at', 'last_message', 'priority', 'reference', 'status', 'subject'])
+    expect(Object.keys(t).sort()).toEqual(['assigned', 'assigned_to_me', 'category', 'created_at', 'department', 'first_message', 'id', 'last_activity_at', 'last_message', 'priority', 'reference', 'status', 'subject'])
     expect(JSON.stringify(r)).not.toContain('Sara Student')
     expect(JSON.stringify(r)).not.toContain(U.student)
     expect(t.first_message).toBe('Please send my transcript to sara@example.com')
@@ -251,8 +251,12 @@ describe('usage and analytics', () => {
     expect(a.ai.budgets.staff_assistant).toBe(20)
   })
 
-  it('settings are visible to assistant administrators only', async () => {
+  it('settings are visible to assistant administrators only; settings are audited, drafts are not', async () => {
     expect(await count(user(U.owner), 'public.staff_assistant_settings')).toBe(1)
     for (const actor of [U.registrar, U.student, U.ownerB]) expect(await count(user(actor), 'public.staff_assistant_settings')).toBe(0)
+    const actions = (await pool.query(`select distinct action from public.audit_logs where action like 'staff_%' order by action`)).rows.map((r) => r.action)
+    expect(actions).toEqual(['staff_assistant_settings.insert', 'staff_assistant_settings.update'])
+    const leaked = (await pool.query(`select count(*)::int as n from public.audit_logs where metadata::text ilike '%Dear students%'`)).rows[0].n
+    expect(leaked).toBe(0)
   })
 })

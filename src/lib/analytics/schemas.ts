@@ -76,7 +76,8 @@ export const OverviewSchema = z.object({
   }),
   generated_at: z.string(),
   members: z.object({ active: num }),
-  assistant: z.object({ student: AssistantStats.optional(), admissions: AssistantStats.optional() }).nullable(),
+  // staff: Phase 10 (absent before migration 16).
+  assistant: z.object({ student: AssistantStats.optional(), admissions: AssistantStats.optional(), staff: AssistantStats.optional() }).nullable(),
   tickets: z
     .object({
       created: num,
@@ -105,8 +106,8 @@ export const OverviewSchema = z.object({
   ai: z
     .object({
       month_since: z.string(),
-      month: z.object({ student_assistant: num, admissions_agent: num, ticketing: num, academic_agent: num.optional() }),
-      budgets: z.object({ student_assistant: nullableNum, admissions_agent: nullableNum, academic_agent: nullableNum.optional() }),
+      month: z.object({ student_assistant: num, admissions_agent: num, ticketing: num, academic_agent: num.optional(), staff_assistant: num.optional() }),
+      budgets: z.object({ student_assistant: nullableNum, admissions_agent: nullableNum, academic_agent: nullableNum.optional(), staff_assistant: nullableNum.optional() }),
       period: z.object({ calls: num, cost_usd: num, input_tokens: num, output_tokens: num }),
     })
     .nullable(),

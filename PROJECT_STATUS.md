@@ -1,6 +1,6 @@
 # Project Status
 
-_Last updated: 2026-11-23 (Phase 9)_
+_Last updated: 2026-11-24 (Phase 10)_
 
 ## Honest summary
 
@@ -40,7 +40,13 @@ Visitors need **anonymous sign-ins enabled** in Supabase Auth (currently disable
 - AI study aids from those materials (summaries, practice quizzes, flashcards, study plans), switched on per course, labelled as AI-generated and private to each student;
 - class figures for instructors that never show an individual student's results.
 
-**Not built yet:** the staff, workflow and campus assistants. Invitations are not emailed yet: the link is shown once to copy and send.
+**Staff assistant (Phase 10):** built and tested locally; **migration 16 is not applied** yet. It includes:
+- questions over the documents a staff member may read, internal ones included, with sources and an optional department filter that only narrows the search;
+- AI drafts of emails, letters and announcements from those documents, with [placeholders] for missing details, kept privately for their author and never sent by the AI;
+- a ticket digest for people who work tickets (assigned to me, my departments, all), with contact details removed before the text goes to the AI;
+- its own switch (off by default), guidance, monthly budget and daily limit per person.
+
+**Not built yet:** the workflow and campus assistants. Invitations are not emailed yet: the link is shown once to copy and send.
 
 | Phase | Status |
 | --- | --- |
@@ -54,7 +60,8 @@ Visitors need **anonymous sign-ins enabled** in Supabase Auth (currently disable
 | 7: Tickets & human handoff | 🟡 **Built and tested locally** (unit, DB, browser). Migration 13 **not applied**; the AI help needs `ANTHROPIC_API_KEY` |
 | 8: Admin dashboard & analytics | 🟡 **Built and tested locally** (unit, DB, browser, visual check with fictional data). Migration 14 **not applied** |
 | 9: Academic assistant | 🟡 **Built and tested locally** (unit, DB, browser, visual check of the study components). Migration 15 **not applied**; generation needs `ANTHROPIC_API_KEY` |
-| 10–17 | Not started |
+| 10: Staff assistant | 🟡 **Built and tested locally** (unit, DB, browser, visual check of a draft and the digest). Migration 16 **not applied**; the tools need `ANTHROPIC_API_KEY` |
+| 11–17 | Not started |
 
 ## Supabase project "agent"
 
@@ -62,7 +69,7 @@ Visitors need **anonymous sign-ins enabled** in Supabase Auth (currently disable
 | --- | --- |
 | Ref / URL | `zijruhuvzxtuudsvnwgy` · `https://zijruhuvzxtuudsvnwgy.supabase.co` |
 | Region / plan | eu-central-1 (Frankfurt) · **Free** (no backups) |
-| Schema | 32 tables + private tables, all with RLS. **11 migrations applied**, byte-identical to git (`supabase/README.md`). Migrations 12 (admissions maintenance), 13 (tickets), 14 (analytics) and 15 (academic) are in git only, not applied. pgvector 0.8.2. Buckets `tenant-assets` (public logos) and `tenant-documents` (private originals) |
+| Schema | 32 tables + private tables, all with RLS. **11 migrations applied**, byte-identical to git (`supabase/README.md`). Migrations 12 (admissions maintenance), 13 (tickets), 14 (analytics), 15 (academic) and 16 (staff) are in git only, not applied. pgvector 0.8.2. Buckets `tenant-assets` (public logos) and `tenant-documents` (private originals) |
 | Data | 1 fictional demo university ("Northbridge"). The Phase 3 live run's temporary accounts and test universities: see "Cleanup" below |
 | Advisors | Only documented, intended findings (`supabase/README.md`) |
 | Auth settings | **Not configured yet:** Site URL, redirect URLs, SMTP, email templates (owner action, `docs/authentication.md`) |
@@ -106,18 +113,19 @@ Visitors need **anonymous sign-ins enabled** in Supabase Auth (currently disable
 - **Public admissions (inquiry form and admissions assistant):** live database, but visitors cannot get a session until anonymous sign-ins are enabled; the page then shows programs and says honestly that it cannot receive inquiries yet. Staff pages (inquiries, programs, analytics, settings) work with a normal account.
 - **Tickets & handoff (Phase 7):** pages, actions and database are tested locally (26 DB tests), but migration 13 is not on "agent", so the pages would fail against it until it is applied. Email notifications are not built (in-app only).
 - **Academic assistant (Phase 9):** tested locally (28 DB tests); migration 15 is not on "agent", so these pages would fail there until it is applied. Study aids also need the API key.
+- **Staff assistant (Phase 10):** tested locally (16 DB tests); migration 16 is not on "agent", so these pages would fail there until it is applied. All three tools need the API key.
 - **Analytics & AI quality (Phase 8):** tested locally (25 DB tests); migration 14 is not on "agent", so these pages would fail there until it is applied. The overview fails soft (it shows that figures are unavailable).
 - **Contact/demo form:** validates; not stored (`platform_inquiries` not built).
 - **Rate limiting:** in-memory per instance (now also on invitations, uploads, university creation).
 
 ### 3. UI-only / placeholder
-Module pages for staff, workflows, campus,
+Module pages for workflows, campus,
 integrations; platform plans/usage/AI/settings (labelled "Planned · Phase N").
 Chat previews on the marketing site (static, labelled). Privacy/Terms drafts.
 
 ### 4. Planned but not implemented
 Invitation emails (needs transactional email) · custom roles editor · sign-up domain rules and
-self-service join · staff, workflow and campus assistants · students' own uploads and instructor-shared quizzes · lead export for access requests, retention rules · ticket attachments, SLAs and assignment rules · analytics rollups, CSV export and email digests · AI clustering of gap questions · email notifications · subscriptions and plans · voice · integrations · backups · CI, monitoring.
+self-service join · workflow and campus assistants · sending staff drafts from the app, shared templates and an eval set for the staff tools · students' own uploads and instructor-shared quizzes · lead export for access requests, retention rules · ticket attachments, SLAs and assignment rules · analytics rollups, CSV export and email digests · AI clustering of gap questions · email notifications · subscriptions and plans · voice · integrations · backups · CI, monitoring.
 
 ### 5. Broken or incomplete
 | Issue | Severity |
@@ -127,20 +135,20 @@ self-service join · staff, workflow and campus assistants · students' own uplo
 | No backups on the Free plan | High before real data |
 | Replaced logo files are not deleted from storage (only the reference changes) | Low (cleanup job later) |
 | Deleting the account of a university's only owner is blocked by the owner guard (transfer ownership first). No self-service account deletion exists yet | Low (by design; document in support runbook) |
-| Assistant turns, ticket AI usage and study aids are recorded with the user's own session (no service-role worker yet): a user calling the API directly could add records to their own conversation or study aids, or understate usage (ADR-024, ADR-027, ADR-029) | Medium before launch |
+| Assistant turns, ticket AI usage, study aids and staff drafts are recorded with the user's own session (no service-role worker yet): a user calling the API directly could add records to their own conversation, study aids or drafts, or understate usage (ADR-024, ADR-027, ADR-029, ADR-030) | Medium before launch |
 | Anonymous visitor accounts are not cleaned up yet (they accumulate in Supabase Auth; inquiries survive their deletion) | Low (cleanup job, TASKS.md) |
 | Assistant system prompt is below the 512-token caching minimum, so it is not cached (small cost effect) | Low |
 | CSP allows inline scripts | Medium (Phase 16) |
 | Duplicate `id="main"` after switching workspaces | Low |
 
-## Test results (2026-11-23)
+## Test results (2026-11-24)
 
 | Suite | Result |
 | --- | --- |
 | Typecheck / lint / build | ✅ |
-| Unit + component (`npm test`) | ✅ 191/191 (incl. both assistants, the ticket AI and the study aids with a fake database and fake model, analytics helpers) |
-| Database isolation (`npm run test:db`) | ✅ 221/221 (local PostgreSQL 16; migrations 10–15, anonymous visitors, 26 ticket, 25 analytics and 28 academic tests) |
-| Browser e2e, preview mode (`npm run test:e2e`) | ✅ 115/115 (incl. course and academic pages, analytics and AI quality pages, ticket, request and notification pages, admissions staff pages, both answer endpoints refusing cross-site requests, robots/sitemap, accessibility) |
+| Unit + component (`npm test`) | ✅ 212/212 (incl. both assistants, the ticket AI, the study aids and the staff tools with a fake database and fake model, contact redaction, analytics helpers) |
+| Database isolation (`npm run test:db`) | ✅ 237/237 (local PostgreSQL 16; migrations 10–16, anonymous visitors, 26 ticket, 25 analytics, 28 academic and 16 staff tests) |
+| Browser e2e, preview mode (`npm run test:e2e`) | ✅ 124/124 (incl. the staff assistant pages and endpoint, course and academic pages, analytics and AI quality pages, ticket, request and notification pages, admissions staff pages, all three answer endpoints refusing cross-site requests, robots/sitemap, accessibility) |
 | Live AI eval (`npm run test:eval`, 13 student + 10 admissions cases) | ⏸ Not run: needs `ANTHROPIC_API_KEY` and your approval to spend (~USD 0.15–0.50 per run) |
 | **Live e2e against "agent"** (`e2e/live`, opt-in) | ✅ Phase 3 onboarding path 9/9: steps 1–7 in one run, then 8–9 after a test-selector fix and the support-access fix below. Phase 2 regression 4/4 (the 2 owner cases need a demo-tenant owner and were skipped, see `docs/testing.md`) |
 
@@ -149,10 +157,12 @@ Real defects found by the live run and fixed:
 - An owner was offered a button to remove their own owner role. It is now hidden; the database already refused it if they were the last owner.
 
 ## Decisions and actions needed from you
-0. **Phases 6–9:** **apply migrations 12, 13, 14 and 15** together when you do the Supabase steps; I can do all four in one session. Then:
+0. **Phases 6–10:** **apply migrations 12, 13, 14, 15 and 16** together when you do the Supabase steps; I can do all five in one session. Then:
    - turn on the `ticketing` feature for a university and add categories under Tickets → Categories & routing;
    - give someone the "AI quality reviewer" role if you want reviews done by someone other than the owner;
-   - give teaching staff the new "Faculty member" role, create a course under Academic assistant, and assign its instructor.
+   - give teaching staff the new "Faculty member" role, create a course under Academic assistant, and assign its instructor;
+   - turn on the `staff_assistant` feature for a university, then switch the assistant on under Staff assistant → Settings (it is off by default).
+   **Data processing:** the staff ticket digest sends ticket text to the AI provider (contact details removed, best effort). Please confirm this is covered by your terms with universities (ADR-030).
    **Privacy notice:** both assistants now tell people that unanswered and rated questions may be reviewed without their identity (ADR-028). Please confirm this matches your privacy policy, and add it to the university's own notice before launch.
    **Phase 6:**
    - **Enable anonymous sign-ins** in Supabase Auth: Authentication → Sign In / Providers. Without them, visitors cannot send inquiries or use the admissions assistant.
@@ -263,11 +273,29 @@ Real defects found by the live run and fixed:
   - generation with a real model (no key; no eval set yet);
   - the full course pages with real data. They were checked only through their parts.
 
+## Phase 10 status (2026-11-24)
+- **Built:**
+  - migration 16 `staff` (16 DB tests, **local only**);
+  - the staff chat with a department filter, and its endpoint `/api/staff-assistant/[tenant]`;
+  - AI drafts (emails, letters, announcements) and the draft pages;
+  - the ticket digest;
+  - the settings page, and the staff card and budget in analytics;
+  - the rules in ADR-030.
+- **Verified:**
+  - typecheck, lint and build pass, plus unit 212, DB 237 and browser 124;
+  - permission tests for every tool: who may use and configure it, conversations kept apart, the department filter never widening access, private drafts, digest scope (no other departments' tickets, no own requests, no notes or requester identity), audit;
+  - a visual check (en/ar) of a draft, the digest and the forms with fictional data.
+- **Found and fixed:** a draft without a body passed a CHECK constraint (NULL), the digest's coverage line was wrong, and two older AI actions reported a missing AI key as a database problem.
+- **Not verified:**
+  - anything against "agent" (migration 16 not applied);
+  - the tools with a real model (no key; no eval set yet);
+  - the full staff pages with real data. They were checked only through their parts.
+
 ## Next steps
-1. Go-live for Phases 5–9:
-   - apply migrations 12, 13, 14 and 15;
+1. Go-live for Phases 5–10:
+   - apply migrations 12, 13, 14, 15 and 16;
    - set the API key and run the eval;
    - enable anonymous sign-ins (+ Turnstile);
-   - then run live tests against "agent": a student chat, a visitor inquiry and an admissions question, the staff pipeline, a request handled end to end (reply, note, transfer, notifications, AI draft and summary), the analytics and AI quality pages on that real activity, and a course end to end (material, join, each study aid, a quiz). Clean up the test data afterwards.
+   - then run live tests against "agent": a student chat, a visitor inquiry and an admissions question, the staff pipeline, a request handled end to end (reply, note, transfer, notifications, AI draft and summary), the analytics and AI quality pages on that real activity, a course end to end (material, join, each study aid, a quiz), and the staff assistant (a question with a department filter, a draft, a digest). Clean up the test data afterwards.
 2. Phase 3 follow-ups: invitation email (after the provider decision), custom roles editor, sign-up domains.
 3. Operational: CI pipeline (`check` + `test:db` + e2e), error tracking, shared rate limiting, inquiry storage.

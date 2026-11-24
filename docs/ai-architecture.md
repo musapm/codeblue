@@ -47,7 +47,7 @@ user message
 | Student Assistant | Students, public | Public + student-visible docs, FAQs | `search_knowledge`, `create_ticket_draft`, `get_my_tickets`, `find_location` | `student_assistant` |
 | Admissions | Applicants (anonymous OK) | Admissions docs, programs DB | `search_programs`, `compare_programs`, `capture_lead` (consent required) | `admissions_agent` |
 | Academic | Students | Course materials only (own uploads not built) | summaries, practice quizzes, flashcards, study plans (structured output, Phase 9) | `academic_agent` |
-| Staff | Staff | Internal docs by department | `summarize_tickets`, `draft_email`, `draft_announcement` | `staff_assistant` |
+| Staff | Staff | Documents the staff member may read (internal included), optionally one department's | questions with sources, drafts (email, letter, announcement), ticket digest (structured output, Phase 10) | `staff_assistant` |
 | Workflow | Students | Procedure docs, workflow definitions | `start_request_draft`, `submit_request` (confirmation required) | `workflow_agent` |
 | Campus | Everyone | Campus locations DB | `find_location`, `opening_hours` | `campus_assistant` |
 
@@ -237,3 +237,11 @@ No model call is involved. The loop uses what the assistants already store:
 - **Grading** never involves the model: the answer key stays in the database and `academic_submit_quiz` grades.
 - **Not built:** an eval set for the study tools, and students' own uploads.
 
+## 16. Phase 10: the staff assistant
+
+Three tools share one gate (`app.staff_gate`: `assistant.staff.use`, the feature, the switch, the staff budget, the daily limit per person) and are booked as `staff_assistant` (ADR-030):
+- **Questions** use the grounded answer pipeline of §§ 5–13 with the `staff` profile: `staff_begin_turn`, then `search_knowledge` with the staff member's own session and an optional department (`p_department` narrows the readable set, never widens it). The system prompt says the passages may be internal, refers people to the department responsible, and forbids decisions about individuals (grades, exceptions, discipline, payments). Endpoint: `/api/staff-assistant/[tenant]` (same guards as the student endpoint).
+- **Drafts** (`src/lib/staff/ai.ts`, `draftDocument`): up to 6 passages (optional), the request and the university's guidance, each in its own escaped block. One `messages.parse` call (medium effort, 12,000-token cap) returns a title, subject, body, the details still missing, and the numbers of the passages used. Only those passages' documents are saved as sources. Missing facts stay as [placeholders].
+- **Ticket digest** (`ticketDigest`): `staff_ticket_digest_source` returns up to 60 open tickets of one view, without requester identity or notes. The app replaces e-mail addresses and numbers of 8 or more digits before sending (`redactContact`, best effort). One call (low effort, 8,000-token cap) returns an overview, themes, tickets needing attention and suggestions. Only references from the view are kept and linked. Nothing is stored; no model call when the view is empty.
+- **Refusals and unusable output** are still booked as usage.
+- **Not built:** an eval set for the staff tools, sending drafts from the app, shared templates.

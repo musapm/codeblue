@@ -70,7 +70,7 @@ export async function draftTicketFromConversation(input: { tenant: string; conve
     categories: categories.map((c) => ({ id: c.id, name: c.name })),
     labels: { user: dict.tickets.ai.student, assistant: dict.tickets.ai.assistant },
   })
-  if (!result.ok) return errorState(result.error === 'notConfigured' ? 'notConfigured' : result.error)
+  if (!result.ok) return errorState(result.error === 'notConfigured' ? 'aiNotConfigured' : result.error)
   return successState(result.draft)
 }
 
@@ -150,7 +150,7 @@ export async function summarizeTicketAction(_prev: ActionState, formData: FormDa
     language: locale === 'ar' ? 'Arabic' : 'English',
     labels: { requester: t.ai.requester, staff: t.ai.staff, user: t.ai.student, assistant: t.ai.assistant, openQuestions: t.ai.openQuestions, nextStep: t.ai.nextStep },
   })
-  if (!result.ok) return errorState(result.error === 'notConfigured' ? 'notConfigured' : result.error)
+  if (!result.ok) return errorState(result.error === 'notConfigured' ? 'aiNotConfigured' : result.error)
   const { error } = await ctx.supabase.rpc('tickets_add_ai_summary', { p_ticket: ticketId.data, p_summary: result.text, p_model: result.model })
   if (error) return dbFailure('tickets_add_ai_summary', error)
   refresh()

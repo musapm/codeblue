@@ -3,6 +3,7 @@ import type { Dictionary } from './en'
 import { admissionsAr } from './admissions.ar'
 import { managementAr } from './management.ar'
 import { academicAr } from './academic.ar'
+import { staffAr } from './staff.ar'
 import { analyticsAr } from './analytics.ar'
 import { ticketsAr } from './tickets.ar'
 
@@ -156,6 +157,10 @@ export const ar = (brand: PlatformBranding): Dictionary => ({
     courseCodeTaken: 'يوجد مقرر بهذا الرمز في هذا الفصل.',
     chooseMaterials: 'اختر من 1 إلى 10 مواد.',
     joinCode: 'أدخل الرمز المكوّن من 8 خانات الذي أعطاك إياه أستاذ المقرر.',
+    audienceRequired: 'اذكر لمن هي موجّهة.',
+    purposeRequired: 'صِف ما يجب أن تقوله في 10 أحرف على الأقل.',
+    purposeTooLong: 'يرجى ألا يتجاوز النص 3000 حرف.',
+    dailyLimitInvalid: 'أدخل عددًا صحيحًا من 1 إلى 500.',
   },
   contactForm: {
     name: 'الاسم الكامل',
@@ -338,4 +343,5 @@ export const ar = (brand: PlatformBranding): Dictionary => ({
   tickets: ticketsAr,
   analytics: analyticsAr,
   academic: academicAr,
+  staff: staffAr,
 })

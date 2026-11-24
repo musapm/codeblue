@@ -24,6 +24,8 @@ export const managementEn = {
     studyBudget: 'The university’s AI budget for study tools has been reached this month.',
     studyRefused: 'The AI could not make this study aid from these materials. Try other materials.',
     joinLimit: 'Too many wrong codes. Please wait an hour and check the code with your instructor.',
+    aiNotConfigured: 'AI is not configured in this environment.',
+    staffOff: 'The staff assistant is switched off for this university.',
     generic: 'Something went wrong. Please try again.',
   },
   saved: 'Saved.',

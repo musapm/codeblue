@@ -322,3 +322,42 @@ Format: **ADR-NNN — Title** · Status · Date · Context → Decision → Cons
 - **Not built:** students' own uploads, instructor-reviewed quizzes shared with the class, a course chat, eval sets for the study tools, LMS/SIS integration (Phase 14).
 
 **Consequences:** One ingestion pipeline serves both the knowledge base and courses. The access rules are enforced and tested in the database (28 tests). As with ADR-024, generated content and usage are saved with the student's own session: a student could store fake content in their own private study aids or under-report usage. This is accepted for now; a service-role worker would close it.
+
+## ADR-030 — Staff assistant: the grounded pipeline for staff, a department filter that only narrows, private drafts, a redacted ticket digest
+**Accepted · 2026-11-24**
+
+**Context:** Phase 10 adds an internal assistant for staff: search of department and internal knowledge, drafting tools, and ticket summaries. Staff may read more documents than students, including internal ones, and they work tickets about named people. Nothing here may widen what someone can already read, and nothing may be sent in the university's name by the AI.
+**Decision:**
+- **Who:**
+  - People with `assistant.staff.use` use it, when the university has the `staff_assistant` feature. That permission is in the staff role templates, department administrators, owners and administrators.
+  - People with `assistant.configure` switch it on and set it up (`staff_assistant_settings`): on/off (off by default), guidance, a monthly budget (default 20 USD), and a daily limit per person (default 60 requests over the last 24 hours, counting questions, drafts and digests together). Settings changes are audited.
+- **Questions** reuse the grounded pipeline of the student assistant (ADR-024):
+  - conversations have the agent `staff` and stay private to their author; a staff conversation cannot be continued from the student chat, or the other way round;
+  - retrieval runs with the staff member's own session (`search_knowledge`), so internal and restricted documents appear only when their role or department may read them;
+  - the optional department filter (`p_department`) only narrows that set, never widens it; course materials stay excluded;
+  - the staff prompt profile: an internal assistant that refers to the department responsible for the topic and never decides about individual students or staff (grades, exceptions, discipline, payments);
+  - the chat reminds staff not to forward internal details to people who may not see them.
+- **Drafts** (email, letter, announcement) take one structured-output call at medium effort, with:
+  - up to 6 passages from the documents the person can read (optionally one department's), the request, and the university's guidance;
+  - facts only from the passages or the request: missing details stay as [placeholders] and are listed for the author;
+  - as sources, only the documents of the passages the model says it used (numbers checked against what was sent).
+  Drafts are kept in `staff_drafts`, readable only by their author. They are not audited (the author's own work) and can be deleted. The AI never sends anything: staff copy the text.
+- **Ticket digest**, for people who work tickets (the `ticketing` feature plus `tickets.read_department` or `tickets.read_all`):
+  - **Selection:** `staff_ticket_digest_source` picks up to 60 open, in-progress or waiting tickets from one view: assigned to me, my departments (optionally one), or all (`tickets.read_all` only). It takes only tickets the person can work (`app.is_ticket_staff`), never their own requests, ordered by priority and then waiting time.
+  - **What is sent:** subject, status, priority, category, department, whether assigned, ages, the first message (≤ 800 characters) and the latest one (≤ 400). Requester names and ids and internal notes are never included. Before sending, the app also replaces e-mail addresses and numbers of 8 or more digits (phone numbers, student ids). This is best effort: names inside the text can remain.
+  - **Result:** an overview, themes, tickets needing attention and suggested next steps. Ticket references are checked against the view before they become links (the ticket page checks access again). The digest is shown once and not stored. Low effort.
+- **Usage** is booked as `staff_assistant`: answers through `assistant_complete_turn`, drafts and digests through `staff_save_draft` / `staff_record_usage`. Analytics shows a staff assistant card and the staff budget.
+- **Not in the AI quality review:** staff conversations can quote internal matters, and staff were not told that their questions may be reviewed. They are left out of the knowledge-gap and flagged-answer queues (`app.agent_enabled`), but counted in analytics.
+
+**Consequences:**
+- Department-scoped search, drafting and ticket summaries share the existing gates and row-level security. 16 DB tests cover:
+  - the gate and the settings;
+  - conversations kept apart;
+  - department-scoped search;
+  - private drafts;
+  - the digest scope: no other departments' tickets, no own requests, no notes, no requester identity;
+  - usage and analytics.
+  18 unit tests cover the redaction, the prompts and both tools with a fake model and database.
+- As in ADR-024, ADR-027 and ADR-029, drafts and usage are written with the person's own session. A staff member could store any text in their own drafts, or under-report usage, by calling the API directly. A service-role worker would close this.
+- The digest sends redacted ticket text to the AI provider: universities must cover this in their data-processing terms.
+- **Not built:** sending drafts from the app (needs email integration), shared templates, an eval set for the staff tools, semantic search (embeddings, ADR-021).

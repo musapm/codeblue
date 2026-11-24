@@ -464,6 +464,82 @@ test.describe('academic assistant (UI preview mode)', () => {
   }
 })
 
+test.describe('staff assistant (UI preview mode)', () => {
+  test('ask, drafts, ticket digest and settings render honestly without data and offer no writes', async ({ page }) => {
+    const errors = trackErrors(page)
+    await page.goto('/en/app/northbridge/staff-assistant')
+    await expect(page.getByRole('heading', { level: 1 })).toHaveText('Staff assistant')
+    const composer = page.getByRole('textbox', { name: 'Ask about a policy, procedure or deadline…' })
+    await expect(composer).toBeDisabled()
+    await expect(composer).toHaveAttribute('placeholder', 'UI preview mode: the staff assistant does not run without a backend.')
+    await expect(page.getByRole('button', { name: 'Send' })).toBeDisabled()
+    await expect(page.getByText('No conversations yet.')).toBeVisible()
+    await expect(page.getByText(/do not forward internal details/)).toBeVisible()
+
+    const main = page.getByRole('main')
+    await main.getByRole('link', { name: 'Drafts', exact: true }).click()
+    await expect(page).toHaveURL(/\/en\/app\/northbridge\/staff-assistant\/drafts$/)
+    await expect(page.getByRole('heading', { name: 'Write a draft with AI' })).toBeVisible()
+    await expect(page.getByText('No drafts yet.')).toBeVisible()
+    await expect(page.getByRole('button', { name: 'Write draft' })).toHaveCount(0)
+
+    await main.getByRole('link', { name: 'Ticket digest', exact: true }).click()
+    await expect(page).toHaveURL(/\/staff-assistant\/tickets$/)
+    await expect(page.getByRole('heading', { name: 'Ticket digest' })).toBeVisible()
+    await expect(page.getByRole('button', { name: 'Summarize' })).toHaveCount(0)
+
+    await main.getByRole('link', { name: 'Settings', exact: true }).click()
+    await expect(page).toHaveURL(/\/staff-assistant\/settings$/)
+    await expect(page.getByRole('heading', { name: 'Staff assistant settings' })).toBeVisible()
+    await expect(page.getByText('No use yet this month.')).toBeVisible()
+    await expect(page.getByRole('button', { name: 'Save settings' })).toHaveCount(0)
+    expect(errors).toEqual([])
+  })
+
+  test('navigation lists the staff assistant as available', async ({ page }) => {
+    await page.goto('/en/app/northbridge')
+    const nav = page.getByRole('navigation', { name: 'Workspace navigation' }).first()
+    const link = nav.getByRole('link', { name: /Staff assistant/ })
+    await expect(link).toBeVisible()
+    await expect(link).not.toContainText('P10')
+    await link.click()
+    await expect(page).toHaveURL(/\/en\/app\/northbridge\/staff-assistant$/)
+  })
+
+  test('unknown drafts are not found', async ({ page }) => {
+    for (const path of ['/en/app/northbridge/staff-assistant/drafts/00000000-0000-4000-8000-000000000000', '/en/app/northbridge/staff-assistant/drafts/not-a-uuid']) {
+      await page.goto(path)
+      await expect(page.getByRole('heading', { name: 'Page not found' })).toBeVisible()
+    }
+  })
+
+  test('Arabic staff pages are translated and right-to-left', async ({ page }) => {
+    await page.goto('/ar/app/northbridge/staff-assistant')
+    await expect(page.getByRole('heading', { level: 1 })).toHaveText('مساعد الموظفين')
+    await expect(page.locator('html')).toHaveAttribute('dir', 'rtl')
+    await page.goto('/ar/app/northbridge/staff-assistant/drafts')
+    await expect(page.getByRole('heading', { name: 'اكتب مسودة بالذكاء الاصطناعي' })).toBeVisible()
+  })
+
+  test('the staff endpoint refuses cross-site requests and does nothing in preview mode', async ({ request, baseURL }) => {
+    const body = { question: 'What is the leave policy?', locale: 'en', departmentId: null }
+    const crossSite = await request.post('/api/staff-assistant/northbridge', { data: body, headers: { Origin: 'https://evil.example' } })
+    expect(crossSite.status()).toBe(403)
+    const preview = await request.post('/api/staff-assistant/northbridge', { data: body, headers: { Origin: new URL(baseURL!).origin } })
+    expect(preview.status()).toBe(503)
+    expect(await preview.json()).toEqual({ error: 'preview' })
+  })
+
+  for (const path of ['/en/app/northbridge/staff-assistant', '/ar/app/northbridge/staff-assistant/drafts', '/en/app/northbridge/staff-assistant/tickets', '/en/app/northbridge/staff-assistant/settings']) {
+    test(`${path} has no serious accessibility violations`, async ({ page }) => {
+      await page.goto(path)
+      const results = await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa']).analyze()
+      const serious = results.violations.filter((v) => v.impact === 'serious' || v.impact === 'critical')
+      expect(serious.map((v) => `${v.id}: ${v.nodes.length} node(s)`)).toEqual([])
+    })
+  }
+})
+
 test.describe('workspace on mobile @mobile', () => {
   test('sidebar is available from the menu button', async ({ page }) => {
     await page.goto('/en/app/northbridge')

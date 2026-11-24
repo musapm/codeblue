@@ -375,6 +375,27 @@ Functions:
 
 Changed: `app.can_read_knowledge` / `app.can_manage_knowledge` (course branch), the storage delete rule (teachers remove their materials' files), `search_knowledge` (course materials excluded), `analytics_overview` (course materials excluded from the knowledge figures; academic section, cost and budget).
 
+## 2h. Phase 10 — staff assistant (migration 16 `staff`, **written and tested locally, not applied yet**)
+
+| Table | Contents | Access |
+| --- | --- | --- |
+| `assistant_conversations.agent` | now also `staff` | as before: the author only |
+| `staff_assistant_settings` | on/off (default off), guidance (≤ 2,000 characters), monthly budget (default 20 USD), daily limit per person (default 60, 1–500) | read: `assistant.configure`; changes through `staff_assistant_update_settings`; audited |
+| `staff_drafts` | kind email/letter/announcement, title, language, content `{subject, body, missing[]}`, sources (≤ 10 documents), model | read: the author only (and only while a member); written through functions; not audited (the author's own work) |
+
+Functions:
+
+| Function | Who | Purpose |
+| --- | --- | --- |
+| `staff_assistant_status(slug)` | members | can use, feature, enabled, within budget, can make a ticket digest |
+| `staff_assistant_update_settings(slug, enabled, guidance, budget, daily_limit)` / `staff_assistant_usage(slug)` | `assistant.configure` | Settings / this month's questions, drafts, people and cost |
+| `staff_begin_turn(slug, conversation, question)` | `assistant.staff.use` | Gate (`app.staff_gate`: permission, feature, switch 55000, budget 53400, daily limit 54000), then a staff conversation turn; other agents' conversations are "not found" |
+| `staff_ai_begin(slug, kind)` | same; a digest also needs `ticketing` and a ticket queue permission | Gate before a draft or a digest; returns the guidance |
+| `staff_save_draft(…)` / `staff_record_usage(…)` / `staff_delete_draft(draft)` | same / the author | Store a draft and book usage / book usage only / delete one's own draft |
+| `staff_ticket_digest_source(slug, scope, department)` | ticket staff | Up to 60 open tickets of one view (`mine`, `department` optionally one, `all` with `tickets.read_all`), only tickets the caller works, never their own requests: subject, status, priority, category, department, assignment, ages, first and latest message (shortened). No requester identity, no internal notes |
+
+Changed: `search_knowledge` gained `p_department` (narrows the readable set only); `assistant_complete_turn` books staff answers as `staff_assistant`; `analytics_overview` gained the staff agent, its month cost and its budget.
+
 ## 3. Phase 15 — plans, features, subscriptions (planned)
 
 ```
@@ -403,6 +424,7 @@ Effective features = plan features + enabled overrides − disabled overrides, c
 | 7 Tickets | Implemented, see §2e (migration 13 not applied yet). Not built: `ticket_attachments`, assignment rules beyond categories, SLAs |
 | 8 Analytics | Implemented without rollups, see §2f (migration 14 not applied yet). `daily_tenant_metrics` only if volumes require it |
 | 9 Academic | Implemented, see §2g (migration 15 not applied yet): materials are knowledge documents with `course_id`; study aids in `academic_items`; mastery per material from quiz attempts |
+| 10 Staff assistant | Implemented, see §2h (migration 16 not applied yet): staff conversations in `assistant_conversations`, drafts in `staff_drafts`; ticket digests are not stored |
 | 11 Workflows | `workflow_definitions` (versioned JSON schema of steps/fields), `workflow_requests`, `workflow_request_events` |
 | 12 Campus | `campus_locations` (type, coordinates, hours jsonb, accessibility jsonb), `location_aliases` |
 | 13 Voice | `voice_sessions`, usage in `ai_usage_events` with `modality = 'voice'` |

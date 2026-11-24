@@ -41,7 +41,7 @@ export function AnalyticsView({
   const bucketLabel = (ymd: string) => (data.period.bucket === 'week' ? `${t.week} ${formatDay(locale, ymd)}` : formatDay(locale, ymd))
   const when = (iso: string) => formatInstant(locale, iso, data.period.timezone)
 
-  const agents = (['student', 'admissions'] as const).filter((a) => data.assistant?.[a])
+  const agents = (['student', 'admissions', 'staff'] as const).filter((a) => data.assistant?.[a])
   const all = agents.reduce(
     (acc, a) => {
       const s = data.assistant![a]!
@@ -50,7 +50,7 @@ export function AnalyticsView({
     { questions: 0, answered: 0, gaps: 0, helpful: 0, rated: 0 },
   )
 
-  const assistantCard = (agent: 'student' | 'admissions', s: AssistantStats) => {
+  const assistantCard = (agent: (typeof agents)[number], s: AssistantStats) => {
     const recorded = s.answered + s.no_sources + s.refused + s.errors
     const outcomes = [
       { key: 'answered', label: d.assistant.answered, value: s.answered },
@@ -118,6 +118,7 @@ export function AnalyticsView({
         },
         { key: 'admissions', label: d.ai.features.admissions_agent ?? '', spent: ai.month.admissions_agent, budget: ai.budgets.admissions_agent },
         { key: 'academic', label: d.ai.features.academic_agent ?? '', spent: ai.month.academic_agent ?? 0, budget: ai.budgets.academic_agent ?? null },
+        { key: 'staff', label: d.ai.features.staff_assistant ?? '', spent: ai.month.staff_assistant ?? 0, budget: ai.budgets.staff_assistant ?? null },
       ]
     : []
   const q = data.quality
@@ -354,8 +355,8 @@ export function AnalyticsView({
                       </div>
                     )
                   })}
-                <dl className="grid grid-cols-2 gap-3 text-sm sm:grid-cols-4">
-                  {(['student_assistant', 'admissions_agent', 'ticketing', 'academic_agent'] as const).map((f) => (
+                <dl className="grid grid-cols-2 gap-3 text-sm sm:grid-cols-3 lg:grid-cols-5">
+                  {(['student_assistant', 'admissions_agent', 'ticketing', 'academic_agent', 'staff_assistant'] as const).map((f) => (
                     <div key={f}>
                       <dt className="text-xs text-muted-foreground">{d.ai.features[f]}</dt>
                       <dd className="font-semibold">{usd(ai.month[f] ?? 0)}</dd>

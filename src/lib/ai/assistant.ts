@@ -8,13 +8,15 @@ import { estimateCostUsd } from './pricing'
 import { buildMessages, buildSystemPrompt, mapCitations, retrievalQuery, type AnswerCitation, type HistoryTurn, type RetrievedChunk } from './prompt'
 
 /**
- * One question → one grounded answer (docs/ai-architecture.md, request lifecycle), for two agents:
+ * One question → one grounded answer (docs/ai-architecture.md, request lifecycle), for three agents:
  * - student: gates in assistant_begin_turn (membership, permission, feature, switch, budget);
  *   retrieval as the student (search_knowledge: only passages they may read, before ranking).
+ * - staff (Phase 10): gates in staff_begin_turn (assistant.staff.use, feature, switch, budget,
+ *   daily limit); retrieval as the staff member, optionally limited to one department's documents.
  * - admissions: gates in admissions_begin_turn (public page and assistant on, budget, per-visitor
  *   limit; anonymous visitor sessions allowed); retrieval = public documents (admissions_search)
  *   plus the university's published program records.
- * Then, for both:
+ * Then, for all of them:
  *   → no passages: a fixed answer without any model call
  *   → Claude with the passages as citable search results (streamed)
  *   → citations mapped to chunks/pages → answer, usage and cost stored (assistant_complete_turn).
@@ -31,7 +33,7 @@ export type AssistantEvent =
 
 export type AnswerStatus = 'answered' | 'no_sources' | 'refused' | 'error'
 export type AssistantErrorKey = 'notConfigured' | 'disabled' | 'budget' | 'limit' | 'forbidden' | 'invalid' | 'notFound' | 'generic'
-export type AgentKind = 'student' | 'admissions'
+export type AgentKind = 'student' | 'admissions' | 'staff'
 
 export type AssistantTexts = { noSources: (supportEmail: string | null) => string; refused: string; failed: string }
 
@@ -70,6 +72,8 @@ export async function* answerQuestion(opts: {
   agent?: AgentKind
   /** Admissions only: the published programs (already selected for this question). */
   programs?: RetrievedChunk[]
+  /** Staff only: limit retrieval to one department's documents (still only those they may read). */
+  departmentId?: string | null
 }): AsyncGenerator<AssistantEvent> {
   const agent = opts.agent ?? 'student'
   const ai = getAiConfig()
@@ -81,7 +85,12 @@ export async function* answerQuestion(opts: {
   const { supabase } = opts
 
   const beginArgs = { p_tenant_slug: opts.tenantSlug, p_conversation: opts.conversationId, p_question: opts.question }
-  const begun = agent === 'admissions' ? await supabase.rpc('admissions_begin_turn', beginArgs) : await supabase.rpc('assistant_begin_turn', beginArgs)
+  const begun =
+    agent === 'admissions'
+      ? await supabase.rpc('admissions_begin_turn', beginArgs)
+      : agent === 'staff'
+        ? await supabase.rpc('staff_begin_turn', beginArgs)
+        : await supabase.rpc('assistant_begin_turn', beginArgs)
   if (begun.error) {
     const key = beginError(begun.error.code)
     if (key === 'generic') log.error('assistant.begin_failed', { code: begun.error.code })
@@ -109,7 +118,12 @@ export async function* answerQuestion(opts: {
 
   yield { type: 'status', stage: 'searching' }
   const searchArgs = { p_tenant_slug: opts.tenantSlug, p_query: retrievalQuery(opts.question, turn.history), p_limit: RETRIEVAL_LIMIT }
-  const search = agent === 'admissions' ? await supabase.rpc('admissions_search', searchArgs) : await supabase.rpc('search_knowledge', searchArgs)
+  const search =
+    agent === 'admissions'
+      ? await supabase.rpc('admissions_search', searchArgs)
+      : agent === 'staff'
+        ? await supabase.rpc('search_knowledge', { ...searchArgs, p_department: opts.departmentId ?? null })
+        : await supabase.rpc('search_knowledge', searchArgs)
   if (search.error) {
     log.error('assistant.search_failed', { code: search.error.code })
     yield await finish('error', opts.texts.failed, [])
@@ -142,7 +156,7 @@ export async function* answerQuestion(opts: {
             ...opts.university,
             supportEmail: turn.support_email,
             instructions: turn.instructions,
-            audience: agent === 'admissions' ? 'applicants' : 'students',
+            audience: agent === 'admissions' ? 'applicants' : agent === 'staff' ? 'staff' : 'students',
           }),
           cache_control: { type: 'ephemeral' },
         },
