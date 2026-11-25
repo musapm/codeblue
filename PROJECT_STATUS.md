@@ -96,7 +96,6 @@ Visitors need **anonymous sign-ins enabled** in Supabase Auth (currently disable
 | 15: Subscriptions & commercial | 🟡 **Built and tested locally** (unit, DB, browser). Migration 21 **not applied**; payments are recorded by hand; the renewal check is run by hand until a scheduled job exists |
 | 16: Security, QA, production readiness | 🟡 **Review done; fixes built and tested locally** (unit, DB, browser). Migrations 22–23 **not applied**; two-step sign-in not tested live; the prompt-injection eval and the backup restore drill need your resources (docs/security-review.md) |
 | 17: Demo, deployment & launch | 🟡 **Ready to deploy, not deployed.** Demo reset (migration 24, not applied), monitoring, CI, runbooks and demo script built and tested locally. Deployment waits for your approval and the owner actions in `docs/launch-checklist.md` |
-| 14–17 | Not started |
 
 ## Supabase project "agent"
 
@@ -104,7 +103,7 @@ Visitors need **anonymous sign-ins enabled** in Supabase Auth (currently disable
 | --- | --- |
 | Ref / URL | `zijruhuvzxtuudsvnwgy` · `https://zijruhuvzxtuudsvnwgy.supabase.co` |
 | Region / plan | eu-central-1 (Frankfurt) · **Free** (no backups) |
-| Schema | 32 tables + private tables, all with RLS. **11 migrations applied**, byte-identical to git (`supabase/README.md`). Migrations 12 (admissions maintenance), 13 (tickets), 14 (analytics), 15 (academic), 16 (staff), 17 (workflows), 18 (campus) and 19 (voice) are in git only, not applied. pgvector 0.8.2. Buckets `tenant-assets` (public logos) and `tenant-documents` (private originals) |
+| Schema | 32 tables + private tables, all with RLS. **11 migrations applied**, byte-identical to git (`supabase/README.md`). Migrations 12 to 24 (admissions maintenance through demo) are in git only, not applied. pgvector 0.8.2. Buckets `tenant-assets` (public logos) and `tenant-documents` (private originals) |
 | Data | 1 fictional demo university ("Northbridge"). The Phase 3 live run's temporary accounts and test universities: see "Cleanup" below |
 | Advisors | Only documented, intended findings (`supabase/README.md`) |
 | Auth settings | **Not configured yet:** Site URL, redirect URLs, SMTP, email templates (owner action, `docs/authentication.md`) |
@@ -156,7 +155,7 @@ Visitors need **anonymous sign-ins enabled** in Supabase Auth (currently disable
 - **Plans and subscriptions (Phase 15):** tested locally (9 DB tests); migration 21 is not on "agent". Until a plan is assigned, universities keep working without limits, as today.
 - **Analytics & AI quality (Phase 8):** tested locally (25 DB tests); migration 14 is not on "agent", so these pages would fail there until it is applied. The overview fails soft (it shows that figures are unavailable).
 - **Contact/demo form:** validates; not stored (`platform_inquiries` not built).
-- **Rate limiting:** in-memory per instance (now also on invitations, uploads, university creation).
+- **Rate limiting:** shared across server instances through the database once migration 22 is applied and `RATE_LIMIT_SECRET` is set; until then, per instance (Phase 16).
 
 ### 3. UI-only / placeholder
 Module pages for
@@ -165,30 +164,31 @@ Chat previews on the marketing site (static, labelled). Privacy/Terms drafts.
 
 ### 4. Planned but not implemented
 Invitation emails (needs transactional email) · custom roles editor · sign-up domain rules and
-self-service join · campus routes, holiday calendars and public access to the directory · request attachments, multi-step approvals and deadlines · sending staff drafts from the app, shared templates and an eval set for the staff tools · students' own uploads and instructor-shared quizzes · lead export for access requests, retention rules · ticket attachments, SLAs and assignment rules · analytics rollups, CSV export and email digests · AI clustering of gap questions · email notifications · subscriptions and plans · voice · integrations · backups · CI, monitoring.
+self-service join · campus routes, holiday calendars and public access to the directory · request attachments, multi-step approvals and deadlines · sending staff drafts from the app, shared templates and an eval set for the staff tools · students' own uploads and instructor-shared quizzes · lead export for access requests, retention rules · ticket attachments, SLAs and assignment rules · analytics rollups, CSV export and email digests · AI clustering of gap questions · sending emails (no provider chosen) · real integration connectors · online payments and invoices · subdomain or custom-domain routing per university · the backup restore drill.
 
 ### 5. Broken or incomplete
 | Issue | Severity |
 | --- | --- |
 | Email-based auth flows (sign-up confirmation, password reset) unverified: need Supabase Auth URL, SMTP and template settings | High (owner action) |
-| In-memory rate limiting, IP from a spoofable header | High before launch |
+| ~~In-memory rate limiting, IP from a spoofable header~~ Fixed in Phase 16 (shared counters, `TRUSTED_IP_HEADER`); needs migration 22 and `RATE_LIMIT_SECRET` | Done in code |
 | No backups on the Free plan | High before real data |
 | Replaced logo files are not deleted from storage (only the reference changes) | Low (cleanup job later) |
 | Deleting the account of a university's only owner is blocked by the owner guard (transfer ownership first). No self-service account deletion exists yet | Low (by design; document in support runbook) |
 | Assistant turns, ticket AI usage, study aids and staff drafts are recorded with the user's own session (no service-role worker yet): a user calling the API directly could add records to their own conversation, study aids or drafts, or understate usage (ADR-024, ADR-027, ADR-029, ADR-030, ADR-031) | Medium before launch |
 | Anonymous visitor accounts are not cleaned up yet (they accumulate in Supabase Auth; inquiries survive their deletion) | Low (cleanup job, TASKS.md) |
 | Assistant system prompt is below the 512-token caching minimum, so it is not cached (small cost effect) | Low |
-| CSP allows inline scripts | Medium (Phase 16) |
+| ~~CSP allows inline scripts~~ Fixed in Phase 16 for signed-in pages (nonce); prerendered public pages keep `'unsafe-inline'` | Done in code |
 | Duplicate `id="main"` after switching workspaces | Low |
 
-## Test results (2026-11-24)
+## Test results (2026-11-24, after Phase 17)
 
 | Suite | Result |
 | --- | --- |
 | Typecheck / lint / build | ✅ |
-| Unit + component (`npm test`) | ✅ 249/249 (incl. the voice server flow with a fake vendor and the voice controls with fake speech APIs, campus hours, open-now and the map projection, both assistants, the ticket AI, the study aids, the staff tools and the form suggestion with a fake database and fake model, contact redaction, request form rules and the review step, analytics helpers) |
-| Database isolation (`npm run test:db`) | ✅ 274/274 (local PostgreSQL 16; migrations 10–19, anonymous visitors, 26 ticket, 25 analytics, 28 academic, 16 staff, 20 workflow, 9 campus and 8 voice tests) |
-| Browser e2e, preview mode (`npm run test:e2e`) | ✅ 144/144 (incl. the voice page and endpoints, the campus pages, the service request and workflow pages, the staff assistant pages and endpoint, course and academic pages, analytics and AI quality pages, ticket, request and notification pages, admissions staff pages, all three answer endpoints refusing cross-site requests, robots/sitemap, accessibility) |
+| Unit + component (`npm test`) | ✅ 289/289 |
+| Database isolation (`npm run test:db`) | ✅ 306/306 (local PostgreSQL 16 with pgvector; all 24 migrations, including the catalog coverage test) |
+| Browser e2e, preview mode (`npm run test:e2e`) | ✅ 158/158 (production build, under the nonce CSP) |
+| Secret scan (`npm run security:secrets`) / dependency audit | ✅ clean / 0 vulnerabilities |
 | Live AI eval (`npm run test:eval`, 13 student + 10 admissions cases) | ⏸ Not run: needs `ANTHROPIC_API_KEY` and your approval to spend (~USD 0.15–0.50 per run) |
 | **Live e2e against "agent"** (`e2e/live`, opt-in) | ✅ Phase 3 onboarding path 9/9: steps 1–7 in one run, then 8–9 after a test-selector fix and the support-access fix below. Phase 2 regression 4/4 (the 2 owner cases need a demo-tenant owner and were skipped, see `docs/testing.md`) |
 
