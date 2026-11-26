@@ -56,7 +56,7 @@
   },
   "description": "UniAgent AI — multi-tenant AI platform for universities",
   "engines": {
-    "node": ">=22.12"
+    "node": "22.x"
   },
   "overrides": {
     "playwright-core": "1.63.0"

@@ -26,7 +26,7 @@
 
 ## 2. App (Vercel)
 
-1. Import the GitHub repository; framework Next.js; Node 22.
+1. Import the GitHub repository; framework Next.js; Node 22 (`engines` pins `22.x`, the version every test runs on; Vercel otherwise picks its newest Node).
 2. Environment variables (Production): see `docs/environment-variables.md`. At least
    `NEXT_PUBLIC_SITE_URL`, `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`,
    `ANTHROPIC_API_KEY`, `RATE_LIMIT_SECRET` (32+ random characters), `TRUSTED_IP_HEADER`
